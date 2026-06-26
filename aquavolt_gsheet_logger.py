@@ -17,6 +17,7 @@ import sys
 import math
 import json
 import requests
+import time
 from datetime import datetime, timezone
 
 # ── Dynamic Dependencies ──────────────────────────────────────
@@ -86,6 +87,18 @@ def build_url(lat, lon):
         f"&forecast_days=1&timezone=auto"
     )
 
+# ── Robust Retry Helper ───────────────────────────────────────
+def retry_operation(func, desc, retries=3, delay=5):
+    for attempt in range(1, retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            print(f"[RETRY] {desc} failed (Attempt {attempt}/{retries}): {e}")
+            if attempt < retries:
+                time.sleep(delay)
+            else:
+                raise e
+
 # ── Main Process ──────────────────────────────────────────────
 def main():
     print("=" * 60)
@@ -95,14 +108,14 @@ def main():
 
     # 1. Authenticate with Google
     print("[AUTH] Authenticating with Google Cloud API...")
-    gc = get_gspread_client()
+    gc = retry_operation(get_gspread_client, "Google API Authentication")
     
     # Get target Sheet name
     sheet_name = os.environ.get("GSHEET_NAME", DEFAULT_SHEET_NAME)
     print(f"[FILE] Accessing Spreadsheet: '{sheet_name}'...")
     
     try:
-        sh = gc.open(sheet_name)
+        sh = retry_operation(lambda: gc.open(sheet_name), "Opening Spreadsheet")
     except gspread.exceptions.SpreadsheetNotFound:
         # Service Account email
         client_email = gc.auth.signer_email if hasattr(gc.auth, "signer_email") else "your service account email"
@@ -125,10 +138,10 @@ def main():
         "air_temp", "humidity", "solar_rad", "precip", "soil_temp", "soil_moisture"
     ]
     
-    existing_headers = worksheet.row_values(1)
+    existing_headers = retry_operation(lambda: worksheet.row_values(1), "Fetching existing headers")
     if not existing_headers:
         print("[HEADER] Sheet is empty. Initializing headers...")
-        worksheet.append_row(headers)
+        retry_operation(lambda: worksheet.append_row(headers), "Writing headers to Sheet")
 
     # ── Hourly Deduplication Guard ────────────────────────────────
     # Get the current hour bucket (e.g. "2026-06-26 14" for any minute within 2pm)
@@ -136,7 +149,7 @@ def main():
     current_hour_bucket = now_utc.strftime("%Y-%m-%d %H")
     print(f"[DEDUP] Checking for existing records for hour: {current_hour_bucket}:xx ...")
 
-    all_rows = worksheet.get_all_values()
+    all_rows = retry_operation(lambda: worksheet.get_all_values(), "Fetching sheet values")
     data_rows = all_rows[1:]  # skip header
 
     # Find all rows that belong to the current hour
@@ -154,7 +167,7 @@ def main():
     if duplicate_indices:
         print(f"[DEDUP] Found {len(duplicate_indices)} duplicate rows for this hour. Cleaning up...")
         for sheet_row in reversed(duplicate_indices):
-            worksheet.delete_rows(sheet_row)
+            retry_operation(lambda: worksheet.delete_rows(sheet_row), f"Deleting duplicate row {sheet_row}")
         print(f"[DEDUP] Cleanup done. Kept first occurrence only.")
 
     # If ANY record for this hour already exists (after cleanup), skip writing
@@ -166,9 +179,11 @@ def main():
     # 2. Fetch Weather Data
     print("[API] Fetching weather data from Open-Meteo...")
     try:
-        r = requests.get(build_url(LAT, LON), timeout=20)
-        r.raise_for_status()
-        weather = r.json()
+        def fetch_weather():
+            res = requests.get(build_url(LAT, LON), timeout=20)
+            res.raise_for_status()
+            return res.json()
+        weather = retry_operation(fetch_weather, "Weather API Fetch")
     except Exception as e:
         print(f"[ERROR] Weather API Error: {e}")
         sys.exit(1)
@@ -250,7 +265,10 @@ def main():
     # 5. Append to Google Sheet (Batch insert in 1 API call to avoid rate limits)
     print("[UPLOAD] Writing 64 records to Google Sheets...")
     try:
-        worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
+        retry_operation(
+            lambda: worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED'),
+            "Writing rows to Sheet"
+        )
         print(f"[OK] Success! 64 records written to Google Sheet '{sheet_name}'.")
     except Exception as e:
         print(f"[ERROR] Error writing to Google Sheet: {e}")
