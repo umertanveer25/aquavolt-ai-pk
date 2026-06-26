@@ -1,6 +1,8 @@
 name: AquaVolt-AI Hourly Sync
 
 on:
+  push:
+    branches: [ main ]
   schedule:
     # Run every hour at the top of the hour
     - cron: '0 * * * *'
