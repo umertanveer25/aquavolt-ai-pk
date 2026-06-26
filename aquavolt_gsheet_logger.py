@@ -289,11 +289,11 @@ def main():
         return False  # Signal failure so persistent loop retries
 
 # ── Persistent Retry Loop ─────────────────────────────────────
-# Keeps retrying every 20 seconds until all 64 rows are confirmed
-# in the sheet, or until 15 minutes have passed (safety timeout).
+# Keeps retrying every 2 minutes until all 64 rows are confirmed
+# in the sheet, or until 30 minutes have passed (safety timeout).
 if __name__ == "__main__":
-    MAX_ATTEMPTS = 45       # 45 × 20s = 15 minutes max
-    RETRY_INTERVAL = 20     # seconds between retries
+    MAX_ATTEMPTS = 15       # 15 × 120s = 30 minutes max
+    RETRY_INTERVAL = 120    # seconds between retries (2 minutes)
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
         print(f"\n{'='*60}")
@@ -323,5 +323,6 @@ if __name__ == "__main__":
             print(f"\n[RETRY] Unexpected error: {e}. Retrying in {RETRY_INTERVAL}s...")
             time.sleep(RETRY_INTERVAL)
 
-    print("\n[FAIL] Exhausted all retry attempts (15 minutes). Exiting with error.")
+    print("\n[FAIL] Exhausted all retry attempts (30 minutes). Exiting with error.")
     sys.exit(1)
+
