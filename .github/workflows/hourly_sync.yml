@@ -35,4 +35,4 @@ jobs:
           AQUAVOLT_LON: "-121.8688"
           AQUAVOLT_FARM: "UC Davis Russell Ranch"
         run: |
-          python aquavolt_gsheet_logger.py
+          python backfill.py
