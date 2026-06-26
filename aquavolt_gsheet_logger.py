@@ -269,10 +269,59 @@ def main():
             lambda: worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED'),
             "Writing rows to Sheet"
         )
-        print(f"[OK] Success! 64 records written to Google Sheet '{sheet_name}'.")
     except Exception as e:
         print(f"[ERROR] Error writing to Google Sheet: {e}")
-        sys.exit(1)
+        return False  # Signal failure so persistent loop retries
 
+    # 6. Verify all 64 rows were written successfully
+    print("[VERIFY] Confirming all 64 records are in the sheet...")
+    try:
+        verify_rows = retry_operation(lambda: worksheet.get_all_values(), "Verification read")
+        count = sum(1 for r in verify_rows[1:] if r and r[0].startswith(current_hour_bucket))
+        if count >= 64:
+            print(f"[OK] Verified! {count} records confirmed for hour '{current_hour_bucket}'.")
+            return True  # Signal success
+        else:
+            print(f"[WARN] Only {count}/64 records found. Will retry...")
+            return False  # Signal failure so persistent loop retries
+    except Exception as e:
+        print(f"[WARN] Verification failed: {e}. Will retry...")
+        return False  # Signal failure so persistent loop retries
+
+# ── Persistent Retry Loop ─────────────────────────────────────
+# Keeps retrying every 20 seconds until all 64 rows are confirmed
+# in the sheet, or until 15 minutes have passed (safety timeout).
 if __name__ == "__main__":
-    main()
+    MAX_ATTEMPTS = 45       # 45 × 20s = 15 minutes max
+    RETRY_INTERVAL = 20     # seconds between retries
+
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        print(f"\n{'='*60}")
+        print(f"  Attempt {attempt}/{MAX_ATTEMPTS}")
+        print(f"{'='*60}")
+        try:
+            result = main()
+            if result is True:
+                print("\n[DONE] All 64 records verified. Exiting successfully.")
+                sys.exit(0)
+            elif result is None:
+                # main() called sys.exit(0) for dedup skip — should not reach here
+                # but if it returns None, treat as success (dedup skip)
+                print("\n[DONE] Deduplication skip. Exiting.")
+                sys.exit(0)
+            else:
+                print(f"\n[RETRY] Write incomplete. Retrying in {RETRY_INTERVAL}s...")
+                time.sleep(RETRY_INTERVAL)
+        except SystemExit as se:
+            # If main() calls sys.exit(0) for dedup, let it exit cleanly
+            if se.code == 0:
+                sys.exit(0)
+            # For sys.exit(1) errors, retry
+            print(f"\n[RETRY] Error encountered. Retrying in {RETRY_INTERVAL}s...")
+            time.sleep(RETRY_INTERVAL)
+        except Exception as e:
+            print(f"\n[RETRY] Unexpected error: {e}. Retrying in {RETRY_INTERVAL}s...")
+            time.sleep(RETRY_INTERVAL)
+
+    print("\n[FAIL] Exhausted all retry attempts (15 minutes). Exiting with error.")
+    sys.exit(1)
