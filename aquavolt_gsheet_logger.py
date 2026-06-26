@@ -153,28 +153,26 @@ def main():
     data_rows = all_rows[1:]  # skip header
 
     # Find all rows that belong to the current hour
-    duplicate_indices = []  # 1-indexed sheet row numbers of duplicates
-    first_seen = False
+    matching_row_indices = []  # 1-indexed sheet row numbers matching this hour
     for i, row in enumerate(data_rows):
         if row and row[0].startswith(current_hour_bucket):
-            if first_seen:
-                # Mark subsequent duplicates for deletion (keep the first occurrence)
-                duplicate_indices.append(i + 2)  # +2: +1 for header, +1 for 1-indexing
-            else:
-                first_seen = True
+            matching_row_indices.append(i + 2)  # +2: +1 for header, +1 for 1-indexing
 
-    # Delete duplicate rows in reverse order to preserve indices
-    if duplicate_indices:
-        print(f"[DEDUP] Found {len(duplicate_indices)} duplicate rows for this hour. Cleaning up...")
-        for sheet_row in reversed(duplicate_indices):
-            retry_operation(lambda: worksheet.delete_rows(sheet_row), f"Deleting duplicate row {sheet_row}")
-        print(f"[DEDUP] Cleanup done. Kept first occurrence only.")
+    count = len(matching_row_indices)
+    print(f"[DEDUP] Found {count} existing records for hour {current_hour_bucket}.")
 
-    # If ANY record for this hour already exists (after cleanup), skip writing
-    if first_seen:
-        print(f"[DEDUP] Data for hour '{current_hour_bucket}' already exists. Skipping write.")
+    if count == 64:
+        print(f"[DEDUP] Complete grid (64 rows) already exists for hour '{current_hour_bucket}'. Skipping write.")
         print(f"[OK] Deduplication complete. Next write will occur at the next hourly trigger.")
         sys.exit(0)
+    elif count > 0:
+        # Incomplete or duplicate data exists. Clean it up first.
+        print(f"[DEDUP] Incomplete or duplicate grid found ({count}/64 rows). Cleaning up...")
+        # Delete rows in reverse order to keep indices correct
+        for sheet_row in reversed(matching_row_indices):
+            retry_operation(lambda: worksheet.delete_rows(sheet_row), f"Deleting row {sheet_row}")
+        print(f"[DEDUP] Cleanup done. Will write a fresh 64-row grid.")
+
     
     # 2. Fetch Weather Data
     print("[API] Fetching weather data from Open-Meteo...")
