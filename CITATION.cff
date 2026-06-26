@@ -1,0 +1,31 @@
+﻿cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "AquaVolt-AI: Physics-Informed Satellite-Driven Crop Water-Energy Optimization"
+abstract: >
+  AquaVolt-AI is an open-source, real-time precision agriculture monitoring system
+  that couples Physics-Informed Machine Learning (PIML) with FAO-56 Penman-Monteith
+  evapotranspiration modelling, NASA MODIS NDVI satellite data, and dynamic
+  astronomical crop growth simulation. It provides per-sector irrigation scheduling
+  recommendations and continuously logs telemetry data to SQLite and Google Sheets
+  for downstream ML model training.
+authors:
+  - family-names: Tanveer
+    given-names: Umer
+    affiliation: "Department of Computer Science, Abdul Wali Khan University Mardan (AWKUM), Pakistan"
+    email: umertanveer25@gmail.com
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+repository-code: "https://github.com/umertanveer25/aquavolt-ai-pk"
+license: MIT
+version: "2.0.0"
+date-released: "2026-06-26"
+keywords:
+  - precision agriculture
+  - evapotranspiration
+  - NDVI
+  - physics-informed machine learning
+  - FAO-56
+  - satellite remote sensing
+  - irrigation scheduling
+  - Pakistan
+  - crop water management

@@ -1,31 +1,238 @@
-﻿# AquaVolt-AI 🌿💧
+﻿<div align="center">
 
-**Physics-Informed Satellite-Driven Crop Water-Energy Optimization System**
+# 🌿 AquaVolt-AI
 
-Developed by **Umer Tanveer**, PhD Candidate, Department of Computer Science, Abdul Wali Khan University Mardan (AWKUM), Pakistan.
+### Physics-Informed Satellite-Driven Crop Water–Energy Optimization System
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/umertanveer25/aquavolt-ai-pk/hourly_sync.yml?label=Hourly%20Data%20Sync)](https://github.com/umertanveer25/aquavolt-ai-pk/actions)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+[![Open Data](https://img.shields.io/badge/Data-Open--Access-orange)](https://sheets.google.com)
+[![FAO-56](https://img.shields.io/badge/Standard-FAO--56%20PM-lightgrey)](http://www.fao.org/3/x0490e/x0490e00.htm)
+[![AWKUM](https://img.shields.io/badge/Institution-AWKUM%20Pakistan-darkgreen)](https://www.awkum.edu.pk/)
+
+**Umer Tanveer** · PhD Candidate, Dept. of Computer Science  
+Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
+
+[📖 Methodology](docs/METHODOLOGY.md) · [📊 Data Guide](docs/DATA_COLLECTION.md) · [🤝 Contributing](CONTRIBUTING.md) · [📄 Cite This Work](#citation)
+
+</div>
 
 ---
 
-## Overview
+## 🔬 Abstract
 
-AquaVolt-AI combines:
-- 🛰️ NASA MODIS NDVI (open access, no API key)
-- 🌤️ Open-Meteo Real-Time Weather API
-- 🔬 Physics-Informed Machine Learning (PIML) — FAO-56 Penman-Monteith ET0
-- ☀️ Dynamic Crop Growth Engine (astronomical solar declination + temperature curve)
-- 🗄️ SQLite local database + Google Sheets cloud logging
+AquaVolt-AI is an open-source, real-time precision agriculture monitoring system purpose-built for **arid and semi-arid regions of Pakistan**. It couples:
 
-## Files
+- **FAO-56 Penman-Monteith** reference evapotranspiration modelling
+- **Physics-Informed Machine Learning (PIML)** — a neural residual corrector on top of physics priors
+- **NASA MODIS NDVI** satellite-derived crop health indices
+- **Dynamic astronomical crop growth simulation** using solar declination and thermal response curves
+- **Open-Meteo real-time meteorological API** (no key required)
 
-| File | Description |
+The system generates **per-sector irrigation scheduling recommendations** across an 8×8 precision grid and continuously logs telemetry to SQLite (local) and Google Sheets (cloud) — building a **560,000+ record/year** open training dataset for downstream ML research.
+
+---
+
+## 🌍 Target Location
+
+**AWKUM Research Farm, Mardan, Khyber Pakhtunkhwa, Pakistan**  
+Coordinates: `34.1975°N, 72.0168°E` · Elevation: ~283m · Climate: Semi-arid BSk
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     AquaVolt-AI System                      │
+├────────────────────┬────────────────────┬───────────────────┤
+│   DATA INGESTION   │   PHYSICS ENGINE   │   ML CORRECTOR    │
+│                    │                    │                    │
+│  Open-Meteo API    │  FAO-56 PM ET₀    │  PIML Neural Net  │
+│  (15-min updates)  │  Penman-Monteith   │  (4→16→8→2 MLP)  │
+│                    │                    │                    │
+│  NASA MODIS NDVI   │  Root-Zone Water   │  Kc/Ks Residual  │
+│  (250m, 8-day)     │  Balance (TAW/RAW) │  Correction ±15%  │
+│                    │                    │                    │
+│  Astronomical Kc   │  Dynamic NDVI      │  Physics Priors   │
+│  (Solar δ, ωs)     │  Growth Engine     │  (FAO-56 curves)  │
+├────────────────────┴────────────────────┴───────────────────┤
+│                    8×8 PRECISION GRID                        │
+│              64 independent farm sectors                     │
+│         per-sector ETc, Dr, water_need [mm/day]             │
+├────────────────────────────────────────────────────────────┤
+│                     DATA OUTPUTS                            │
+│   SQLite (local)  ·  Google Sheets (cloud, hourly)         │
+│   GitHub Actions  ·  Desktop GUI (PySide6)                 │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📐 Key Scientific Equations
+
+### FAO-56 Penman-Monteith ET₀
+
+$$ET_0 = \frac{0.408\,\Delta\,(R_n - G) + \gamma\,\frac{900}{T+273}\,u_2\,(e_s - e_a)}{\Delta + \gamma\,(1 + 0.34\,u_2)}$$
+
+### PIML Crop Coefficient
+
+$$K_c = \text{clip}\!\left(K_{c,\text{prior}} + \text{clip}(r_1 \cdot 0.15,\ -0.15,\ +0.15),\ 0.15,\ 1.20\right)$$
+
+$$K_{c,\text{prior}} = 0.15 + \frac{0.95}{1 + e^{-12(NDVI - 0.4)}}$$
+
+### Crop Evapotranspiration under Stress
+
+$$ET_c = K_s \cdot K_c \cdot ET_0$$
+
+### Daily Root-Zone Soil Water Depletion
+
+$$D_r(t) = D_r(t-1) - P_{\text{eff}} + ET_c \qquad \text{if } D_r > RAW \Rightarrow \text{irrigate}$$
+
+---
+
+## 🛠️ Installation
+
+### Prerequisites
+- Python 3.10+
+- Git
+
+```bash
+# Clone the repository
+git clone https://github.com/umertanveer25/aquavolt-ai-pk.git
+cd aquavolt-ai-pk
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch the desktop application
+python AquaVoltApp.py
+```
+
+---
+
+## ☁️ Automated Cloud Data Collection
+
+This repository includes a **GitHub Actions workflow** that automatically:
+1. Runs every hour on GitHub's free servers
+2. Fetches real-time weather from Open-Meteo
+3. Computes all 64-sector PIML predictions
+4. Appends results to Google Sheets
+
+### Setup (one-time, 10 minutes)
+
+| Step | Action |
 |---|---|
-| AquaVoltApp.py | Main desktop GUI (PySide6) |
-| aquavolt_logger.py | Local hourly logger to SQLite |
-| aquavolt_gsheet_logger.py | Hourly Google Sheets cloud logger |
-| .github/workflows/hourly_sync.yml | GitHub Action — hourly auto-sync |
+| 1 | Fork this repository |
+| 2 | Create Google Cloud Service Account + download JSON key |
+| 3 | Create Google Sheet named `AquaVolt-AI Telemetry Log`, share with service account |
+| 4 | Add `GCP_SERVICE_ACCOUNT_KEY` secret in GitHub repo Settings |
+| 5 | Go to Actions tab → Run workflow (manual test) |
 
-## Location
-AWKUM Research Farm, Mardan, Pakistan (34.1975 N, 72.0168 E)
+See [📊 DATA_COLLECTION.md](docs/DATA_COLLECTION.md) for detailed instructions.
 
-## Citation
-Tanveer, U. (2026). AquaVolt-AI: Physics-Informed Satellite-Driven Crop Water-Energy Optimization. AWKUM, Pakistan.
+---
+
+## 📂 Repository Structure
+
+```
+aquavolt-ai-pk/
+├── AquaVoltApp.py              # Desktop GUI (PySide6) — real-time monitoring
+├── aquavolt_logger.py          # Background hourly logger → SQLite
+├── aquavolt_gsheet_logger.py   # Hourly Google Sheets cloud logger
+├── requirements.txt            # Python dependencies
+├── CITATION.cff                # Machine-readable citation (GitHub native)
+├── CONTRIBUTING.md             # Contribution guidelines
+├── LICENSE                     # MIT License
+├── .github/
+│   └── workflows/
+│       └── hourly_sync.yml     # GitHub Actions — runs every hour
+└── docs/
+    ├── METHODOLOGY.md          # Full scientific documentation
+    └── DATA_COLLECTION.md      # Setup and data access guide
+```
+
+---
+
+## 📊 Data Schema
+
+The `telemetry_log` table (SQLite) / sheet (Google Sheets) contains 22 columns per record:
+
+| Column | Unit | Description |
+|---|---|---|
+| `timestamp` | ISO 8601 | Record datetime |
+| `ndvi` | — | NDVI [0–1] |
+| `Kc` | — | Crop coefficient (PIML) |
+| `Ks` | — | Water-stress factor |
+| `ETc` | mm/day | Crop ET under stress |
+| `Dr` | mm | Root-zone depletion |
+| `water_need` | mm/day | Irrigation recommendation |
+| `air_temp` | °C | Air temperature |
+| `solar_rad` | W/m² | Shortwave radiation |
+| `soil_moisture` | m³/m³ | Volumetric water content |
+| ... | | 22 columns total |
+
+**Data growth rate:** 64 records/hour × 24 × 365 = **~560,000 records/year**
+
+---
+
+## 🗺️ Roadmap
+
+- [x] FAO-56 Penman-Monteith ET₀ engine
+- [x] Physics-Informed Neural Network (PIML) Kc/Ks estimator
+- [x] Dynamic astronomical NDVI growth model
+- [x] 8×8 spatial precision grid
+- [x] SQLite local telemetry logging
+- [x] Google Sheets cloud logging
+- [x] GitHub Actions hourly automation
+- [ ] Real MODIS satellite tile integration
+- [ ] LSTM crop yield forecasting module
+- [ ] District-level Pakistan soil classification
+- [ ] Mobile dashboard (Flutter)
+- [ ] REST API endpoint for external data access
+- [ ] Zenodo DOI registration for dataset
+
+---
+
+## 📄 Citation
+
+If you use AquaVolt-AI in your research, please cite:
+
+```bibtex
+@software{tanveer2026aquavoltai,
+  author       = {Tanveer, Umer},
+  title        = {{AquaVolt-AI: Physics-Informed Satellite-Driven
+                   Crop Water-Energy Optimization System}},
+  year         = {2026},
+  publisher    = {GitHub},
+  institution  = {Abdul Wali Khan University Mardan (AWKUM), Pakistan},
+  url          = {https://github.com/umertanveer25/aquavolt-ai-pk},
+  note         = {Department of Computer Science, AWKUM, Mardan, KP, Pakistan}
+}
+```
+
+A machine-readable `CITATION.cff` file is included in this repository.
+
+---
+
+## 🤝 Acknowledgements
+
+- **FAO** — Irrigation and Drainage Paper No. 56 (Allen et al., 1998)
+- **NASA** — MODIS Terra Vegetation Indices (MOD13Q1)
+- **Open-Meteo** — Open-source weather API (https://open-meteo.com)
+- **AWKUM** — Abdul Wali Khan University Mardan, KP, Pakistan
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+Made with ❤️ for sustainable agriculture in Pakistan 🇵🇰<br>
+<strong>AWKUM · Department of Computer Science · Mardan, KPK</strong>
+</div>
