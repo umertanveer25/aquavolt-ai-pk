@@ -17,7 +17,7 @@ import sys
 import math
 import json
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 
 # ── Dynamic Dependencies ──────────────────────────────────────
 try:
@@ -129,6 +129,39 @@ def main():
     if not existing_headers:
         print("[HEADER] Sheet is empty. Initializing headers...")
         worksheet.append_row(headers)
+
+    # ── Hourly Deduplication Guard ────────────────────────────────
+    # Get the current hour bucket (e.g. "2026-06-26 14" for any minute within 2pm)
+    now_utc = datetime.now(timezone.utc)
+    current_hour_bucket = now_utc.strftime("%Y-%m-%d %H")
+    print(f"[DEDUP] Checking for existing records for hour: {current_hour_bucket}:xx ...")
+
+    all_rows = worksheet.get_all_values()
+    data_rows = all_rows[1:]  # skip header
+
+    # Find all rows that belong to the current hour
+    duplicate_indices = []  # 1-indexed sheet row numbers of duplicates
+    first_seen = False
+    for i, row in enumerate(data_rows):
+        if row and row[0].startswith(current_hour_bucket):
+            if first_seen:
+                # Mark subsequent duplicates for deletion (keep the first occurrence)
+                duplicate_indices.append(i + 2)  # +2: +1 for header, +1 for 1-indexing
+            else:
+                first_seen = True
+
+    # Delete duplicate rows in reverse order to preserve indices
+    if duplicate_indices:
+        print(f"[DEDUP] Found {len(duplicate_indices)} duplicate rows for this hour. Cleaning up...")
+        for sheet_row in reversed(duplicate_indices):
+            worksheet.delete_rows(sheet_row)
+        print(f"[DEDUP] Cleanup done. Kept first occurrence only.")
+
+    # If ANY record for this hour already exists (after cleanup), skip writing
+    if first_seen:
+        print(f"[DEDUP] Data for hour '{current_hour_bucket}' already exists. Skipping write.")
+        print(f"[OK] Deduplication complete. Next write will occur at the next hourly trigger.")
+        sys.exit(0)
     
     # 2. Fetch Weather Data
     print("[API] Fetching weather data from Open-Meteo...")
@@ -182,7 +215,7 @@ def main():
     TAW = 72.0
     RAW = 36.0
     sm_frac = min(1.0, max(0.0, soil_moist * 5.0))
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now_str = now_utc.strftime("%Y-%m-%d %H:%M:%S")
     
     rows_to_append = []
     
