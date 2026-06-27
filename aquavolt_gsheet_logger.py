@@ -183,7 +183,9 @@ def fetch_modis_lst(lat, lon):
             return None
 
         latest_item = items[0]
-        print(f"[MODIS] LST scene: {latest_item.id} | {latest_item.datetime.date()}")
+        start_dt = latest_item.properties.get("start_datetime")
+        date_str = start_dt.split("T")[0] if start_dt else "Unknown"
+        print(f"[MODIS] LST scene: {latest_item.id} | {date_str}")
 
         lst_url = latest_item.assets["LST_Day_1km"].href
 
