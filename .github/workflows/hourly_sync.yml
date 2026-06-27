@@ -1,12 +1,10 @@
 name: AquaVolt-AI Hourly Sync
 
 on:
-  push:
-    branches: [ main ]
   schedule:
-    # Run every hour at the top of the hour
-    - cron: '0 * * * *'
-  # Allow manual trigger from the GitHub Actions tab
+    # Run every 20 minutes to ensure no hour is missed (de-duplicated by script)
+    - cron: '*/20 * * * *'
+  # Allow manual trigger
   workflow_dispatch:
 
 jobs:
@@ -25,14 +23,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests gspread oauth2client
+          pip install requests gspread oauth2client pystac-client planetary-computer rasterio certifi numpy
 
       - name: Run hourly Google Sheets logger
         env:
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
           GSHEET_NAME: "AquaVolt-AI Telemetry Log"
-          AQUAVOLT_LAT: "38.5414"
-          AQUAVOLT_LON: "-121.8688"
-          AQUAVOLT_FARM: "UC Davis Russell Ranch"
+          AQUAVOLT_LAT: "34.1975"
+          AQUAVOLT_LON: "72.0168"
+          AQUAVOLT_FARM: "AWKUM Research Farm, Mardan, Pakistan"
         run: |
           python aquavolt_gsheet_logger.py
