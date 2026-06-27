@@ -141,7 +141,7 @@ def fetch_sentinel2_indices(lat, lon):
             ndwi_real = safe_index(b03, b08, (b03 == 0) | (b08 == 0))
 
             print(f"[SATELLITE] Avg NDVI={float(np.nanmean(ndvi)):.3f} | Avg NDWI={float(np.nanmean(ndwi_real)):.3f}")
-            return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist()}
+            return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist(), "scene_id": latest_item.id}
 
     except Exception as e:
         print(f"[SATELLITE WARNING] {e}. Falling back.")
@@ -283,7 +283,7 @@ def main():
         "ndvi", "ndwi", "ndwi_real", "savi", "lai", "fcover",
         "lst", "lst_modis", "Kc", "Ks", "Dr", "TAW", "RAW", "ETc", "water_need",
         "air_temp", "humidity", "solar_rad", "precip",
-        "soil_temp", "soil_moisture", "et0_deficit_7d"
+        "soil_temp", "soil_moisture", "et0_deficit_7d", "scene_id"
     ]
     existing = worksheet.row_values(1)
     if not existing or existing != headers:
@@ -320,6 +320,7 @@ def main():
 
     print("\n[TIER 1] Fetching satellite & forecast data...")
     sentinel_data = fetch_sentinel2_indices(LAT, LON)
+    scene_id = sentinel_data.get("scene_id", "Fallback") if sentinel_data else "Fallback"
     modis_lst_val = fetch_modis_lst(LAT, LON)
     deficit_7d    = fetch_open_meteo_forecast(LAT, LON)
 
@@ -375,7 +376,7 @@ def main():
                 lst_api, modis_lst_val,
                 kc, ks, Dr, TAW, RAW, ETc, irr,
                 temp, humidity, solar_rad, precip_cur,
-                soil_temp, soil_moist, deficit_7d
+                soil_temp, soil_moist, deficit_7d, scene_id
             ])
 
     print(f"[UPLOAD] Writing {len(rows_to_append)} records...")
