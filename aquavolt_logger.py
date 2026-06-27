@@ -346,11 +346,11 @@ def fetch_and_store():
             pos_factor = max(0.0, min(1.0, (spatial_val - 0.25) / 0.60))
 
             if sentinel_data:
-                # Option B Blend
-                ndvi = round(max(0.15, min(0.90, sentinel_data["ndvi"][row][col] + (pos_factor - 0.5) * 0.24)), 4)
+                # Option B Blend (allow down to 0.08 for bare soil variation)
+                ndvi = round(max(0.08, min(0.90, sentinel_data["ndvi"][row][col] + (pos_factor - 0.5) * 0.24)), 4)
                 ndwi_real_val = round(float(sentinel_data["ndwi_real"][row][col]), 4)
             else:
-                ndvi = round(max(0.15, min(0.90, min_ndvi + pos_factor * (max_ndvi - min_ndvi))), 4)
+                ndvi = round(max(0.08, min(0.90, min_ndvi + pos_factor * (max_ndvi - min_ndvi))), 4)
                 ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
 
             ndwi = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
@@ -360,7 +360,13 @@ def fetch_and_store():
 
             kc = round(min(1.20, max(0.15, 0.15 + 0.95 / (1.0 + math.exp(-12.0 * (ndvi - 0.4))))), 2)
             ks = round(min(1.0, max(0.0, 1.0 if ndwi_real_val >= -0.1 else 1.0 + (ndwi_real_val + 0.1) * 2.0)), 2)
-            Dr  = round(TAW * (1.0 - sm_frac), 2)
+
+            # Derive sector-specific soil moisture fraction from NDWI (makes water need dynamic)
+            # Maps NDWI range [-0.5, 0.5] to [0.10, 0.90] soil moisture fraction
+            sm_frac_sector = 0.10 + ((ndwi_real_val - (-0.5)) / (0.5 - (-0.5))) * 0.80
+            sm_frac_sector = min(1.0, max(0.0, sm_frac_sector))
+
+            Dr  = round(TAW * (1.0 - sm_frac_sector), 2)
             ETc = round(ks * kc * daily_et0, 2)
             irr = round(Dr, 2) if Dr > RAW else 0.0
 

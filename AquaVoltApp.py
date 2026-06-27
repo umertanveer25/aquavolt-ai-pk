@@ -584,7 +584,7 @@ class CropSectorGrid(QWidget):
                     pos_factor = (val - 0.25) / 0.60
                     pos_factor = max(0.0, min(1.0, pos_factor))
                     ndvi = min_ndvi + pos_factor * (max_ndvi - min_ndvi)
-                    ndvi = round(max(0.15, min(0.90, ndvi)), 4)
+                    ndvi = round(max(0.08, min(0.90, ndvi)), 4)
                     self.baseline_ndvi[r][c] = ndvi
                 else:
                     # Near-Real-Time Data Assimilation Crop growth model for real satellite data:
@@ -603,15 +603,19 @@ class CropSectorGrid(QWidget):
                     else:
                         stress_effect = 0.0
                     
-                    ndvi = float(np.clip(ndvi + growth + stress_effect, 0.15, 0.90))
+                    ndvi = float(np.clip(ndvi + growth + stress_effect, 0.08, 0.90))
                     self.baseline_ndvi[r][c] = ndvi
                 
                 # Estimate auxiliary features:
                 # NDWI proxy: calibrate NDWI proxy using real-time soil moisture from API if available
+                # Scale it dynamically based on the sector's NDVI deviation from the field average
+                avg_ndvi = float(np.mean(self.baseline_ndvi))
+                ndvi_dev = ndvi - avg_ndvi
                 if current_soil_moisture is not None:
-                    ndwi = float(np.clip(current_soil_moisture * 2.0 - 0.5, -0.5, 0.5))
+                    ndwi_base = current_soil_moisture * 2.0 - 0.5
+                    ndwi = float(np.clip(ndwi_base + ndvi_dev * 0.5, -0.5, 0.5))
                 else:
-                    ndwi = ndvi * 0.5 - 0.3 if self.has_satellite_data else -0.1
+                    ndwi = float(np.clip((ndvi * 0.5 - 0.3) + ndvi_dev * 0.2, -0.5, 0.5))
                 
                 # SAVI proxy: soil adjusted vegetation index
                 savi = ndvi * 1.2
