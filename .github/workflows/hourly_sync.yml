@@ -29,8 +29,8 @@ jobs:
         env:
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
           GSHEET_NAME: "AquaVolt-AI Telemetry Log"
-          AQUAVOLT_LAT: "34.1975"
-          AQUAVOLT_LON: "72.0168"
-          AQUAVOLT_FARM: "AWKUM Research Farm, Mardan, Pakistan"
+          AQUAVOLT_LAT: "38.5414"
+          AQUAVOLT_LON: "-121.8688"
+          AQUAVOLT_FARM: "UC Davis Russell Ranch"
         run: |
           python aquavolt_gsheet_logger.py
