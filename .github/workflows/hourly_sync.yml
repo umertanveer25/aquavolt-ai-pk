@@ -2,8 +2,8 @@ name: AquaVolt-AI Hourly Sync
 
 on:
   schedule:
-    # Run every 20 minutes to ensure no hour is missed (de-duplicated by script)
-    - cron: '*/20 * * * *'
+    # Run strictly hourly at the top of the hour
+    - cron: '0 * * * *'
   # Allow manual trigger
   workflow_dispatch:
 
