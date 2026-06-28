@@ -55,32 +55,31 @@ FARM = os.environ.get("AQUAVOLT_FARM", "UC Davis Russell Ranch, CA")
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aquavolt_telemetry.db")
 INTERVAL_SECONDS = 3600  # 1 hour
 
-# Define 4 distinct fields with their crop types and crop boxes 100% inside Russell Ranch
-# Coordinates verified against Sentinel-2A satellite image — each box maps onto a real cultivated field
+# Define 4 distinct fields with their crop types — matches UC_Davis_Russell_Ranch_EXACT_FIELDS.png
 FIELDS = [
     {
         "name": "Field-A (Corn)",
-        "bbox": [-121.8775, 38.5490, -121.8720, 38.5535],
-        "lat": 38.5512,
-        "lon": -121.8748
+        "bbox": [-121.8750, 38.5430, -121.8690, 38.5465],
+        "lat": 38.5448,
+        "lon": -121.8720
     },
     {
         "name": "Field-B (Alfalfa)",
-        "bbox": [-121.8855, 38.5490, -121.8800, 38.5535],
-        "lat": 38.5512,
-        "lon": -121.8828
+        "bbox": [-121.8825, 38.5430, -121.8755, 38.5465],
+        "lat": 38.5448,
+        "lon": -121.8790
     },
     {
         "name": "Field-C (Fallow)",
-        "bbox": [-121.8855, 38.5430, -121.8800, 38.5475],
-        "lat": 38.5452,
-        "lon": -121.8828
+        "bbox": [-121.8825, 38.5395, -121.8755, 38.5428],
+        "lat": 38.5412,
+        "lon": -121.8790
     },
     {
         "name": "Field-D (Tomato)",
-        "bbox": [-121.8775, 38.5430, -121.8720, 38.5475],
-        "lat": 38.5452,
-        "lon": -121.8748
+        "bbox": [-121.8750, 38.5395, -121.8690, 38.5428],
+        "lat": 38.5412,
+        "lon": -121.8720
     }
 ]
 
