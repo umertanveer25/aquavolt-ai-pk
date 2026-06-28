@@ -9,12 +9,14 @@
 > This dashboard updates automatically every hour via GitHub Actions.
 
 ### ⛅ Current Weather (Russell Ranch)
+
 - **Air Temp:** 20.9°C
 - **Humidity:** 36%
 - **Solar Radiation:** 528 W/m²
 - **Soil Moisture (Proxy):** 7.5%
 
 ### 🌱 Field Averages (Current Hour)
+
 | Field Name | Avg NDVI | Avg NDWI | Avg ETc (mm/hr) | Avg Water Deficit (mm) |
 |---|---|---|---|---|
 | **Field-A (Corn)** | 0.197 | -0.261 | 1.11 | **51.02** |
@@ -31,6 +33,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/umertanveer25/aquavolt-ai-pk/blob/main/demo.ipynb)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/umertanveer25/aquavolt-ai-pk/hourly_sync.yml?label=Hourly%20Data%20Sync)](https://github.com/umertanveer25/aquavolt-ai-pk/actions)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
 [![Open Data](https://img.shields.io/badge/Data-Open--Access-orange)](https://sheets.google.com)

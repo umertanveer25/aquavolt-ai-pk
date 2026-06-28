@@ -496,14 +496,14 @@ def main(push_to_sheets=True):
         md_content += f"**Latest Update:** `{now_str} UTC`\n"
         md_content += f"> This dashboard updates automatically every hour via GitHub Actions.\n\n"
         
-        md_content += f"### ⛅ Current Weather (Russell Ranch)\n"
+        md_content += f"### ⛅ Current Weather (Russell Ranch)\n\n"
         md_content += f"- **Air Temp:** {temp}°C\n"
         md_content += f"- **Humidity:** {humidity}%\n"
         md_content += f"- **Solar Radiation:** {solar_rad} W/m²\n"
         md_content += f"- **Soil Moisture (Proxy):** {soil_moist*100:.1f}%\n"
         md_content += f"- **Reference ET₀ (24h):** {daily_et0:.2f} mm\n\n"
         
-        md_content += f"### 🌱 Field Averages (Current Hour)\n"
+        md_content += f"### 🌱 Field Averages (Current Hour)\n\n"
         md_content += f"| Field Name | Avg NDVI | Avg NDWI | Avg ETc (mm/hr) | Avg Water Deficit (mm) |\n"
         md_content += f"|---|---|---|---|---|\n"
         
