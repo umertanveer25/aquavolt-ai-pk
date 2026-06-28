@@ -328,7 +328,7 @@ def build_url(lat, lon):
     )
 
 
-def main():
+def main(push_to_sheets=True):
     print("=" * 70)
     print("  AquaVolt-AI Sheets Sync  [Tier 1: Multi-Field Upgrade]")
     print(f"  Farm: {FARM_NAME}  |  Coords: {LAT}N, {LON}W")
@@ -367,6 +367,8 @@ def main():
         last_ts = all_timestamps[-1]
         if last_ts.startswith(current_hour_str):
             print(f"[SKIP] Data for UTC hour {now_utc.strftime('%Y-%m-%d %H:00')} already exists. Skipping.")
+            if not push_to_sheets:
+                return worksheet, []
             sys.exit(0)
 
     print("[API] Fetching weather from Open-Meteo...")
@@ -472,10 +474,12 @@ def main():
                     soil_temp, soil_moist, deficit_7d, scene_id, f_name
                 ])
 
-    print(f"\n[UPLOAD] Writing {len(rows_to_append)} records...")
-    worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
-    print(f"[OK] Done.")
-
+    if push_to_sheets:
+        print(f"\n[UPLOAD] Writing {len(rows_to_append)} records...")
+        worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
+        print(f"[OK] Done.")
+        
+    return worksheet, rows_to_append
 
 if __name__ == "__main__":
     main()
