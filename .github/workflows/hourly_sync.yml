@@ -37,3 +37,11 @@ jobs:
           AQUAVOLT_FARM: "UC Davis Russell Ranch"
         run: |
           python aquavolt_gsheet_logger.py
+
+      - name: Commit and push live dashboard
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add LATEST_TELEMETRY.md
+          git commit -m "chore: Update live telemetry dashboard [skip ci]" || echo "No changes to commit"
+          git push

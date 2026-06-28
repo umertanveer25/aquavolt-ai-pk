@@ -479,6 +479,49 @@ def main(push_to_sheets=True):
         worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
         print(f"[OK] Done.")
         
+    # --- GENERATE LIVE GITHUB DASHBOARD ---
+    print("\n[DASHBOARD] Generating live GitHub markdown dashboard...")
+    try:
+        field_summaries = {}
+        for row in rows_to_append:
+            fname = row[28]  # field_name
+            if fname not in field_summaries:
+                field_summaries[fname] = {"ndvi": [], "ndwi": [], "etc": [], "irr": []}
+            field_summaries[fname]["ndvi"].append(row[5])
+            field_summaries[fname]["ndwi"].append(row[7])
+            field_summaries[fname]["etc"].append(row[18])
+            field_summaries[fname]["irr"].append(row[19])
+        
+        md_content = f"# 📡 AquaVolt-AI Live Telemetry\n\n"
+        md_content += f"**Latest Update:** `{now_str} UTC`\n"
+        md_content += f"> This dashboard updates automatically every hour via GitHub Actions.\n\n"
+        
+        md_content += f"### ⛅ Current Weather (Russell Ranch)\n"
+        md_content += f"- **Air Temp:** {temp}°C\n"
+        md_content += f"- **Humidity:** {humidity}%\n"
+        md_content += f"- **Solar Radiation:** {solar_rad} W/m²\n"
+        md_content += f"- **Soil Moisture (Proxy):** {soil_moist*100:.1f}%\n"
+        md_content += f"- **Reference ET₀ (24h):** {daily_et0:.2f} mm\n\n"
+        
+        md_content += f"### 🌱 Field Averages (Current Hour)\n"
+        md_content += f"| Field Name | Avg NDVI | Avg NDWI | Avg ETc (mm/hr) | Avg Water Deficit (mm) |\n"
+        md_content += f"|---|---|---|---|---|\n"
+        
+        for fname, data in field_summaries.items():
+            avg_ndvi = sum(data["ndvi"]) / len(data["ndvi"])
+            avg_ndwi = sum(data["ndwi"]) / len(data["ndwi"])
+            avg_etc = sum(data["etc"]) / len(data["etc"])
+            avg_irr = sum(data["irr"]) / len(data["irr"])
+            md_content += f"| **{fname}** | {avg_ndvi:.3f} | {avg_ndwi:.3f} | {avg_etc:.2f} | **{avg_irr:.2f}** |\n"
+            
+        md_content += f"\n---\n*Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*\n"
+        
+        with open("LATEST_TELEMETRY.md", "w", encoding="utf-8") as f:
+            f.write(md_content)
+        print("[OK] LATEST_TELEMETRY.md written successfully.")
+    except Exception as e:
+        print(f"[ERROR] Failed to generate dashboard: {e}")
+
     return worksheet, rows_to_append
 
 if __name__ == "__main__":
