@@ -22,10 +22,10 @@ except ImportError:
     print("[ERROR] Missing packages. Run: pip install gspread oauth2client requests")
     sys.exit(1)
 
-LAT = float(os.environ.get("AQUAVOLT_LAT", 38.5414))
-LON = float(os.environ.get("AQUAVOLT_LON", -121.8688))
+LAT = float(os.environ.get("AQUAVOLT_LAT", 38.5480))
+LON = float(os.environ.get("AQUAVOLT_LON", -121.8780))
 FARM_NAME = os.environ.get("AQUAVOLT_FARM", "UC Davis Russell Ranch")
-DEFAULT_SHEET_NAME = "AquaVolt-AI Telemetry Log"
+GRID_SIZE_M = 600  # Total farm area = 600m x 600m (8x8 sectors, each 75m x 75m = ~1.4 acres)
 
 
 def get_gspread_client():
@@ -114,8 +114,9 @@ def fetch_sentinel2_indices(lat, lon):
         b04_url = latest_item.assets["B04"].href
         b08_url = latest_item.assets["B08"].href
 
-        lat_deg = 80.0 / 111000.0
-        lon_deg = 80.0 / (111000.0 * math.cos(math.radians(lat)))
+        # Sentinel-2 pixel window — 600m x 600m farm area (75m per sector)
+        lat_deg = GRID_SIZE_M / 111000.0
+        lon_deg = GRID_SIZE_M / (111000.0 * math.cos(math.radians(lat)))
         crop_bbox = [lon - lon_deg/2, lat - lat_deg/2, lon + lon_deg/2, lat + lat_deg/2]
 
         with rasterio.open(b03_url) as s3, rasterio.open(b04_url) as s4, rasterio.open(b08_url) as s8:
