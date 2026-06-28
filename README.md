@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 🌿 AquaVolt-AI
 
@@ -23,22 +23,34 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 ## 🔬 Abstract
 
-AquaVolt-AI is an open-source, real-time precision agriculture monitoring system purpose-built for **arid and semi-arid regions of Pakistan**. It couples:
+AquaVolt-AI is an open-source, real-time precision agriculture monitoring system coupling:
 
 - **FAO-56 Penman-Monteith** reference evapotranspiration modelling
 - **Physics-Informed Machine Learning (PIML)** — a neural residual corrector on top of physics priors
-- **NASA MODIS NDVI** satellite-derived crop health indices
+- **Real-time Sentinel-2 L2A** satellite-derived NDVI and NDWI indices
+- **MODIS Daily Land Surface Temperature (LST)** via Microsoft Planetary Computer
 - **Dynamic astronomical crop growth simulation** using solar declination and thermal response curves
 - **Open-Meteo real-time meteorological API** (no key required)
 
-The system generates **per-sector irrigation scheduling recommendations** across an 8×8 precision grid and continuously logs telemetry to SQLite (local) and Google Sheets (cloud) — building a **560,000+ record/year** open training dataset for downstream ML research.
+The system generates **per-sector irrigation scheduling recommendations** across four separate 8×8 precision grids concurrently (256 rows/hour across Corn, Alfalfa, Fallow, and Tomato plots) and continuously logs telemetry to SQLite (local) and Google Sheets (cloud) — building a **2.2 Million+ record/year** open training dataset for downstream ML research.
 
 ---
 
-## 🌍 Target Location
+## 🌍 Target Location & Multi-Field Setup
 
-**AWKUM Research Farm, Mardan, Khyber Pakhtunkhwa, Pakistan**  
-Coordinates: `34.1975°N, 72.0168°E` · Elevation: ~283m · Climate: Semi-arid BSk
+**UC Davis Russell Ranch Research Facility, California, USA**  
+Coordinates: `38.5480°N, -121.8780°W` · Elevation: ~18m · Climate: Mediterranean (Csa)
+
+The system is configured to monitor **four distinct crop fields** within the Russell Ranch research facility:
+1. **Field-A (Corn)**: Irrigated green crop (high NDVI/NDWI)
+2. **Field-B (Alfalfa)**: Mid-green mixed crop (medium NDVI)
+3. **Field-C (Fallow)**: Harvested/dry crop (low NDVI, negative NDWI)
+4. **Field-D (Tomato)**: Row crops / small plots (medium-high NDVI)
+
+<div align="center">
+  <img src="docs/multi_field_annotated.png" width="800" alt="UC Davis Russell Ranch Multi-Field Grid Layout">
+  <p><em>Figure 1: AquaVolt-AI 64-sector precision grids mapped across 4 agricultural fields at UC Davis Russell Ranch (Sentinel-2A base image).</em></p>
+</div>
 
 ---
 
@@ -53,20 +65,20 @@ Coordinates: `34.1975°N, 72.0168°E` · Elevation: ~283m · Climate: Semi-arid 
 │  Open-Meteo API    │  FAO-56 PM ET₀    │  PIML Neural Net  │
 │  (15-min updates)  │  Penman-Monteith   │  (4→16→8→2 MLP)  │
 │                    │                    │                    │
-│  NASA MODIS NDVI   │  Root-Zone Water   │  Kc/Ks Residual  │
-│  (250m, 8-day)     │  Balance (TAW/RAW) │  Correction ±15%  │
+│  Sentinel-2 STAC   │  Root-Zone Water   │  Kc/Ks Residual  │
+│  & MODIS LST (PC)  │  Balance (TAW/RAW) │  Correction ±15%  │
 │                    │                    │                    │
 │  Astronomical Kc   │  Dynamic NDVI      │  Physics Priors   │
 │  (Solar δ, ωs)     │  Growth Engine     │  (FAO-56 curves)  │
 ├────────────────────┴────────────────────┴───────────────────┤
-│                    8×8 PRECISION GRID                        │
-│              64 independent farm sectors                     │
+│                MULTI-FIELD PRECISION GRIDS                  │
+│            4 fields x 64 sectors = 256 rows/hour            │
 │         per-sector ETc, Dr, water_need [mm/day]             │
 ├────────────────────────────────────────────────────────────┤
 │                     DATA OUTPUTS                            │
 │   SQLite (local)  ·  Google Sheets (cloud, hourly)         │
 │   GitHub Actions  ·  Desktop GUI (PySide6)                 │
-└────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -158,23 +170,41 @@ aquavolt-ai-pk/
 
 ## 📊 Data Schema
 
-The `telemetry_log` table (SQLite) / sheet (Google Sheets) contains 22 columns per record:
+The `telemetry_log` table (SQLite) / sheet (Google Sheets) contains **29 columns** per record:
 
 | Column | Unit | Description |
 |---|---|---|
 | `timestamp` | ISO 8601 | Record datetime |
-| `ndvi` | — | NDVI [0–1] |
+| `latitude` | Degrees | Sector latitude |
+| `longitude` | Degrees | Sector longitude |
+| `sector_row` | Index | Row index of the sector [0-7] |
+| `sector_col` | Index | Column index of the sector [0-7] |
+| `ndvi` | — | Sentinel-2 NDVI [0–1] |
+| `ndwi` | — | Simulated NDWI |
+| `ndwi_real` | — | Real Sentinel-2 NDWI (B03/B08) |
+| `savi` | — | Soil Adjusted Vegetation Index |
+| `lai` | — | Leaf Area Index |
+| `fcover` | — | Fraction of Vegetation Cover |
+| `lst` | °C | Air-derived land surface temperature |
+| `lst_modis` | °C | Real MODIS LST (Planetary Computer) |
 | `Kc` | — | Crop coefficient (PIML) |
 | `Ks` | — | Water-stress factor |
-| `ETc` | mm/day | Crop ET under stress |
 | `Dr` | mm | Root-zone depletion |
+| `TAW` | mm | Total Available Water |
+| `RAW` | mm | Readily Available Water |
+| `ETc` | mm/day | Crop ET under stress |
 | `water_need` | mm/day | Irrigation recommendation |
 | `air_temp` | °C | Air temperature |
+| `humidity` | % | Relative humidity |
 | `solar_rad` | W/m² | Shortwave radiation |
-| `soil_moisture` | m³/m³ | Volumetric water content |
-| ... | | 22 columns total |
+| `precip` | mm | Hourly precipitation |
+| `soil_temp` | °C | Soil temperature (0-7cm) |
+| `soil_moisture`| m³/m³ | Volumetric soil water content (0-1cm) |
+| `et0_deficit_7d`| mm | 7-day cumulative water deficit |
+| `scene_id` | String | Sentinel-2 acquisition scene ID |
+| `field_name` | String | Name of the crop field (e.g. Field-A (Corn)) |
 
-**Data growth rate:** 64 records/hour × 24 × 365 = **~560,000 records/year**
+**Data growth rate:** 256 records/hour × 24 × 365 = **~2,242,560 records/year**
 
 ---
 
@@ -187,7 +217,9 @@ The `telemetry_log` table (SQLite) / sheet (Google Sheets) contains 22 columns p
 - [x] SQLite local telemetry logging
 - [x] Google Sheets cloud logging
 - [x] GitHub Actions hourly automation
-- [ ] Real MODIS satellite tile integration
+- [x] Real Sentinel-2 satellite tile integration
+- [x] Real MODIS Land Surface Temperature integration
+- [x] Multi-Field concurrent crop monitoring
 - [ ] LSTM crop yield forecasting module
 - [ ] District-level Pakistan soil classification
 - [ ] Mobile dashboard (Flutter)
