@@ -21,6 +21,7 @@ if %errorlevel% neq 0 (
 
 echo Registering task "%TASK_NAME%"...
 schtasks /create /tn "%TASK_NAME%" /tr "python \"%SCRIPT_PATH%\"" /sc hourly /mo 1 /st 00:00 /f
+powershell -Command "Set-ScheduledTask -TaskName '%TASK_NAME%' -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries)"
 
 echo.
 if %errorlevel% == 0 (
