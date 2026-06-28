@@ -2,6 +2,26 @@
 
 # 🌿 AquaVolt-AI
 
+### Physics-Informed Satellite-Driven Crop Water–Energy Optimization System
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/umertanveer25/aquavolt-ai-pk/blob/main/demo.ipynb)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/umertanveer25/aquavolt-ai-pk/hourly_sync.yml?label=Hourly%20Data%20Sync)](https://github.com/umertanveer25/aquavolt-ai-pk/actions)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
+[![Open Data](https://img.shields.io/badge/Data-Open--Access-orange)](https://sheets.google.com)
+[![FAO-56](https://img.shields.io/badge/Standard-FAO--56%20PM-lightgrey)](http://www.fao.org/3/x0490e/x0490e00.htm)
+[![AWKUM](https://img.shields.io/badge/Institution-AWKUM%20Pakistan-darkgreen)](https://www.awkum.edu.pk/)
+
+**Umer Tanveer** · PhD Candidate, Dept. of Computer Science  
+Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
+
+[📖 Methodology](docs/METHODOLOGY.md) · [📊 Data Guide](docs/DATA_COLLECTION.md) · [🤝 Contributing](CONTRIBUTING.md) · [📄 Cite This Work](#citation)
+
+</div>
+
+---
+
 <!-- LIVE_TELEMETRY_START -->
 # 📡 AquaVolt-AI Live Telemetry
 
@@ -28,26 +48,6 @@
 *Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*
 
 <!-- LIVE_TELEMETRY_END -->
-
-### Physics-Informed Satellite-Driven Crop Water–Energy Optimization System
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/umertanveer25/aquavolt-ai-pk/blob/main/demo.ipynb)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/umertanveer25/aquavolt-ai-pk/hourly_sync.yml?label=Hourly%20Data%20Sync)](https://github.com/umertanveer25/aquavolt-ai-pk/actions)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
-[![Open Data](https://img.shields.io/badge/Data-Open--Access-orange)](https://sheets.google.com)
-[![FAO-56](https://img.shields.io/badge/Standard-FAO--56%20PM-lightgrey)](http://www.fao.org/3/x0490e/x0490e00.htm)
-[![AWKUM](https://img.shields.io/badge/Institution-AWKUM%20Pakistan-darkgreen)](https://www.awkum.edu.pk/)
-
-**Umer Tanveer** · PhD Candidate, Dept. of Computer Science  
-Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
-
-[📖 Methodology](docs/METHODOLOGY.md) · [📊 Data Guide](docs/DATA_COLLECTION.md) · [🤝 Contributing](CONTRIBUTING.md) · [📄 Cite This Work](#citation)
-
-</div>
-
----
 
 ## 🔬 Abstract
 
