@@ -516,9 +516,23 @@ def main(push_to_sheets=True):
             
         md_content += f"\n---\n*Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*\n"
         
-        with open("LATEST_TELEMETRY.md", "w", encoding="utf-8") as f:
-            f.write(md_content)
-        print("[OK] LATEST_TELEMETRY.md written successfully.")
+        # Inject into README.md
+        readme_path = "README.md"
+        if os.path.exists(readme_path):
+            with open(readme_path, "r", encoding="utf-8") as f:
+                readme_text = f.read()
+            
+            import re
+            pattern = r"(<!-- LIVE_TELEMETRY_START -->)(.*?)(<!-- LIVE_TELEMETRY_END -->)"
+            replacement = r"\1\n" + md_content + r"\n\3"
+            new_readme = re.sub(pattern, replacement, readme_text, flags=re.DOTALL)
+            
+            with open(readme_path, "w", encoding="utf-8") as f:
+                f.write(new_readme)
+            print("[OK] README.md live dashboard updated successfully.")
+        else:
+            print("[ERROR] README.md not found.")
+            
     except Exception as e:
         print(f"[ERROR] Failed to generate dashboard: {e}")
 
