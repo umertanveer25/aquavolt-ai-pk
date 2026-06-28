@@ -74,10 +74,10 @@ The system is configured to monitor **four distinct crop fields** within the Rus
 │                MULTI-FIELD PRECISION GRIDS                  │
 │            4 fields x 64 sectors = 256 rows/hour            │
 │         per-sector ETc, Dr, water_need [mm/day]             │
-├────────────────────────────────────────────────────────────┤
+├─────────────────────────────────────────────────────────────┤
 │                     DATA OUTPUTS                            │
-│   SQLite (local)  ·  Google Sheets (cloud, hourly)         │
-│   GitHub Actions  ·  Desktop GUI (PySide6)                 │
+│   SQLite (local)  ·  Google Sheets (cloud, hourly)          │
+│   GitHub Actions  ·  Hybrid Local Failover Sync             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -154,6 +154,8 @@ aquavolt-ai-pk/
 ├── AquaVoltApp.py              # Desktop GUI (PySide6) — real-time monitoring
 ├── aquavolt_logger.py          # Background hourly logger → SQLite
 ├── aquavolt_gsheet_logger.py   # Hourly Google Sheets cloud logger
+├── aquavolt_resilient_sync.py  # Hybrid local-cloud failover script
+├── setup_scheduler.bat         # Windows Task Scheduler setup script
 ├── requirements.txt            # Python dependencies
 ├── CITATION.cff                # Machine-readable citation (GitHub native)
 ├── CONTRIBUTING.md             # Contribution guidelines
@@ -220,6 +222,7 @@ The `telemetry_log` table (SQLite) / sheet (Google Sheets) contains **29 columns
 - [x] Real Sentinel-2 satellite tile integration
 - [x] Real MODIS Land Surface Temperature integration
 - [x] Multi-Field concurrent crop monitoring
+- [x] Hybrid Resilient Local-Cloud Failover Sync
 - [ ] LSTM crop yield forecasting module
 - [ ] District-level Pakistan soil classification
 - [ ] Mobile dashboard (Flutter)
