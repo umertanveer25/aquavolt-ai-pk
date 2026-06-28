@@ -56,29 +56,48 @@ The system is configured to monitor **four distinct crop fields** within the Rus
 
 ## 🏗️ System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     AquaVolt-AI System                      │
-├────────────────────┬────────────────────┬───────────────────┤
-│   DATA INGESTION   │   PHYSICS ENGINE   │   ML CORRECTOR    │
-│                    │                    │                    │
-│  Open-Meteo API    │  FAO-56 PM ET₀    │  PIML Neural Net  │
-│  (15-min updates)  │  Penman-Monteith   │  (4→16→8→2 MLP)  │
-│                    │                    │                    │
-│  Sentinel-2 STAC   │  Root-Zone Water   │  Kc/Ks Residual  │
-│  & MODIS LST (PC)  │  Balance (TAW/RAW) │  Correction ±15%  │
-│                    │                    │                    │
-│  Astronomical Kc   │  Dynamic NDVI      │  Physics Priors   │
-│  (Solar δ, ωs)     │  Growth Engine     │  (FAO-56 curves)  │
-├────────────────────┴────────────────────┴───────────────────┤
-│                MULTI-FIELD PRECISION GRIDS                  │
-│            4 fields x 64 sectors = 256 rows/hour            │
-│         per-sector ETc, Dr, water_need [mm/day]             │
-├─────────────────────────────────────────────────────────────┤
-│                     DATA OUTPUTS                            │
-│   SQLite (local)  ·  Google Sheets (cloud, hourly)          │
-│   GitHub Actions  ·  Hybrid Local Failover Sync             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    %% Define Styles
+    classDef trigger fill:#f9d0c4,stroke:#333,stroke-width:2px,color:#000
+    classDef script fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
+    classDef external fill:#cce5ff,stroke:#007bff,stroke-width:2px,color:#000
+    classDef processing fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+    classDef database fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000
+
+    %% Trigger
+    A[🕒 GitHub Actions<br/>Hourly Cron Job]:::trigger --> B
+    A2[💻 Windows Task Scheduler<br/>Local Failover Cron]:::trigger --> B
+
+    %% Main Execution
+    B[🐍 aquavolt_gsheet_logger.py<br/>Python Compute Engine]:::script
+
+    %% External Data APIs
+    subgraph External APIs [Live Data Ingestion]
+        C1[🛰️ MS Planetary Computer<br/>Sentinel-2 STAC API<br/>Optical/NDVI]:::external
+        C2[🛰️ NASA MODIS<br/>Land Surface Temp]:::external
+        C3[🌦️ Open-Meteo API<br/>Live Weather & Forecasts]:::external
+    end
+
+    %% API Connections
+    C1 -->|Band 4, Band 8| B
+    C2 -->|Thermal LST| B
+    C3 -->|Temp, Solar Rad, Wind| B
+
+    %% Processing Logic
+    subgraph PIML Processing [Physics & Matrix Generation]
+        D1[📐 Grid Generator<br/>Split 4 Fields into 256 Sectors]:::processing
+        D2[💧 FAO-56 Physics Engine<br/>Penman-Monteith ET0 & Water Deficit]:::processing
+    end
+
+    B --> D1
+    D1 --> D2
+
+    %% Storage Output
+    D2 -->|Outputs 256 rows of matrix data| E[📊 Google Sheets API<br/>Live Cloud Database]:::database
+
+    %% End Use
+    E --> F((AI Training /<br/>Dashboards))
 ```
 
 ---
