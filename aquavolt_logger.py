@@ -1,48 +1,98 @@
 """
-AquaVolt-AI — Hourly Background Data Logger (Tier 1 Upgraded)
-================================================================
-Runs silently in the background.
-Every 60 minutes → fetches live weather, forecast, and satellite data
-                 → computes PIML metrics for all 64 grid sectors
-                 → stores records to aquavolt_data.db (with Tier 1 schema)
-
-Usage:
-    python aquavolt_logger.py
+AquaVolt-AI — SQLite Hourly Data Logger (Multi-Field Upgrade)
+=================================================================
+Tier 1 Real-Time Integrations:
+  1. Sentinel-2 NDVI + Real NDWI (B03/B08) per field
+  2. MODIS Daily LST via Microsoft Planetary Computer
+  3. Open-Meteo 16-Day Irrigation Forecast
+  4. Multi-Field 8x8 Grid Telemetry (256 rows/hour)
 """
 
-import requests
-import sqlite3
-import math
-import time
 import os
+import sys
+import math
+import json
+import sqlite3
+import time
+import requests
+import socket
+import urllib.request
+import ssl
 from datetime import datetime, timedelta, timezone
 
-# ── Farm Location ────────────────────────────────────────────
-LAT  = float(os.environ.get("AQUAVOLT_LAT", 38.5480))
-LON  = float(os.environ.get("AQUAVOLT_LON", -121.8780))
-FARM = os.environ.get("AQUAVOLT_FARM", "UC Davis Russell Ranch, CA")
-GRID_SIZE_M = 600  # 600m x 600m, 8x8 sectors, each 75m x 75m
+# --- DoH Monkeypatch for robust DNS resolution ---
+original_getaddrinfo = socket.getaddrinfo
 
-# ── Logging interval (seconds) ───────────────────────────────
+def custom_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    try:
+        return original_getaddrinfo(host, port, family, type, proto, flags)
+    except socket.gaierror:
+        try:
+            url = f"https://8.8.8.8/resolve?name={host}&type=A"
+            req = urllib.request.Request(url)
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            with urllib.request.urlopen(req, context=ctx, timeout=5) as response:
+                res_data = json.loads(response.read().decode())
+                for ans in res_data.get("Answer", []):
+                    if ans.get("type") == 1:
+                        ip = ans.get("data")
+                        return original_getaddrinfo(ip, port, family, type, proto, flags)
+        except Exception:
+            pass
+        raise
+
+socket.getaddrinfo = custom_getaddrinfo
+# -------------------------------------------------
+
+# True farm center coordinates for Russell Ranch
+LAT  = float(os.environ.get("AQUAVOLT_LAT",  38.5480))
+LON  = float(os.environ.get("AQUAVOLT_LON",  -121.8780))
+FARM = os.environ.get("AQUAVOLT_FARM", "UC Davis Russell Ranch, CA")
+
+# Define database path
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aquavolt_telemetry.db")
 INTERVAL_SECONDS = 3600  # 1 hour
 
-# ── Database path ─────────────────────────────────────────────
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aquavolt_data.db")
+# Define 4 distinct fields with their crop types and crop boxes 100% inside Russell Ranch
+FIELDS = [
+    {
+        "name": "Field-A (Corn)",
+        "bbox": [-121.8750, 38.5430, -121.8690, 38.5465],
+        "lat": 38.5448,
+        "lon": -121.8720
+    },
+    {
+        "name": "Field-B (Alfalfa)",
+        "bbox": [-121.8825, 38.5430, -121.8755, 38.5465],
+        "lat": 38.5448,
+        "lon": -121.8790
+    },
+    {
+        "name": "Field-C (Fallow)",
+        "bbox": [-121.8825, 38.5395, -121.8755, 38.5428],
+        "lat": 38.5412,
+        "lon": -121.8790
+    },
+    {
+        "name": "Field-D (Tomato)",
+        "bbox": [-121.8750, 38.5395, -121.8690, 38.5428],
+        "lat": 38.5412,
+        "lon": -121.8720
+    }
+]
 
 
-# ── TIER 1 — Sentinel-2 NDVI + Real NDWI (B03) ────────────────
-def fetch_sentinel2_indices(lat, lon):
-    print("[SATELLITE] Connecting to Microsoft Planetary Computer STAC API...")
+# TIER 1 — Sentinel-2 STAC Search (Once per run)
+def get_latest_sentinel_item(lat, lon):
+    print("[SATELLITE] Connecting to Planetary Computer STAC API...")
     try:
         import pystac_client
         import planetary_computer
-        import rasterio
-        from rasterio.windows import from_bounds
-        from rasterio.warp import transform_bounds
         import certifi
-        import numpy as np
     except ImportError as e:
-        print(f"[SATELLITE WARNING] Missing satellite dependencies: {e}. Falling back.")
+        print(f"[SATELLITE WARNING] Missing deps: {e}. Falling back.")
         return None
 
     os.environ["CURL_CA_BUNDLE"] = certifi.where()
@@ -56,7 +106,7 @@ def fetch_sentinel2_indices(lat, lon):
         end_date = datetime.now()
         start_date = end_date - timedelta(days=30)
         time_range = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
-        bbox = [lon - 0.01, lat - 0.01, lon + 0.01, lat + 0.01]
+        bbox = [lon - 0.02, lat - 0.02, lon + 0.02, lat + 0.02]
 
         search = catalog.search(
             collections=["sentinel-2-l2a"], bbox=bbox, datetime=time_range,
@@ -72,24 +122,36 @@ def fetch_sentinel2_indices(lat, lon):
             )
             items = search.item_collection()
             if not items:
-                print("[SATELLITE WARNING] No cloud-free Sentinel-2 images found in 60 days.")
+                print("[SATELLITE WARNING] No cloud-free scenes found. Falling back.")
                 return None
 
         latest_item = items[0]
-        print(f"[SATELLITE] Scene: {latest_item.id} acquired on {latest_item.datetime.date()}")
+        print(f"[SATELLITE] Found Scene: {latest_item.id} | {latest_item.datetime.date()}")
+        return latest_item
 
+    except Exception as e:
+        print(f"[SATELLITE WARNING] STAC Search failed: {e}. Falling back.")
+        return None
+
+
+# Extract 8x8 crop indices for a specific field's bbox
+def fetch_field_indices(latest_item, field_bbox):
+    try:
+        import rasterio
+        from rasterio.windows import from_bounds
+        from rasterio.warp import transform_bounds
+        import numpy as np
+    except ImportError:
+        return None
+
+    try:
         b03_url = latest_item.assets["B03"].href
         b04_url = latest_item.assets["B04"].href
         b08_url = latest_item.assets["B08"].href
 
-        # Sentinel-2 pixel window — 600m x 600m farm area
-        lat_deg = GRID_SIZE_M / 111000.0
-        lon_deg = GRID_SIZE_M / (111000.0 * math.cos(math.radians(lat)))
-        crop_bbox = [lon - lon_deg/2, lat - lat_deg/2, lon + lon_deg/2, lat + lat_deg/2]
-
         with rasterio.open(b03_url) as s3, rasterio.open(b04_url) as s4, rasterio.open(b08_url) as s8:
             src_crs = s4.crs
-            l, b, r, t = transform_bounds("EPSG:4326", src_crs, *crop_bbox)
+            l, b, r, t = transform_bounds("EPSG:4326", src_crs, *field_bbox)
             win = from_bounds(l, b, r, t, transform=s4.transform)
 
             b03 = s3.read(1, window=win, out_shape=(8, 8)).astype(float)
@@ -105,20 +167,20 @@ def fetch_sentinel2_indices(lat, lon):
                     arr = np.where(np.isnan(arr), mv, arr)
                 return arr
 
-            ndvi = safe_index(b08, b04, (b04 == 0) | (b08 == 0))
+            bad_mask = (b04 == 0) | (b08 == 0)
+            ndvi = safe_index(b08, b04, bad_mask)
             ndwi_real = safe_index(b03, b08, (b03 == 0) | (b08 == 0))
 
-            print(f"[SATELLITE] Avg NDVI={float(np.nanmean(ndvi)):.3f} | Avg NDWI={float(np.nanmean(ndwi_real)):.3f}")
             return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist()}
 
     except Exception as e:
-        print(f"[SATELLITE WARNING] Error fetching Sentinel-2: {e}. Falling back.")
+        print(f"[SATELLITE WARNING] Error reading field window: {e}.")
         return None
 
 
-# ── TIER 1 — MODIS Land Surface Temperature ──────────────────
+# TIER 1 — MODIS Daily LST
 def fetch_modis_lst(lat, lon):
-    print("[MODIS] Fetching daily Land Surface Temperature (LST)...")
+    print("[MODIS] Fetching daily Land Surface Temperature...")
     try:
         import pystac_client
         import planetary_computer
@@ -128,7 +190,7 @@ def fetch_modis_lst(lat, lon):
         import certifi
         import numpy as np
     except ImportError as e:
-        print(f"[MODIS WARNING] Missing dependencies: {e}.")
+        print(f"[MODIS WARNING] Missing deps: {e}.")
         return None
 
     os.environ["CURL_CA_BUNDLE"] = certifi.where()
@@ -140,20 +202,20 @@ def fetch_modis_lst(lat, lon):
         )
 
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=8)
+        start_date = end_date - timedelta(days=12)
         time_range = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
         bbox = [lon - 0.05, lat - 0.05, lon + 0.05, lat + 0.05]
 
         search = catalog.search(collections=["modis-11A1-061"], bbox=bbox, datetime=time_range)
         items = search.item_collection()
         if not items:
-            print("[MODIS WARNING] No daily LST data found.")
+            print("[MODIS WARNING] No MODIS LST data found.")
             return None
 
         latest_item = items[0]
         start_dt = latest_item.properties.get("start_datetime")
         date_str = start_dt.split("T")[0] if start_dt else "Unknown"
-        print(f"[MODIS] LST scene: {latest_item.id} acquired on {date_str}")
+        print(f"[MODIS] LST scene: {latest_item.id} | {date_str}")
 
         lst_url = latest_item.assets["LST_Day_1km"].href
 
@@ -175,18 +237,19 @@ def fetch_modis_lst(lat, lon):
         return None
 
     except Exception as e:
-        print(f"[MODIS WARNING] Error fetching MODIS LST: {e}.")
+        print(f"[MODIS WARNING] {e}. Using API soil temp.")
         return None
 
 
-# ── TIER 1 — Open-Meteo 16-Day Forecast ──────────────────────
+# TIER 1 — Open-Meteo 16-Day Forecast
 def fetch_open_meteo_forecast(lat, lon):
-    print("[FORECAST] Fetching 16-day irrigation forecast from Open-Meteo...")
+    print("[FORECAST] Fetching 16-day irrigation forecast...")
     try:
         url = (
             f"https://api.open-meteo.com/v1/forecast"
             f"?latitude={lat}&longitude={lon}"
-            f"&daily=et0_fao_evapotranspiration,precipitation_sum"
+            f"&daily=et0_fao_evapotranspiration,precipitation_sum,"
+            f"temperature_2m_max,temperature_2m_min"
             f"&forecast_days=16&timezone=UTC"
         )
         r = requests.get(url, timeout=15)
@@ -201,11 +264,11 @@ def fetch_open_meteo_forecast(lat, lon):
         print(f"[FORECAST] 7-day water deficit: {deficit_7d:.1f} mm")
         return round(deficit_7d, 1)
     except Exception as e:
-        print(f"[FORECAST WARNING] Error fetching forecast: {e}")
+        print(f"[FORECAST WARNING] {e}")
         return 0.0
 
 
-# ── TIER 1 — Empirical LAI & FCOVER ──────────────────────────
+# TIER 1 — Empirical LAI & FCOVER
 def compute_lai_fcover(ndvi):
     ndvi_c = max(0.15, min(0.92, ndvi))
     lai = max(0.0, -math.log(max(1e-6, (0.69 - ndvi_c) / 0.59)) / 0.91)
@@ -228,7 +291,7 @@ def build_url(lat, lon):
     )
 
 
-# ── Initialize Database with Tier 1 Columns ──────────────────
+# ── Initialize Database with 29-Column Schema ──────────────────
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -260,7 +323,7 @@ def init_db():
         )
     """)
 
-    # Check for new Tier 1 columns and add if missing
+    # Check for new Tier 1 columns + multi-field columns and add if missing
     cur.execute("PRAGMA table_info(telemetry_log)")
     existing_cols = [col[1] for col in cur.fetchall()]
 
@@ -269,7 +332,9 @@ def init_db():
         "lai": "REAL",
         "fcover": "REAL",
         "lst_modis": "REAL",
-        "et0_deficit_7d": "REAL"
+        "et0_deficit_7d": "REAL",
+        "scene_id": "TEXT",
+        "field_name": "TEXT"
     }
     for col_name, col_type in new_cols.items():
         if col_name not in existing_cols:
@@ -312,16 +377,15 @@ def fetch_and_store():
     solar_rad  = current.get("shortwave_radiation")       or 0.0
     soil_temp  = current.get("soil_temperature_0_to_7cm") or temp
     soil_moist = current.get("soil_moisture_0_to_1cm")    or 0.18
-
     daily_et0    = sum(x for x in hourly.get("et0_fao_evapotranspiration", []) if x) or 5.0
-    daily_precip = sum(x for x in hourly.get("precipitation", []) if x) or 0.0
 
     print(f"  Temp       : {temp} C")
     print(f"  Soil Moist : {soil_moist*100:.1f}%")
     print(f"  Daily ET0  : {daily_et0:.2f} mm")
 
-    # Fetch Tier 1 Satellite & Forecast
-    sentinel_data = fetch_sentinel2_indices(LAT, LON)
+    print("\n[TIER 1] Fetching satellite & forecast data...")
+    latest_item = get_latest_sentinel_item(LAT, LON)
+    scene_id = latest_item.id if latest_item else "Fallback"
     modis_lst_val = fetch_modis_lst(LAT, LON)
     deficit_7d    = fetch_open_meteo_forecast(LAT, LON)
 
@@ -334,60 +398,79 @@ def fetch_and_store():
     season_factor = max(0.0, min(1.0, (day_length - 8.0) / 8.0))
     temp_factor = math.exp(-0.02 * ((temp - 24.0) ** 2))
     growth_multiplier = season_factor * temp_factor
-    max_ndvi = 0.35 + 0.50 * growth_multiplier
-    min_ndvi = 0.15 + 0.15 * growth_multiplier
 
     TAW = 72.0
     RAW = 36.0
-    sm_frac = min(1.0, max(0.0, soil_moist * 5.0))
     count = 0
 
-    for row in range(8):
-        for col in range(8):
-            # Physics-driven spatial variation
-            dist = math.sqrt((row - 3.5)**2 + (col - 3.5)**2)
-            spatial_val = 0.80 - (dist * 0.10) + ((row * col) % 5 - 2) * 0.03
-            pos_factor = max(0.0, min(1.0, (spatial_val - 0.25) / 0.60))
+    for field in FIELDS:
+        f_name = field["name"]
+        print(f"\n[PIML] Processing field: {f_name}...")
+        
+        # Crop Sentinel-2 data for this specific field
+        field_sentinel = fetch_field_indices(latest_item, field["bbox"]) if latest_item else None
+        
+        # NDVI bounds adjusted dynamically based on crop characteristics
+        if "Corn" in f_name:
+            max_ndvi = 0.50 + 0.40 * growth_multiplier
+            min_ndvi = 0.20 + 0.15 * growth_multiplier
+        elif "Alfalfa" in f_name:
+            max_ndvi = 0.40 + 0.35 * growth_multiplier
+            min_ndvi = 0.15 + 0.15 * growth_multiplier
+        elif "Tomato" in f_name:
+            max_ndvi = 0.45 + 0.35 * growth_multiplier
+            min_ndvi = 0.18 + 0.15 * growth_multiplier
+        else: # Fallow
+            max_ndvi = 0.18 + 0.05 * growth_multiplier
+            min_ndvi = 0.08 + 0.02 * growth_multiplier
 
-            if sentinel_data:
-                # Option B Blend (allow down to 0.08 for bare soil variation)
-                ndvi = round(max(0.08, min(0.90, sentinel_data["ndvi"][row][col] + (pos_factor - 0.5) * 0.24)), 4)
-                ndwi_real_val = round(float(sentinel_data["ndwi_real"][row][col]), 4)
-            else:
-                ndvi = round(max(0.08, min(0.90, min_ndvi + pos_factor * (max_ndvi - min_ndvi))), 4)
-                ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
+        for row in range(8):
+            for col in range(8):
+                dist = math.sqrt((row - 3.5)**2 + (col - 3.5)**2)
+                spatial_val = 0.80 - (dist * 0.10) + ((row * col) % 5 - 2) * 0.03
+                pos_factor = max(0.0, min(1.0, (spatial_val - 0.25) / 0.60))
 
-            ndwi = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
-            savi = round(ndvi * 1.2, 4)
-            lai, fcover = compute_lai_fcover(ndvi)
-            lst_api = round(soil_temp + (1.0 - ndvi) * 5.0, 1)
+                if field_sentinel:
+                    ndvi = round(max(0.08, min(0.90, field_sentinel["ndvi"][row][col] + (pos_factor - 0.5) * 0.24)), 4)
+                    ndwi_real_val = round(float(field_sentinel["ndwi_real"][row][col]), 4)
+                else:
+                    ndvi = round(max(0.08, min(0.90, min_ndvi + pos_factor * (max_ndvi - min_ndvi))), 4)
+                    ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
 
-            kc = round(min(1.20, max(0.15, 0.15 + 0.95 / (1.0 + math.exp(-12.0 * (ndvi - 0.4))))), 2)
-            ks = round(min(1.0, max(0.0, 1.0 if ndwi_real_val >= -0.1 else 1.0 + (ndwi_real_val + 0.1) * 2.0)), 2)
+                ndwi = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
+                savi = round(ndvi * 1.2, 4)
+                lai, fcover = compute_lai_fcover(ndvi)
+                lst_api = round(soil_temp + (1.0 - ndvi) * 5.0, 1)
 
-            # Derive sector-specific soil moisture fraction from NDWI (makes water need dynamic)
-            # Maps NDWI range [-0.5, 0.5] to [0.10, 0.90] soil moisture fraction
-            sm_frac_sector = 0.10 + ((ndwi_real_val - (-0.5)) / (0.5 - (-0.5))) * 0.80
-            sm_frac_sector = min(1.0, max(0.0, sm_frac_sector))
+                kc = round(min(1.20, max(0.15, 0.15 + 0.95 / (1.0 + math.exp(-12.0 * (ndvi - 0.4))))), 2)
+                if "Fallow" in f_name:
+                    kc = round(kc * 0.3, 2)
 
-            Dr  = round(TAW * (1.0 - sm_frac_sector), 2)
-            ETc = round(ks * kc * daily_et0, 2)
-            irr = round(Dr, 2) if Dr > RAW else 0.0
+                ks = round(min(1.0, max(0.0, 1.0 if ndwi_real_val >= -0.1 else 1.0 + (ndwi_real_val + 0.1) * 2.0)), 2)
 
-            cur.execute("""
-                INSERT INTO telemetry_log (
-                    timestamp, latitude, longitude, sector_row, sector_col,
-                    ndvi, ndwi, ndwi_real, savi, lai, fcover, lst, lst_modis,
-                    Kc, Ks, Dr, TAW, RAW, ETc, water_need,
-                    air_temp, humidity, solar_rad, precip, soil_temp, soil_moisture, et0_deficit_7d
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            """, (
-                now_str, LAT, LON, row, col,
-                ndvi, ndwi, ndwi_real_val, savi, lai, fcover, lst_api, modis_lst_val,
-                kc, ks, Dr, TAW, RAW, ETc, irr,
-                temp, humidity, solar_rad, precip_cur, soil_temp, soil_moist, deficit_7d
-            ))
-            count += 1
+                sm_frac_sector = 0.10 + ((ndwi_real_val - (-0.5)) / (0.5 - (-0.5))) * 0.80
+                sm_frac_sector = min(1.0, max(0.0, sm_frac_sector))
+
+                Dr  = round(TAW * (1.0 - sm_frac_sector), 2)
+                ETc = round(ks * kc * daily_et0, 2)
+                irr = round(Dr, 2) if Dr > RAW else 0.0
+
+                cur.execute("""
+                    INSERT INTO telemetry_log (
+                        timestamp, latitude, longitude, sector_row, sector_col,
+                        ndvi, ndwi, ndwi_real, savi, lai, fcover, lst, lst_modis,
+                        Kc, Ks, Dr, TAW, RAW, ETc, water_need,
+                        air_temp, humidity, solar_rad, precip, soil_temp, soil_moisture, 
+                        et0_deficit_7d, scene_id, field_name
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """, (
+                    now_str, field["lat"], field["lon"], row, col,
+                    ndvi, ndwi, ndwi_real_val, savi, lai, fcover, lst_api, modis_lst_val,
+                    kc, ks, Dr, TAW, RAW, ETc, irr,
+                    temp, humidity, solar_rad, precip_cur, soil_temp, soil_moist, 
+                    deficit_7d, scene_id, f_name
+                ))
+                count += 1
 
     conn.commit()
     cur.execute("SELECT COUNT(*) FROM telemetry_log")
@@ -401,11 +484,10 @@ def fetch_and_store():
 
 def main():
     print("=" * 65)
-    print("  AquaVolt-AI SQLite Logger [Tier 1 Upgraded]")
+    print("  AquaVolt-AI SQLite Logger [Tier 1 Multi-Field Upgrade]")
     print(f"  Farm     : {FARM}")
     print(f"  Location : {LAT} N, {LON} W")
     print(f"  Database : {DB_PATH}")
-    print(f"  Interval : Every {INTERVAL_SECONDS // 60} minutes")
     print("=" * 65)
 
     init_db()
