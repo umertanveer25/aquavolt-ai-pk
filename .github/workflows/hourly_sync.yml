@@ -13,6 +13,8 @@ on:
 jobs:
   sync-data:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository code
