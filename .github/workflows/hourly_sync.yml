@@ -6,6 +6,9 @@ on:
     - cron: '0 * * * *'
   # Allow manual trigger
   workflow_dispatch:
+  # Allow API failover trigger from Cron-Job.org
+  repository_dispatch:
+    types: [failover_trigger]
 
 jobs:
   sync-data:
