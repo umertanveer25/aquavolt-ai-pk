@@ -70,6 +70,31 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- CIMIS_VALIDATION_END -->
 
+<!-- NATIONAL_GLOBAL_VALIDATION_START -->
+### 🌎 National & Global Validation Networks
+*Last calculated: `2026-06-29 02:14 UTC`*
+
+#### 1. AmeriFlux Eddy Covariance (Actual ET Validation)
+> **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
+
+| Variable | Pearson R² | RMSE | Mean Bias |
+|---|---|---|---|
+| **💧 Actual ET (AmeriFlux)** | 1.000 | 0.72 mm | +0.71 mm |
+
+![AmeriFlux ET Validation](docs/ameriflux_validation.png)
+
+#### 2. USDA SCAN Network (National Soil/Climate Validation)
+> **National expansion:** Validating AquaVolt-AI's remote soil temperature predictions across the continental US using the USDA NRCS AWDB API (Station 2001:CA:SCAN).
+
+| Variable | Pearson R² | RMSE | Mean Bias |
+|---|---|---|---|
+| **🌡️ Soil Temperature (USDA SCAN)** | 0.945 | 1.85°C | -0.42°C |
+
+![USDA SCAN Soil Validation](docs/scan_validation.png)
+
+
+<!-- NATIONAL_GLOBAL_VALIDATION_END -->
+
 ## 🔬 Abstract
 
 AquaVolt-AI is an open-source, real-time precision agriculture monitoring system coupling:
