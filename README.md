@@ -30,8 +30,8 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 ### ⛅ Current Weather (Russell Ranch)
 
-- **Air Temp:** 20.7°C
-- **Humidity:** 34%
+- **Air Temp:** 20.6°C
+- **Humidity:** 35%
 - **Solar Radiation:** 0.0 W/m²
 - **Soil Moisture (Proxy):** 6.3%
 - **Reference ET₀ (24h):** 7.64 mm
