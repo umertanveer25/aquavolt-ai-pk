@@ -151,6 +151,17 @@ $$ET_c = K_s \cdot K_c \cdot ET_0$$
 
 $$D_r(t) = D_r(t-1) - P_{\text{eff}} + ET_c \qquad \text{if } D_r > RAW \Rightarrow \text{irrigate}$$
 
+## 📓 Interactive Google Colab Notebooks
+
+We provide four interactive, one-click Google Colab notebooks for instant analysis and scientific verification:
+
+| Notebook | Description | Launch |
+|---|---|---|
+| **Live Telemetry Explorer** | Load live datasets directly from the cloud and plot basic trends. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/umertanveer25/aquavolt-ai-pk/blob/main/demo.ipynb) |
+| **CIMIS Ground Validation** | Compare AquaVolt-AI predictions against physical ground sensors at Davis, CA. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/umertanveer25/aquavolt-ai-pk/blob/main/notebooks/cimis_validation.ipynb) |
+| **PIML Architecture Deep Dive** | Mathematical and visual breakdown of the Physics-Informed ML pipeline. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/umertanveer25/aquavolt-ai-pk/blob/main/notebooks/piml_architecture.ipynb) |
+| **LSTM Water Deficit Forecasting** | Train an LSTM neural network on the live dataset to predict water stress. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/umertanveer25/aquavolt-ai-pk/blob/main/notebooks/lstm_forecasting.ipynb) |
+
 ---
 
 ## 🛠️ Installation
