@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests gspread oauth2client pystac-client planetary-computer rasterio certifi numpy
+          pip install requests gspread oauth2client pystac-client planetary-computer rasterio certifi numpy matplotlib seaborn scipy
 
       - name: Run hourly Google Sheets logger
         env:
@@ -40,11 +40,15 @@ jobs:
         run: |
           python aquavolt_gsheet_logger.py
 
+      - name: Generate live visualization plots
+        run: |
+          python generate_plots.py
+
       - name: Commit and push live dashboard
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add README.md
-          git commit -m "chore: Update live telemetry dashboard [skip ci]" || echo "No changes to commit"
+          git add README.md docs/*.png
+          git commit -m "chore: Update live telemetry dashboard and plots [skip ci]" || echo "No changes to commit"
           git pull --rebase origin main
           git push

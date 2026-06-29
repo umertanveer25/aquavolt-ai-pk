@@ -51,7 +51,7 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- CIMIS_VALIDATION_START -->
 ### 📊 Daily Ground-Truth Validation (Davis Station #6)
-*Last calculated: `2026-06-29 01:14 UTC` (Evaluating 2 complete days of data)*
+*Last calculated: `2026-06-29 01:25 UTC` (Evaluating 2 complete days of data)*
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
@@ -63,6 +63,10 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 | **💧 Reference ET₀** | 1.000 | 29882.40 mm | +23871.80 mm |
 
 > Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.
+
+#### 📈 Live Validation Scatter Plots
+![CIMIS Ground Validation](docs/cimis_scatter_validation.png)
+
 <!-- CIMIS_VALIDATION_END -->
 
 ## 🔬 Abstract
@@ -157,6 +161,11 @@ $$ET_0 = \frac{0.408\,\Delta\,(R_n - G) + \gamma\,\frac{900}{T+273}\,u_2\,(e_s -
 $$K_c = \text{clip}\!\left(K_{c,\text{prior}} + \text{clip}(r_1 \cdot 0.15,\ -0.15,\ +0.15),\ 0.15,\ 1.20\right)$$
 
 $$K_{c,\text{prior}} = 0.15 + \frac{0.95}{1 + e^{-12(NDVI - 0.4)}}$$
+
+<div align="center">
+  <img src="docs/piml_sigmoid_prior.png" width="700" alt="Physics-Informed Crop Coefficient Estimator Curve">
+  <p><em>Figure 2: Theoretical FAO-56 Sigmoid prior curve mapping NDVI to crop coefficient (Kc), overlaying live multi-field sector data.</em></p>
+</div>
 
 ### Crop Evapotranspiration under Stress
 

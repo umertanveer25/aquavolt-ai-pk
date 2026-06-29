@@ -266,7 +266,9 @@ def run_cimis_validation_and_update_readme(worksheet):
     val_md += f"| **🌡️ Soil Temp** | {r2_st:.3f} | {rmse_st:.2f}°C | {bias_st:+.2f}°C |\n"
     val_md += f"| **🌧️ Precipitation** | {r2_p:.3f} | {rmse_p:.2f} mm | {bias_p:+.2f} mm |\n"
     val_md += f"| **💧 Reference ET₀** | {r2_e:.3f} | {rmse_e:.2f} mm | {bias_e:+.2f} mm |\n\n"
-    val_md += f"> Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA."
+    val_md += f"> Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.\n\n"
+    val_md += f"#### 📈 Live Validation Scatter Plots\n"
+    val_md += f"![CIMIS Ground Validation](docs/cimis_scatter_validation.png)\n"
 
     readme_path = r"c:\Users\umert\aquavolt-ai-pk\README.md"
     if os.path.exists(readme_path):
