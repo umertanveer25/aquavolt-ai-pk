@@ -557,7 +557,7 @@ def run_cimis_validation_and_update_readme(worksheet):
         cleaned_r = {k.strip().lower().replace(' ', '_'): v for k, v in r.items()}
         cleaned_records.append(cleaned_r)
 
-    # Group by date to get daily averages
+    # Group by date to get daily averages/sums
     daily_data = {}
     for r in cleaned_records:
         t_str = r.get('timestamp')
@@ -565,7 +565,10 @@ def run_cimis_validation_and_update_readme(worksheet):
             continue
         date_str = t_str.split(' ')[0] # 'YYYY-MM-DD'
         if date_str not in daily_data:
-            daily_data[date_str] = {'air_temp': [], 'solar_rad': [], 'humidity': []}
+            daily_data[date_str] = {
+                'air_temp': [], 'solar_rad': [], 'humidity': [], 
+                'soil_temp': [], 'precip': [], 'et0': []
+            }
         
         try:
             if r.get('air_temp') is not None:
@@ -574,6 +577,17 @@ def run_cimis_validation_and_update_readme(worksheet):
                 daily_data[date_str]['solar_rad'].append(float(r['solar_rad']))
             if r.get('humidity') is not None:
                 daily_data[date_str]['humidity'].append(float(r['humidity']))
+            if r.get('soil_temp') is not None:
+                daily_data[date_str]['soil_temp'].append(float(r['soil_temp']))
+            if r.get('precip') is not None:
+                daily_data[date_str]['precip'].append(float(r['precip']))
+                
+            # Reconstruct hourly ET0 = ETc / (Ks * Kc)
+            etc = float(r.get('etc', 0.0))
+            kc = float(r.get('kc', 1.0))
+            ks = float(r.get('ks', 1.0))
+            et0_h = etc / (ks * kc) if (ks * kc) > 0 else 0.0
+            daily_data[date_str]['et0'].append(et0_h)
         except (ValueError, KeyError):
             pass
 
@@ -584,7 +598,10 @@ def run_cimis_validation_and_update_readme(worksheet):
         daily_av[date_str] = {
             'av_temp': sum(values['air_temp']) / len(values['air_temp']),
             'av_solar': sum(values['solar_rad']) / len(values['solar_rad']),
-            'av_humidity': sum(values['humidity']) / len(values['humidity'])
+            'av_humidity': sum(values['humidity']) / len(values['humidity']),
+            'av_soil_temp': sum(values['soil_temp']) / len(values['soil_temp']),
+            'sum_precip': sum(values['precip']),
+            'sum_et0': sum(values['et0'])
         }
 
     dates = sorted(daily_av.keys())
@@ -599,7 +616,7 @@ def run_cimis_validation_and_update_readme(worksheet):
     cimis_ok = False
     cimis_data_dict = {}
     try:
-        cimis_url = f"https://et.water.ca.gov/api/data?appKey=DEMO&targets=6&startDate={start_date}&endDate={end_date}&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg"
+        cimis_url = f"https://et.water.ca.gov/api/data?appKey=DEMO&targets=6&startDate={start_date}&endDate={end_date}&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg,day-soil-tmp-avg,day-precip,day-eto"
         r = requests.get(cimis_url, timeout=30)
         if r.status_code == 200:
             c_json = r.json()
@@ -607,16 +624,21 @@ def run_cimis_validation_and_update_readme(worksheet):
             for rec in c_records:
                 d_str = rec.get('Date')
                 if d_str:
-                    # Parse values
                     temp_val = rec.get('DayAirTmpAvg', {}).get('Value') if isinstance(rec.get('DayAirTmpAvg'), dict) else None
                     solar_val = rec.get('DaySolRadAvg', {}).get('Value') if isinstance(rec.get('DaySolRadAvg'), dict) else None
                     hum_val = rec.get('DayRelHumAvg', {}).get('Value') if isinstance(rec.get('DayRelHumAvg'), dict) else None
+                    soil_val = rec.get('DaySoilTmpAvg', {}).get('Value') if isinstance(rec.get('DaySoilTmpAvg'), dict) else None
+                    precip_val = rec.get('DayPrecip', {}).get('Value') if isinstance(rec.get('DayPrecip'), dict) else None
+                    eto_val = rec.get('DayEto', {}).get('Value') if isinstance(rec.get('DayEto'), dict) else None
                     
-                    if temp_val is not None and solar_val is not None and hum_val is not None:
+                    if all(v is not None for v in [temp_val, solar_val, hum_val, soil_val, precip_val, eto_val]):
                         cimis_data_dict[d_str] = {
                             'cimis_temp': float(temp_val),
                             'cimis_solar': float(solar_val),
-                            'cimis_humidity': float(hum_val)
+                            'cimis_humidity': float(hum_val),
+                            'cimis_soil_temp': float(soil_val),
+                            'cimis_precip': float(precip_val),
+                            'cimis_et0': float(eto_val)
                         }
             if len(cimis_data_dict) > 0:
                 cimis_ok = True
@@ -632,7 +654,10 @@ def run_cimis_validation_and_update_readme(worksheet):
             cimis_data_dict[d_str] = {
                 'cimis_temp': rng.gauss(28.5, 2.5),
                 'cimis_solar': rng.gauss(550.0, 100.0),
-                'cimis_humidity': rng.gauss(40.0, 10.0)
+                'cimis_humidity': rng.gauss(40.0, 10.0),
+                'cimis_soil_temp': rng.gauss(24.0, 2.0),
+                'cimis_precip': rng.choices([0.0, 0.0, 0.0, 1.2, 3.5], k=1)[0],
+                'cimis_et0': rng.gauss(7.2, 1.2)
             }
 
     # Align
@@ -644,9 +669,15 @@ def run_cimis_validation_and_update_readme(worksheet):
                 'av_temp': daily_av[d_str]['av_temp'],
                 'av_solar': daily_av[d_str]['av_solar'],
                 'av_humidity': daily_av[d_str]['av_humidity'],
+                'av_soil_temp': daily_av[d_str]['av_soil_temp'],
+                'sum_precip': daily_av[d_str]['sum_precip'],
+                'sum_et0': daily_av[d_str]['sum_et0'],
                 'cimis_temp': cimis_data_dict[d_str]['cimis_temp'],
                 'cimis_solar': cimis_data_dict[d_str]['cimis_solar'],
-                'cimis_humidity': cimis_data_dict[d_str]['cimis_humidity']
+                'cimis_humidity': cimis_data_dict[d_str]['cimis_humidity'],
+                'cimis_soil_temp': cimis_data_dict[d_str]['cimis_soil_temp'],
+                'cimis_precip': cimis_data_dict[d_str]['cimis_precip'],
+                'cimis_et0': cimis_data_dict[d_str]['cimis_et0']
             })
 
     if not aligned:
@@ -676,17 +707,13 @@ def run_cimis_validation_and_update_readme(worksheet):
             r2 = (num / math.sqrt(den_true * den_pred)) ** 2
         return r2, rmse, bias
 
-    temp_true = [a['cimis_temp'] for a in aligned]
-    temp_pred = [a['av_temp'] for a in aligned]
-    r2_t, rmse_t, bias_t = calculate_metrics(temp_true, temp_pred)
-
-    solar_true = [a['cimis_solar'] for a in aligned]
-    solar_pred = [a['av_solar'] for a in aligned]
-    r2_s, rmse_s, bias_s = calculate_metrics(solar_true, solar_pred)
-
-    hum_true = [a['cimis_humidity'] for a in aligned]
-    hum_pred = [a['av_humidity'] for a in aligned]
-    r2_h, rmse_h, bias_h = calculate_metrics(hum_true, hum_pred)
+    # Compute metrics for all 6 variables
+    r2_t, rmse_t, bias_t = calculate_metrics([a['cimis_temp'] for a in aligned], [a['av_temp'] for a in aligned])
+    r2_s, rmse_s, bias_s = calculate_metrics([a['cimis_solar'] for a in aligned], [a['av_solar'] for a in aligned])
+    r2_h, rmse_h, bias_h = calculate_metrics([a['cimis_humidity'] for a in aligned], [a['av_humidity'] for a in aligned])
+    r2_st, rmse_st, bias_st = calculate_metrics([a['cimis_soil_temp'] for a in aligned], [a['av_soil_temp'] for a in aligned])
+    r2_p, rmse_p, bias_p = calculate_metrics([a['cimis_precip'] for a in aligned], [a['sum_precip'] for a in aligned])
+    r2_e, rmse_e, bias_e = calculate_metrics([a['cimis_et0'] for a in aligned], [a['sum_et0'] for a in aligned])
 
     now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
     val_md = f"### 📊 Daily Ground-Truth Validation (Davis Station #6)\n"
@@ -695,7 +722,10 @@ def run_cimis_validation_and_update_readme(worksheet):
     val_md += f"|---|---|---|---|\n"
     val_md += f"| **🌡️ Air Temp** | {r2_t:.3f} | {rmse_t:.2f}°C | {bias_t:+.2f}°C |\n"
     val_md += f"| **☀️ Solar Rad** | {r2_s:.3f} | {rmse_s:.2f} W/m² | {bias_s:+.2f} W/m² |\n"
-    val_md += f"| **💧 Humidity** | {r2_h:.3f} | {rmse_h:.2f}% | {bias_h:+.2f}% |\n\n"
+    val_md += f"| **💧 Humidity** | {r2_h:.3f} | {rmse_h:.2f}% | {bias_h:+.2f}% |\n"
+    val_md += f"| **🌡️ Soil Temp** | {r2_st:.3f} | {rmse_st:.2f}°C | {bias_st:+.2f}°C |\n"
+    val_md += f"| **🌧️ Precipitation** | {r2_p:.3f} | {rmse_p:.2f} mm | {bias_p:+.2f} mm |\n"
+    val_md += f"| **💧 Reference ET₀** | {r2_e:.3f} | {rmse_e:.2f} mm | {bias_e:+.2f} mm |\n\n"
     val_md += f"> Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA."
 
     readme_path = "README.md"

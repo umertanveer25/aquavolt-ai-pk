@@ -51,13 +51,16 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- CIMIS_VALIDATION_START -->
 ### 📊 Daily Ground-Truth Validation (Davis Station #6)
-*Last calculated: `2026-06-29 01:07 UTC` (Evaluating 2 complete days of data)*
+*Last calculated: `2026-06-29 01:14 UTC` (Evaluating 2 complete days of data)*
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
 | **🌡️ Air Temp** | 1.000 | 7.80°C | -4.25°C |
 | **☀️ Solar Rad** | 1.000 | 117.56 W/m² | +92.22 W/m² |
 | **💧 Humidity** | 1.000 | 20.15% | -3.13% |
+| **🌡️ Soil Temp** | 1.000 | 2.75°C | -1.43°C |
+| **🌧️ Precipitation** | 0.000 | 0.85 mm | -0.60 mm |
+| **💧 Reference ET₀** | 1.000 | 29882.40 mm | +23871.80 mm |
 
 > Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.
 <!-- CIMIS_VALIDATION_END -->
