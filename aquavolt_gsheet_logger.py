@@ -378,12 +378,12 @@ def main(push_to_sheets=True):
 
     current = weather.get("current", {})
     hourly  = weather.get("hourly", {})
-    temp       = current.get("temperature_2m")            or 20.0
-    humidity   = current.get("relative_humidity_2m")      or 50.0
-    precip_cur = current.get("precipitation")             or 0.0
-    solar_rad  = current.get("shortwave_radiation")       or 0.0
-    soil_temp  = current.get("soil_temperature_0_to_7cm") or temp
-    soil_moist = current.get("soil_moisture_0_to_1cm")    or 0.18
+    temp       = current.get("temperature_2m")            if current.get("temperature_2m")   is not None else 20.0
+    humidity   = current.get("relative_humidity_2m")      if current.get("relative_humidity_2m") is not None else 50.0
+    precip_cur = current.get("precipitation")             if current.get("precipitation")     is not None else 0.0
+    solar_rad  = current.get("shortwave_radiation")       if current.get("shortwave_radiation") is not None else 0.0
+    soil_temp  = current.get("soil_temperature_0_to_7cm") if current.get("soil_temperature_0_to_7cm") is not None else temp
+    soil_moist = current.get("soil_moisture_0_to_1cm")    if current.get("soil_moisture_0_to_1cm") is not None else 0.18
     daily_et0    = sum(x for x in hourly.get("et0_fao_evapotranspiration", []) if x) or 5.0
     print(f"  Temp: {temp}C | Soil Moist: {soil_moist*100:.1f}% | ET0: {daily_et0:.2f} mm/day")
 
