@@ -536,9 +536,13 @@ def main(push_to_sheets=True):
     except Exception as e:
         print(f"[ERROR] Failed to generate dashboard: {e}")
 
-    # --- RUN DAILY CIMIS VALIDATION ---
+    # --- RUN DAILY CIMIS VALIDATION (Only at 00:00 UTC) ---
     try:
-        run_cimis_validation_and_update_readme(worksheet)
+        current_hour = datetime.now(timezone.utc).hour
+        if current_hour == 0:
+            run_cimis_validation_and_update_readme(worksheet)
+        else:
+            print(f"[INFO] Skipping daily validation calculations (Current hour is {current_hour:02d}:00 UTC. Runs at 00:00 UTC)")
     except Exception as e:
         print(f"[ERROR] Validation run failed: {e}")
 
