@@ -25,25 +25,25 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 <!-- LIVE_TELEMETRY_START -->
 # 📡 AquaVolt-AI Live Telemetry
 
-**Latest Update:** `2026-06-29 23:00:00 UTC`
+**Latest Update:** `2026-06-30 00:00:00 UTC`
 > This dashboard updates automatically every hour via GitHub Actions.
 
 ### ⛅ Current Weather (Russell Ranch)
 
-- **Air Temp:** 31.2°C
-- **Humidity:** 20%
-- **Solar Radiation:** 822.0 W/m²
+- **Air Temp:** 31.1°C
+- **Humidity:** 22%
+- **Solar Radiation:** 656.0 W/m²
 - **Soil Moisture (Proxy):** 5.5%
-- **Reference ET₀ (24h):** 7.27 mm
+- **Reference ET₀ (24h):** 7.38 mm
 
 ### 🌱 Field Averages (Current Hour)
 
 | Field Name | Avg NDVI | Avg NDWI | Avg ETc (mm/hr) | Avg Water Deficit (mm) |
 |---|---|---|---|---|
-| **Field-A (Corn)** | 0.197 | -0.261 | 1.12 | **51.02** |
-| **Field-B (Alfalfa)** | 0.194 | -0.274 | 1.18 | **51.76** |
+| **Field-A (Corn)** | 0.197 | -0.261 | 1.13 | **51.02** |
+| **Field-B (Alfalfa)** | 0.194 | -0.274 | 1.20 | **51.76** |
 | **Field-C (Fallow)** | 0.256 | -0.313 | 0.41 | **54.05** |
-| **Field-D (Tomato)** | 0.140 | -0.214 | 1.08 | **47.78** |
+| **Field-D (Tomato)** | 0.140 | -0.214 | 1.10 | **47.78** |
 
 ---
 *Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*
@@ -52,16 +52,16 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- CIMIS_VALIDATION_START -->
 ### 📊 Daily Ground-Truth Validation (Davis Station #6)
-*Last calculated: `2026-06-29 01:25 UTC` (Evaluating 2 complete days of data)*
+*Last calculated: `2026-06-30 00:01 UTC` (Evaluating 3 complete days of data)*
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Air Temp** | 1.000 | 7.80°C | -4.25°C |
-| **☀️ Solar Rad** | 1.000 | 117.56 W/m² | +92.22 W/m² |
-| **💧 Humidity** | 1.000 | 20.15% | -3.13% |
-| **🌡️ Soil Temp** | 1.000 | 2.75°C | -1.43°C |
-| **🌧️ Precipitation** | 0.000 | 0.85 mm | -0.60 mm |
-| **💧 Reference ET₀** | 1.000 | 29882.40 mm | +23871.80 mm |
+| **🌡️ Air Temp** | 0.226 | 6.60°C | -4.98°C |
+| **☀️ Solar Rad** | 0.429 | 122.83 W/m² | +46.80 W/m² |
+| **💧 Humidity** | 0.997 | 18.19% | -4.59% |
+| **🌡️ Soil Temp** | 0.032 | 5.63°C | -0.50°C |
+| **🌧️ Precipitation** | 0.000 | 0.69 mm | -0.40 mm |
+| **💧 Reference ET₀** | 0.694 | 37588.73 mm | +31190.12 mm |
 
 > Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.
 
@@ -72,7 +72,7 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- NATIONAL_GLOBAL_VALIDATION_START -->
 ### 🌎 National & Global Validation Networks
-*Last calculated: `2026-06-29 02:14 UTC`*
+*Last calculated: `2026-06-30 00:01 UTC`*
 
 #### 1. AmeriFlux Eddy Covariance (Actual ET Validation)
 > **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
