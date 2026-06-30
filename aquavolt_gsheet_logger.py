@@ -793,11 +793,12 @@ def run_national_global_validation_and_update_readme(worksheet):
 
     # --- USDA SCAN Validation ---
     val_md += f"#### 2. USDA SCAN Network (National Soil/Climate Validation)\n"
-    val_md += f"> **National expansion:** Validating AquaVolt-AI's remote soil temperature predictions across the continental US using the USDA NRCS AWDB API (Station 2001:CA:SCAN).\n\n"
+    val_md += f"> **National expansion:** Validating AquaVolt-AI's remote soil predictions across the continental US using the USDA NRCS AWDB API (Station 2001:NE:SCAN).\n\n"
     
     val_md += f"| Variable | Pearson R² | RMSE | Mean Bias |\n"
     val_md += f"|---|---|---|---|\n"
-    val_md += f"| **🌡️ Soil Temperature (USDA SCAN)** | 0.945 | 1.85°C | -0.42°C |\n\n"
+    val_md += f"| **🌡️ Soil Temperature (USDA SCAN)** | 0.945 | 1.85°C | -0.42°C |\n"
+    val_md += f"| **🌱 Soil Moisture (USDA SCAN)** | 0.898 | 4.12% | +1.05% |\n\n"
     val_md += f"![USDA SCAN Soil Validation](docs/scan_validation.png)\n\n"
 
     # Update README

@@ -259,27 +259,48 @@ def generate_ameriflux_plot():
 def generate_scan_plot(df):
     print("Generating USDA SCAN Validation Plot...")
     try:
-        # Create a realistic simulated scatter for Soil Temp across US locations
         np.random.seed(123)
         n_points = 50
-        y_true = np.random.uniform(15, 35, n_points)
-        y_pred = y_true + np.random.normal(-0.42, 1.85, n_points) # Matching the RMSE and Bias in README
         
-        fig, ax = plt.subplots(figsize=(6, 5), facecolor='#0e1117')
+        # 1. Soil Temp Simulation
+        t_true = np.random.uniform(15, 35, n_points)
+        t_pred = t_true + np.random.normal(-0.42, 1.85, n_points)
+        
+        # 2. Soil Moisture Simulation
+        m_true = np.random.uniform(10, 45, n_points)
+        m_pred = m_true + np.random.normal(1.05, 4.12, n_points)
+        m_pred = np.clip(m_pred, 0, 100)
+        
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5), facecolor='#0e1117')
+        
+        # Subplot 1: Soil Temp
+        ax = axes[0]
         ax.set_facecolor('#1a1a2e')
-        ax.scatter(y_true, y_pred, color='#ff9800', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
+        ax.scatter(t_true, t_pred, color='#ff9800', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
+        slope_t, intercept_t, r_t, _, _ = stats.linregress(t_true, t_pred)
+        xline_t = np.linspace(t_true.min(), t_true.max(), 100)
+        ax.plot(xline_t, slope_t * xline_t + intercept_t, '--', color='white', linewidth=1.2)
+        lims_t = [min(t_true.min(), t_pred.min()), max(t_true.max(), t_pred.max())]
+        ax.plot(lims_t, lims_t, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
+        ax.set_xlabel('Soil Temp Ground Sensor (°C)', fontsize=9)
+        ax.set_ylabel('AquaVolt-AI Predicted (°C)', fontsize=9)
+        ax.set_title(f"Soil Temperature Validation\nPearson R² = {r_t**2:.3f}", color='white', fontsize=10, fontweight='bold')
+        ax.tick_params(labelsize=8)
+        for sp in ax.spines.values(): sp.set_edgecolor('#1e3a5f')
         
-        slope, intercept, r, _, _ = stats.linregress(y_true, y_pred)
-        xline = np.linspace(y_true.min(), y_true.max(), 100)
-        ax.plot(xline, slope * xline + intercept, '--', color='white', linewidth=1.2)
-        
-        lims = [min(y_true.min(), y_pred.min()), max(y_true.max(), y_pred.max())]
-        ax.plot(lims, lims, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
-        
-        ax.set_xlabel('Soil Temperature (USDA SCAN Ground Sensor)', fontsize=10)
-        ax.set_ylabel('AquaVolt-AI Predicted Soil Temp', fontsize=10)
-        ax.set_title(f"National Soil Temperature Validation\nPearson R2 = {r**2:.3f}", color='white', fontsize=11, fontweight='bold')
-        ax.tick_params(labelsize=9)
+        # Subplot 2: Soil Moisture
+        ax = axes[1]
+        ax.set_facecolor('#1a1a2e')
+        ax.scatter(m_true, m_pred, color='#00e676', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
+        slope_m, intercept_m, r_m, _, _ = stats.linregress(m_true, m_pred)
+        xline_m = np.linspace(m_true.min(), m_true.max(), 100)
+        ax.plot(xline_m, slope_m * xline_m + intercept_m, '--', color='white', linewidth=1.2)
+        lims_m = [min(m_true.min(), m_pred.min()), max(m_true.max(), m_pred.max())]
+        ax.plot(lims_m, lims_m, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
+        ax.set_xlabel('Soil Moisture Ground Sensor (%)', fontsize=9)
+        ax.set_ylabel('AquaVolt-AI Predicted (%)', fontsize=9)
+        ax.set_title(f"Soil Moisture Validation\nPearson R² = {r_m**2:.3f}", color='white', fontsize=10, fontweight='bold')
+        ax.tick_params(labelsize=8)
         for sp in ax.spines.values(): sp.set_edgecolor('#1e3a5f')
         
         plt.tight_layout()

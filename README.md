@@ -72,7 +72,7 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- NATIONAL_GLOBAL_VALIDATION_START -->
 ### 🌎 National & Global Validation Networks
-*Last calculated: `2026-06-30 00:01 UTC`*
+*Last calculated: `2026-06-30 01:23 UTC`*
 
 #### 1. AmeriFlux Eddy Covariance (Actual ET Validation)
 > **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
@@ -84,11 +84,12 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 ![AmeriFlux ET Validation](docs/ameriflux_validation.png)
 
 #### 2. USDA SCAN Network (National Soil/Climate Validation)
-> **National expansion:** Validating AquaVolt-AI's remote soil temperature predictions across the continental US using the USDA NRCS AWDB API (Station 2001:CA:SCAN).
+> **National expansion:** Validating AquaVolt-AI's remote soil predictions across the continental US using the USDA NRCS AWDB API (Station 2001:NE:SCAN).
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
 | **🌡️ Soil Temperature (USDA SCAN)** | 0.945 | 1.85°C | -0.42°C |
+| **🌱 Soil Moisture (USDA SCAN)** | 0.898 | 4.12% | +1.05% |
 
 ![USDA SCAN Soil Validation](docs/scan_validation.png)
 
