@@ -227,32 +227,75 @@ def generate_cimis_plots(df):
 def generate_ameriflux_plot():
     print("Generating AmeriFlux Validation Plot...")
     try:
+        # Load live sheet data to get daily Kc and sum ET0
+        # This mirrors the logic in logger.py
+        SHEET_ID = '1c2a-3t8fF2g_PX_0ape4ASTsbr5uX0Zb6YPzT8jtuN8'
+        csv_url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1'
+        df = pd.read_csv(csv_url, low_memory=False)
+        df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+        df = df.dropna(subset=['timestamp']).sort_values('timestamp')
+        df['date'] = df['timestamp'].dt.date
+        
+        # Compute hourly ET0 on the fly
+        df['et0'] = df['etc'] / (df['ks'] * df['kc'])
+        df['et0'] = df['et0'].replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        
+        daily = df.groupby('date').agg(
+            av_kc=('kc', 'mean'),
+            sum_et0=('et0', 'sum')
+        ).reset_index()
+        daily['date'] = pd.to_datetime(daily['date']).dt.strftime('%Y-%m-%d')
+        
         if os.path.exists('data/ameriflux_benchmark_sample.csv'):
-            df = pd.read_csv('data/ameriflux_benchmark_sample.csv')
-            y_true = df['Actual_ET_mm']
-            y_pred = y_true + (y_true * 0.1) # Simulating slight overestimation to match README R2 ~ 0.9+
+            flux_df = pd.read_csv('data/ameriflux_benchmark_sample.csv')
+            merged = pd.merge(daily, flux_df, left_on='date', right_on='Date', how='inner')
             
-            fig, ax = plt.subplots(figsize=(6, 5), facecolor='#0e1117')
-            ax.set_facecolor('#1a1a2e')
-            ax.scatter(y_true, y_pred, color='#26a69a', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
-            
-            slope, intercept, r, _, _ = stats.linregress(y_true, y_pred)
-            xline = np.linspace(y_true.min(), y_true.max(), 100)
-            ax.plot(xline, slope * xline + intercept, '--', color='white', linewidth=1.2)
-            
-            lims = [min(y_true.min(), y_pred.min()), max(y_true.max(), y_pred.max())]
-            ax.plot(lims, lims, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
-            
-            ax.set_xlabel('Actual ET (AmeriFlux Eddy Covariance)', fontsize=10)
-            ax.set_ylabel('AquaVolt-AI Predicted ET', fontsize=10)
-            ax.set_title(f"AmeriFlux US-Tw1 ET Validation\nPearson R2 = {r**2:.3f}", color='white', fontsize=11, fontweight='bold')
-            ax.tick_params(labelsize=9)
-            for sp in ax.spines.values(): sp.set_edgecolor('#1e3a5f')
-            
-            plt.tight_layout()
-            plt.savefig('docs/ameriflux_validation.png', dpi=120, bbox_inches='tight', facecolor='#0e1117')
-            plt.close()
-            print("AmeriFlux plot saved.")
+            if len(merged) > 0:
+                merged['actual_kc'] = merged['Actual_ET_mm'] / merged['sum_et0']
+                merged['actual_kc'] = merged['actual_kc'].clip(0.15, 1.20)
+                merged['pred_et'] = merged['av_kc'] * merged['sum_et0']
+                
+                fig, axes = plt.subplots(1, 2, figsize=(12, 5), facecolor='#0e1117')
+                
+                # Plot 1: Evapotranspiration
+                ax = axes[0]
+                ax.set_facecolor('#1a1a2e')
+                x_et = merged['Actual_ET_mm']
+                y_et = merged['pred_et']
+                ax.scatter(x_et, y_et, color='#26a69a', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
+                slope_et, intercept_et, r_et, _, _ = stats.linregress(x_et, y_et)
+                xline_et = np.linspace(x_et.min(), x_et.max(), 100)
+                ax.plot(xline_et, slope_et * xline_et + intercept_et, '--', color='white', linewidth=1.2)
+                lims_et = [min(x_et.min(), y_et.min()), max(x_et.max(), y_et.max())]
+                ax.plot(lims_et, lims_et, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
+                ax.set_xlabel('Actual ET (AmeriFlux Eddy Covariance)', fontsize=9)
+                ax.set_ylabel('AquaVolt-AI Predicted ET (mm)', fontsize=9)
+                ax.set_title(f"ET Validation\nPearson R² = {r_et**2:.3f}", color='white', fontsize=10, fontweight='bold')
+                ax.tick_params(labelsize=8)
+                for sp in ax.spines.values(): sp.set_edgecolor('#1e3a5f')
+                
+                # Plot 2: Crop Coefficient
+                ax = axes[1]
+                ax.set_facecolor('#1a1a2e')
+                x_kc = merged['actual_kc']
+                y_kc = merged['av_kc']
+                ax.scatter(x_kc, y_kc, color='#ff7043', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
+                slope_kc, intercept_kc, r_kc, _, _ = stats.linregress(x_kc, y_kc)
+                xline_kc = np.linspace(x_kc.min(), x_kc.max(), 100)
+                ax.plot(xline_kc, slope_kc * xline_kc + intercept_kc, '--', color='white', linewidth=1.2)
+                lims_kc = [min(x_kc.min(), y_kc.min()), max(x_kc.max(), y_kc.max())]
+                ax.plot(lims_kc, lims_kc, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
+                ax.set_xlabel('Back-Calculated Crop Coeff (Kc)', fontsize=9)
+                ax.set_ylabel('AquaVolt-AI Predicted Kc', fontsize=9)
+                ax.set_title(f"Crop Coefficient (Kc) Validation\nPearson R² = {r_kc**2:.3f}", color='white', fontsize=10, fontweight='bold')
+                ax.tick_params(labelsize=8)
+                for sp in ax.spines.values(): sp.set_edgecolor('#1e3a5f')
+                
+                plt.tight_layout()
+                plt.savefig('docs/ameriflux_validation.png', dpi=120, bbox_inches='tight', facecolor='#0e1117')
+                plt.close()
+                print("AmeriFlux plot saved.")
     except Exception as e:
         print(f"Failed to generate AmeriFlux plot: {e}")
 
