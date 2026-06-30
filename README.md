@@ -110,6 +110,51 @@ The system generates **per-sector irrigation scheduling recommendations** across
 
 ---
 
+## 🏗️ System Architecture
+
+```mermaid
+flowchart LR
+    subgraph INPUT["📡 Data Sources"]
+        S2["Sentinel-2 L2A\n(NDVI / NDWI)"]
+        MODIS["MODIS Terra\n(Land Surface Temp)"]
+        OM["Open-Meteo API\n(Weather)"]
+    end
+
+    subgraph CORE["🧠 AquaVolt-AI Engine"]
+        PIML["Physics-Informed ML\n(FAO-56 Sigmoid Prior)"]
+        ET["Penman-Monteith\nET₀ Calculation"]
+        ASTRO["Astronomical\nCrop Growth Sim"]
+        LSTM["LSTM Neural Net\n(7-Day Forecast)"]
+    end
+
+    subgraph VALIDATION["🔬 Ground-Truth Validation"]
+        CIMIS["CIMIS Station 6\n(Davis, CA)"]
+        SCAN["USDA SCAN\n(National Soil)"]
+        AFLUX["AmeriFlux\n(Eddy Covariance ET)"]
+    end
+
+    subgraph OUTPUT["📊 Outputs"]
+        GS["Google Sheets\n(2.2M+ rows/yr)"]
+        GH["GitHub README\n(Live Dashboard)"]
+        COLAB["Google Colab\n(Interactive Notebooks)"]
+    end
+
+    S2 --> PIML
+    MODIS --> ET
+    OM --> ET
+    ET --> PIML
+    ASTRO --> PIML
+    PIML --> LSTM
+    PIML --> GS
+    GS --> GH
+    GS --> COLAB
+    CIMIS -.->|"Pearson R²"| GH
+    SCAN -.->|"RMSE"| GH
+    AFLUX -.->|"Mean Bias"| GH
+```
+
+---
+
 ## 🌍 Target Location & Multi-Field Setup
 
 **UC Davis Russell Ranch Research Facility, California, USA**  
