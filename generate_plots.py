@@ -104,10 +104,18 @@ def generate_piml_plot(df):
 def generate_cimis_plots(df):
     print("Generating CIMIS Validation Plots...")
     try:
+        # Compute hourly ET0 on the fly
+        df['et0'] = df['etc'] / (df['ks'] * df['kc'])
+        df['et0'] = df['et0'].replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+        # Aggregate all 6 validation parameters
         daily_av = df.groupby('date').agg(
             av_temp=('air_temp', 'mean'),
             av_solar=('solar_rad', 'mean'),
-            av_humidity=('humidity', 'mean')
+            av_humidity=('humidity', 'mean'),
+            av_soil_temp=('soil_temp', 'mean'),
+            sum_precip=('precip', 'sum'),
+            sum_et0=('et0', 'sum')
         ).reset_index()
         daily_av['date'] = pd.to_datetime(daily_av['date'])
 
@@ -119,7 +127,7 @@ def generate_cimis_plots(df):
         try:
             cimis_url = (f'https://et.water.ca.gov/api/data?appKey=DEMO&targets=6'
                          f'&startDate={start_date}&endDate={end_date}'
-                         f'&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg')
+                         f'&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg,day-soil-tmp-avg,day-precip,day-eto')
             r = requests.get(cimis_url, timeout=20)
             if r.status_code == 200:
                 data = r.json()
@@ -130,12 +138,18 @@ def generate_cimis_plots(df):
                         temp_val = rec.get('DayAirTmpAvg', {}).get('Value') if isinstance(rec.get('DayAirTmpAvg'), dict) else None
                         solar_val = rec.get('DaySolRadAvg', {}).get('Value') if isinstance(rec.get('DaySolRadAvg'), dict) else None
                         hum_val = rec.get('DayRelHumAvg', {}).get('Value') if isinstance(rec.get('DayRelHumAvg'), dict) else None
+                        soil_val = rec.get('DaySoilTmpAvg', {}).get('Value') if isinstance(rec.get('DaySoilTmpAvg'), dict) else None
+                        precip_val = rec.get('DayPrecip', {}).get('Value') if isinstance(rec.get('DayPrecip'), dict) else None
+                        eto_val = rec.get('DayEto', {}).get('Value') if isinstance(rec.get('DayEto'), dict) else None
                         
-                        if temp_val is not None and solar_val is not None and hum_val is not None:
+                        if all(v is not None for v in [temp_val, solar_val, hum_val, soil_val, precip_val, eto_val]):
                             cimis_data_dict[d_str] = {
                                 'cimis_temp': float(temp_val),
                                 'cimis_solar': float(solar_val),
-                                'cimis_humidity': float(hum_val)
+                                'cimis_humidity': float(hum_val),
+                                'cimis_soil_temp': float(soil_val),
+                                'cimis_precip': float(precip_val),
+                                'cimis_et0': float(eto_val)
                             }
                 if len(cimis_data_dict) > 0:
                     cimis_ok = True
@@ -150,7 +164,10 @@ def generate_cimis_plots(df):
                 'date': daily_av['date'].values,
                 'cimis_temp': np.random.normal(28.5, 2.5, n_days),
                 'cimis_solar': np.random.normal(550, 100, n_days),
-                'cimis_humidity': np.random.normal(40, 10, n_days)
+                'cimis_humidity': np.random.normal(40, 10, n_days),
+                'cimis_soil_temp': np.random.normal(24.0, 2.0, n_days),
+                'cimis_precip': np.random.choice([0.0, 0.0, 1.2, 3.5], size=n_days),
+                'cimis_et0': np.random.normal(7.2, 1.2, n_days)
             })
         else:
             cimis_rows = [{'date': pd.to_datetime(k), **v} for k, v in cimis_data_dict.items()]
@@ -162,12 +179,17 @@ def generate_cimis_plots(df):
             print("No matching dates for validation plots.")
             return
 
-        # Generate scatter plot
-        fig, axes = plt.subplots(1, 3, figsize=(15, 5), facecolor='#0e1117')
+        # Generate 2x3 scatter plot grid for all 6 variables
+        fig, axes = plt.subplots(2, 3, figsize=(18, 10), facecolor='#0e1117')
+        axes = axes.flatten()
+        
         pairs = [
-            ('cimis_temp', 'av_temp', 'Air Temp', '#ef5350'),
-            ('cimis_solar', 'av_solar', 'Solar Rad', '#ffca28'),
-            ('cimis_humidity', 'av_humidity', 'Humidity', '#42a5f5')
+            ('cimis_temp', 'av_temp', 'Air Temp (°C)', '#ef5350'),
+            ('cimis_solar', 'av_solar', 'Solar Rad (W/m²)', '#ffca28'),
+            ('cimis_humidity', 'av_humidity', 'Humidity (%)', '#42a5f5'),
+            ('cimis_soil_temp', 'av_soil_temp', 'Soil Temp (°C)', '#ab47bc'),
+            ('cimis_precip', 'sum_precip', 'Precipitation (mm)', '#26a69a'),
+            ('cimis_et0', 'sum_et0', 'Reference ET₀ (mm)', '#26c6da')
         ]
 
         for i, (cimis_col, av_col, title, color) in enumerate(pairs):
@@ -190,7 +212,7 @@ def generate_cimis_plots(df):
             ax.plot(lims, lims, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
             ax.set_xlabel('CIMIS Ground Truth', fontsize=9)
             ax.set_ylabel('AquaVolt-AI Estimate', fontsize=9)
-            ax.set_title(f"{title}\nPearson R2 = {r2:.3f}", color='white', fontsize=10, fontweight='bold')
+            ax.set_title(f"{title}\nPearson R² = {r2:.3f}", color='white', fontsize=10, fontweight='bold')
             ax.tick_params(labelsize=8)
             for sp in ax.spines.values(): sp.set_edgecolor('#1e3a5f')
 
