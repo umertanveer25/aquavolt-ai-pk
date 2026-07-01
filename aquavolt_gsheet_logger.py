@@ -173,6 +173,133 @@ def get_latest_sentinel_item(lat, lon):
         return None
 
 
+# TIER 1B — Sentinel-1 SAR (cloud-proof fallback, ~6-day revisit)
+def get_latest_sar_item(lat, lon):
+    """Fetch latest Sentinel-1 GRD scene. Works through clouds."""
+    print("[SAR] Searching for Sentinel-1 GRD scene...")
+    try:
+        import pystac_client
+        import planetary_computer
+        import certifi
+    except ImportError as e:
+        print(f"[SAR WARNING] Missing deps: {e}.")
+        return None
+
+    os.environ["CURL_CA_BUNDLE"] = certifi.where()
+
+    try:
+        catalog = pystac_client.Client.open(
+            "https://planetarycomputer.microsoft.com/api/stac/v1",
+            modifier=planetary_computer.sign_inplace,
+        )
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)
+        time_range = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
+        bbox = [lon - 0.02, lat - 0.02, lon + 0.02, lat + 0.02]
+
+        search = catalog.search(
+            collections=["sentinel-1-grd"],
+            bbox=bbox,
+            datetime=time_range,
+        )
+        items = list(search.get_items())
+        if not items:
+            print("[SAR WARNING] No Sentinel-1 scenes found.")
+            return None
+
+        items.sort(key=lambda x: x.datetime, reverse=True)
+        item = items[0]
+        print(f"[SAR] Found scene: {item.id} | Date: {item.datetime.date()}")
+        return item
+
+    except Exception as e:
+        print(f"[SAR WARNING] STAC search failed: {e}.")
+        return None
+
+
+def fetch_sar_field_indices(sar_item, field_bbox):
+    """
+    Read Sentinel-1 VV/VH bands for field_bbox and return NDVI/NDWI proxies.
+    Maps to the same schema as optical indices — no new columns needed.
+
+    RVI (Radar Vegetation Index) = 4*VH / (VV+VH)  [0..1]
+    NDVI proxy  = 1.5*RVI - 0.1   (empirical C-band calibration)
+    NDWI proxy  = cross_ratio based moisture index
+    """
+    try:
+        import rasterio
+        import numpy as np
+        from rasterio.windows import Window
+    except ImportError:
+        return None
+
+    try:
+        pt = sar_item.properties.get("proj:transform")
+        if not pt:
+            print("[SAR WARNING] No proj:transform in STAC metadata.")
+            return None
+
+        scale_x, _, origin_x, _, scale_y, origin_y = pt
+
+        lon_min, lat_min, lon_max, lat_max = field_bbox
+
+        # Sentinel-1 GRD on Planetary Computer stores axes swapped:
+        # rasterio rows  = longitude axis
+        # rasterio cols  = latitude axis
+        r_row_start = int((lon_min - origin_x) / scale_x)
+        r_row_end   = int((lon_max - origin_x) / scale_x)
+        r_col_start = int((origin_y - lat_max) / abs(scale_y))
+        r_col_end   = int((origin_y - lat_min) / abs(scale_y))
+        rw = r_row_end - r_row_start
+        rh = r_col_end - r_col_start
+
+        if rw <= 0 or rh <= 0:
+            print("[SAR WARNING] Invalid window dimensions.")
+            return None
+
+        win = Window(r_col_start, r_row_start, rh, rw)
+
+        vv_url = sar_item.assets["vv"].href
+        vh_url = sar_item.assets["vh"].href
+
+        with rasterio.open(vv_url) as src:
+            actual_h, actual_w = src.shape
+            # Bounds check
+            if r_row_start < 0 or r_col_start < 0:
+                print("[SAR WARNING] Window starts before raster origin.")
+                return None
+            if r_col_end > actual_w or r_row_end > actual_h:
+                print(f"[SAR WARNING] Window ({r_row_end},{r_col_end}) exceeds raster ({actual_h},{actual_w}).")
+                return None
+            vv_dn = src.read(1, window=win, out_shape=(8, 8)).astype(np.float64)
+
+        with rasterio.open(vh_url) as src:
+            vh_dn = src.read(1, window=win, out_shape=(8, 8)).astype(np.float64)
+
+        # Convert DN to linear power (sigma0 intensity = DN^2)
+        vv = vv_dn ** 2
+        vh = vh_dn ** 2
+
+        # RVI = 4 * sigma_VH / (sigma_VV + sigma_VH)  [0..1]
+        rvi = (4.0 * vh) / (vv + vh + 1e-8)
+        rvi = np.clip(rvi, 0.0, 1.0)
+
+        # NDVI proxy: empirical C-band calibration for agricultural fields
+        # Bare soil ~-0.1, sparse veg ~0.3, dense veg ~0.8
+        ndvi_proxy = np.clip(1.5 * rvi - 0.1, -0.2, 1.0)
+
+        # NDWI proxy: cross-ratio VH/VV — sensitive to soil moisture & crop water
+        cr = vh / (vv + 1e-8)
+        ndwi_proxy = np.clip(-0.5 + 2.0 * cr, -1.0, 0.5)
+
+        print(f"[SAR] RVI={np.nanmean(rvi):.3f} | NDVI_proxy={np.nanmean(ndvi_proxy):.3f} | NDWI_proxy={np.nanmean(ndwi_proxy):.3f}")
+        return {"ndvi": ndvi_proxy.tolist(), "ndwi_real": ndwi_proxy.tolist()}
+
+    except Exception as e:
+        print(f"[SAR WARNING] Error reading SAR field window: {e}.")
+        return None
+
+
 # Extract 8x8 crop indices for a specific field's bbox (Handles S2 and Landsat)
 def fetch_field_indices(latest_item, field_bbox):
     try:
@@ -413,7 +540,21 @@ def main(push_to_sheets=True):
 
     print("\n[TIER 1] Fetching satellite & forecast data...")
     latest_item = get_latest_sentinel_item(LAT, LON)
-    scene_id = latest_item.id if latest_item else "Fallback"
+
+    # TIER 1B — Sentinel-1 SAR fallback (cloud-proof, ~6-day revisit)
+    # Use SAR when optical is unavailable OR scene is older than 10 days
+    sar_item = None
+    optical_age_days = None
+    if latest_item:
+        optical_age_days = (datetime.now() - latest_item.datetime.replace(tzinfo=None)).days
+        if optical_age_days > 10:
+            print(f"[SATELLITE] Optical scene is {optical_age_days} days old — fetching SAR supplement...")
+            sar_item = get_latest_sar_item(LAT, LON)
+    else:
+        print("[SATELLITE] No optical scene — fetching SAR as primary fallback...")
+        sar_item = get_latest_sar_item(LAT, LON)
+
+    scene_id = latest_item.id if latest_item else (sar_item.id if sar_item else "Fallback")
     modis_lst_val = fetch_modis_lst(LAT, LON)
     deficit_7d    = fetch_open_meteo_forecast(LAT, LON)
 
@@ -437,7 +578,11 @@ def main(push_to_sheets=True):
         print(f"\n[PIML] Processing field: {f_name}...")
         
         # Crop Sentinel-2 data for this specific field's bounding box
+        # Try optical first; fall back to SAR if optical unavailable or too old
         field_sentinel = fetch_field_indices(latest_item, field["bbox"]) if latest_item else None
+        if field_sentinel is None and sar_item is not None:
+            print(f"[SAR] Using Sentinel-1 SAR indices for {f_name} (optical unavailable)")
+            field_sentinel = fetch_sar_field_indices(sar_item, field["bbox"])
         
         # NDVI bounds adjusted dynamically based on crop characteristics
         if "Corn" in f_name:
