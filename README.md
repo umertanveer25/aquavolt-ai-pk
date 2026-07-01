@@ -170,7 +170,7 @@ The system is configured to monitor **four distinct crop fields** within the Rus
 
 <div align="center">
   <img src="docs/UC_Davis_Russell_Ranch_EXACT_FIELDS.png" width="800" alt="UC Davis Russell Ranch Multi-Field Grid Layout">
-  <p><em>Figure 1: AquaVolt-AI 64-sector precision grids mapped across 4 agricultural fields at UC Davis Russell Ranch (Sentinel-2A base image).</em></p>
+  <p><em>Figure 1: AquaVolt-AI 8×8 precision grids mapped across 4 agricultural fields at UC Davis Russell Ranch. Sentinel-2A True Colour composite (Scene: 2026-06-24, Cloud Cover: 21.3%). Grid cells shown for Field-A (Corn), Field-B (Alfalfa), Field-C (Fallow), and Field-D (Tomato).</em></p>
 </div>
 
 ---
