@@ -120,7 +120,7 @@ def get_gspread_client():
     sys.exit(1)
 
 
-# TIER 1 — Sentinel-2 STAC Search (Once per run)
+# TIER 1 — Combined Satellite STAC Search (Sentinel-2 & Landsat-8/9)
 def get_latest_sentinel_item(lat, lon):
     print("[SATELLITE] Connecting to Planetary Computer STAC API...")
     try:
@@ -146,24 +146,26 @@ def get_latest_sentinel_item(lat, lon):
         bbox = [lon - 0.02, lat - 0.02, lon + 0.02, lat + 0.02]
 
         search = catalog.search(
-            collections=["sentinel-2-l2a"], bbox=bbox, datetime=time_range,
+            collections=["sentinel-2-l2a", "landsat-c2-l2"], bbox=bbox, datetime=time_range,
             query={"eo:cloud_cover": {"lt": 30}}
         )
-        items = search.item_collection()
+        items = list(search.get_items())
         if not items:
             start_date = end_date - timedelta(days=60)
             time_range = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
             search = catalog.search(
-                collections=["sentinel-2-l2a"], bbox=bbox, datetime=time_range,
+                collections=["sentinel-2-l2a", "landsat-c2-l2"], bbox=bbox, datetime=time_range,
                 query={"eo:cloud_cover": {"lt": 40}}
             )
-            items = search.item_collection()
+            items = list(search.get_items())
             if not items:
                 print("[SATELLITE WARNING] No cloud-free scenes found. Falling back.")
                 return None
 
+        # Sort chronologically desc
+        items.sort(key=lambda x: x.datetime, reverse=True)
         latest_item = items[0]
-        print(f"[SATELLITE] Found Scene: {latest_item.id} | {latest_item.datetime.date()}")
+        print(f"[SATELLITE] Found Combined Scene: {latest_item.id} | Date: {latest_item.datetime.date()} | Collection: {latest_item.collection_id}")
         return latest_item
 
     except Exception as e:
@@ -171,7 +173,7 @@ def get_latest_sentinel_item(lat, lon):
         return None
 
 
-# Extract 8x8 crop indices for a specific field's bbox
+# Extract 8x8 crop indices for a specific field's bbox (Handles S2 and Landsat)
 def fetch_field_indices(latest_item, field_bbox):
     try:
         import rasterio
@@ -182,18 +184,40 @@ def fetch_field_indices(latest_item, field_bbox):
         return None
 
     try:
-        b03_url = latest_item.assets["B03"].href
-        b04_url = latest_item.assets["B04"].href
-        b08_url = latest_item.assets["B08"].href
+        is_landsat = "landsat" in latest_item.collection_id.lower()
+        if is_landsat:
+            red_key = "red"
+            green_key = "green"
+            nir_key = "nir08"
+        else:
+            red_key = "B04"
+            green_key = "B03"
+            nir_key = "B08"
+
+        b03_url = latest_item.assets[green_key].href
+        b04_url = latest_item.assets[red_key].href
+        b08_url = latest_item.assets[nir_key].href
 
         with rasterio.open(b03_url) as s3, rasterio.open(b04_url) as s4, rasterio.open(b08_url) as s8:
             src_crs = s4.crs
             l, b, r, t = transform_bounds("EPSG:4326", src_crs, *field_bbox)
             win = from_bounds(l, b, r, t, transform=s4.transform)
 
-            b03 = s3.read(1, window=win, out_shape=(8, 8)).astype(float)
-            b04 = s4.read(1, window=win, out_shape=(8, 8)).astype(float)
-            b08 = s8.read(1, window=win, out_shape=(8, 8)).astype(float)
+            b03_raw = s3.read(1, window=win, out_shape=(8, 8)).astype(float)
+            b04_raw = s4.read(1, window=win, out_shape=(8, 8)).astype(float)
+            b08_raw = s8.read(1, window=win, out_shape=(8, 8)).astype(float)
+
+            # Apply scaling
+            if is_landsat:
+                # Landsat 8/9 Level-2 SR: scale = 0.0000275, offset = -0.2
+                b03 = np.clip(b03_raw * 0.0000275 - 0.2, 0.0, 1.0)
+                b04 = np.clip(b04_raw * 0.0000275 - 0.2, 0.0, 1.0)
+                b08 = np.clip(b08_raw * 0.0000275 - 0.2, 0.0, 1.0)
+            else:
+                # Sentinel-2 Level-2A SR: scale = 0.0001
+                b03 = b03_raw * 0.0001
+                b04 = b04_raw * 0.0001
+                b08 = b08_raw * 0.0001
 
             def safe_index(a, b_, mask):
                 arr = (a - b_) / (a + b_ + 1e-8)
@@ -204,9 +228,9 @@ def fetch_field_indices(latest_item, field_bbox):
                     arr = np.where(np.isnan(arr), mv, arr)
                 return arr
 
-            bad_mask = (b04 == 0) | (b08 == 0)
+            bad_mask = (b04_raw <= 0) | (b08_raw <= 0)
             ndvi = safe_index(b08, b04, bad_mask)
-            ndwi_real = safe_index(b03, b08, (b03 == 0) | (b08 == 0))
+            ndwi_real = safe_index(b03, b08, (b03_raw <= 0) | (b08_raw <= 0))
 
             return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist()}
 
