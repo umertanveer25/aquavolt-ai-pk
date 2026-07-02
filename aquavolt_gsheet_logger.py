@@ -790,7 +790,8 @@ def run_cimis_validation_and_update_readme(worksheet):
     cimis_ok = False
     cimis_data_dict = {}
     try:
-        cimis_url = f"https://et.water.ca.gov/api/data?appKey=DEMO&targets=6&startDate={start_date}&endDate={end_date}&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg,day-soil-tmp-avg,day-precip,day-eto"
+        cimis_key = os.environ.get("CIMIS_API_KEY", "DEMO")
+        cimis_url = f"https://et.water.ca.gov/api/data?appKey={cimis_key}&targets=6&startDate={start_date}&endDate={end_date}&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg,day-soil-tmp-avg,day-precip,day-eto"
         r = requests.get(cimis_url, timeout=30)
         if r.status_code == 200:
             c_json = r.json()

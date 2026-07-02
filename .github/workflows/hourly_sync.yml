@@ -33,6 +33,7 @@ jobs:
       - name: Run hourly Google Sheets logger
         env:
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          CIMIS_API_KEY: ${{ secrets.CIMIS_API_KEY }}
           GSHEET_NAME: "AquaVolt-AI Telemetry Log"
           AQUAVOLT_LAT: "38.5480"
           AQUAVOLT_LON: "-121.8780"
@@ -41,6 +42,8 @@ jobs:
           python aquavolt_gsheet_logger.py
 
       - name: Generate live visualization plots
+        env:
+          CIMIS_API_KEY: ${{ secrets.CIMIS_API_KEY }}
         run: |
           python generate_plots.py
 
