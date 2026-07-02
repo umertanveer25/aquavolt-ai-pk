@@ -112,50 +112,6 @@ The system generates **per-sector irrigation scheduling recommendations** across
 
 ---
 
-## 🏗️ System Architecture
-
-```mermaid
-flowchart LR
-    subgraph INPUT["📡 Data Sources"]
-        S2["Sentinel-2 L2A\n(NDVI / NDWI)"]
-        MODIS["MODIS Terra\n(Land Surface Temp)"]
-        OM["Open-Meteo API\n(Weather)"]
-    end
-
-    subgraph CORE["🧠 AquaVolt-AI Engine"]
-        PIML["Physics-Informed ML\n(FAO-56 Sigmoid Prior)"]
-        ET["Penman-Monteith\nET₀ Calculation"]
-        ASTRO["Astronomical\nCrop Growth Sim"]
-        LSTM["LSTM Neural Net\n(7-Day Forecast)"]
-    end
-
-    subgraph VALIDATION["🔬 Ground-Truth Validation"]
-        CIMIS["CIMIS Station 6\n(Davis, CA)"]
-        SCAN["USDA SCAN\n(National Soil)"]
-        AFLUX["AmeriFlux\n(Eddy Covariance ET)"]
-    end
-
-    subgraph OUTPUT["📊 Outputs"]
-        GS["Google Sheets\n(2.2M+ rows/yr)"]
-        GH["GitHub README\n(Live Dashboard)"]
-        COLAB["Google Colab\n(Interactive Notebooks)"]
-    end
-
-    S2 --> PIML
-    MODIS --> ET
-    OM --> ET
-    ET --> PIML
-    ASTRO --> PIML
-    PIML --> LSTM
-    PIML --> GS
-    GS --> GH
-    GS --> COLAB
-    CIMIS -.->|"Pearson R²"| GH
-    SCAN -.->|"RMSE"| GH
-    AFLUX -.->|"Mean Bias"| GH
-```
-
----
 
 ## 🌍 Target Location & Multi-Field Setup
 
@@ -183,8 +139,10 @@ flowchart TD
     classDef trigger fill:#f9d0c4,stroke:#333,stroke-width:2px,color:#000
     classDef script fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
     classDef external fill:#cce5ff,stroke:#007bff,stroke-width:2px,color:#000
+    classDef sar fill:#d8b4fe,stroke:#7c3aed,stroke-width:2px,color:#000
     classDef processing fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
     classDef database fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000
+    classDef validation fill:#fde8e8,stroke:#e53e3e,stroke-width:2px,color:#000
 
     %% Trigger
     A[🕒 GitHub Actions<br/>Hourly Cron Job]:::trigger --> B
@@ -194,31 +152,51 @@ flowchart TD
     B[🐍 aquavolt_gsheet_logger.py<br/>Python Compute Engine]:::script
 
     %% External Data APIs
-    subgraph External APIs [Live Data Ingestion]
-        C1[🛰️ MS Planetary Computer<br/>Sentinel-2 STAC API<br/>Optical/NDVI]:::external
-        C2[🛰️ NASA MODIS<br/>Land Surface Temp]:::external
-        C3[🌦️ Open-Meteo API<br/>Live Weather & Forecasts]:::external
+    subgraph SatLayer ["🛰️ Multi-Satellite Fusion (Tier 1)"]
+        C1["Sentinel-2 L2A<br/>Optical NDVI/NDWI<br/>10m · ~5 day revisit"]:::external
+        C1b["Landsat 8/9 L2<br/>Optical NDVI/NDWI<br/>30m · ~8 day revisit"]:::external
+        C1c["Sentinel-1 SAR GRD<br/>Cloud-Proof RVI/Moisture<br/>10m · ~3 day revisit"]:::sar
+    end
+
+    subgraph WeatherLayer ["🌦️ Weather & Thermal (Tier 2)"]
+        C2["NASA MODIS<br/>Land Surface Temp"]:::external
+        C3["Open-Meteo API<br/>Live Weather & Forecasts"]:::external
     end
 
     %% API Connections
-    C1 -->|Band 4, Band 8| B
-    C2 -->|Thermal LST| B
-    C3 -->|Temp, Solar Rad, Wind| B
+    C1  -->|"Band B04/B08 → NDVI"| B
+    C1b -->|"red/nir08 → NDVI"| B
+    C1c -->|"VV/VH → RVI proxy"| B
+    C2  -->|"Thermal LST"| B
+    C3  -->|"Temp, Solar, Wind, ET0"| B
 
     %% Processing Logic
-    subgraph PIML Processing [Physics & Matrix Generation]
-        D1[📐 Grid Generator<br/>Split 4 Fields into 256 Sectors]:::processing
-        D2[💧 FAO-56 Physics Engine<br/>Penman-Monteith ET0 & Water Deficit]:::processing
+    subgraph PIML Processing ["⚙️ Physics & Matrix Generation"]
+        D1["📐 Grid Generator<br/>4 Fields × 8×8 = 256 Sectors"]:::processing
+        D2["💧 FAO-56 Physics Engine<br/>Penman-Monteith ET₀ + Water Deficit"]:::processing
+        D3["🌱 PIML Sigmoid Prior<br/>Kc = f(NDVI) crop coefficient"]:::processing
     end
 
     B --> D1
     D1 --> D2
+    D2 --> D3
+
+    %% Validation Layer
+    subgraph ValLayer ["🔬 Ground-Truth Validation"]
+        V1["CIMIS Station 6<br/>Davis, CA"]:::validation
+        V2["USDA SCAN<br/>National Soil Network"]:::validation
+        V3["AmeriFlux<br/>Eddy Covariance ET"]:::validation
+    end
+
+    D3 -.->|"Pearson R² / RMSE"| V1
+    D3 -.->|"Soil Moisture"| V2
+    D3 -.->|"ET Mean Bias"| V3
 
     %% Storage Output
-    D2 -->|Outputs 256 rows of matrix data| E[📊 Google Sheets API<br/>Live Cloud Database]:::database
+    D3 -->|"256 rows/hour"| E["📊 Google Sheets API<br/>Live Cloud Database"]:::database
 
     %% End Use
-    E --> F((AI Training /<br/>Dashboards))
+    E --> F(("AI Training /<br/>Dashboards / API"))
 ```
 
 ---
