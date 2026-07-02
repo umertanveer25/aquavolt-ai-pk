@@ -25,15 +25,15 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 <!-- LIVE_TELEMETRY_START -->
 # 📡 AquaVolt-AI Live Telemetry
 
-**Latest Update:** `2026-07-02 17:00:00 UTC`
+**Latest Update:** `2026-07-02 18:00:00 UTC`
 > This dashboard updates automatically every hour via GitHub Actions.
 
 ### ⛅ Current Weather (Russell Ranch)
 
-- **Air Temp:** 22.1°C
-- **Humidity:** 58%
-- **Solar Radiation:** 700.0 W/m²
-- **Soil Moisture (Proxy):** 7.4%
+- **Air Temp:** 24.3°C
+- **Humidity:** 49%
+- **Solar Radiation:** 850.0 W/m²
+- **Soil Moisture (Proxy):** 7.1%
 - **Reference ET₀ (24h):** 6.78 mm
 
 ### 🌱 Field Averages (Current Hour)
