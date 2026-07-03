@@ -149,7 +149,7 @@ def get_latest_sentinel_item(lat, lon):
             collections=["sentinel-2-l2a", "landsat-c2-l2"], bbox=bbox, datetime=time_range,
             query={"eo:cloud_cover": {"lt": 30}}
         )
-        items = list(search.get_items())
+        items = list(search.items())
         if not items:
             start_date = end_date - timedelta(days=60)
             time_range = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
@@ -157,7 +157,7 @@ def get_latest_sentinel_item(lat, lon):
                 collections=["sentinel-2-l2a", "landsat-c2-l2"], bbox=bbox, datetime=time_range,
                 query={"eo:cloud_cover": {"lt": 40}}
             )
-            items = list(search.get_items())
+            items = list(search.items())
             if not items:
                 print("[SATELLITE WARNING] No cloud-free scenes found. Falling back.")
                 return None
@@ -202,7 +202,7 @@ def get_latest_sar_item(lat, lon):
             bbox=bbox,
             datetime=time_range,
         )
-        items = list(search.get_items())
+        items = list(search.items())
         if not items:
             print("[SAR WARNING] No Sentinel-1 scenes found.")
             return None
