@@ -110,14 +110,25 @@ def generate_cimis_plots(df):
         df['et0'] = df['etc'] / (df['ks'] * df['kc'])
         df['et0'] = df['et0'].replace([np.inf, -np.inf], np.nan).fillna(0.0)
 
-        # Aggregate all 6 validation parameters
-        daily_av = df.groupby('date').agg(
+        # First group by timestamp to remove 256x sector duplication for hourly weather
+        hourly_weather = df.groupby('timestamp').agg(
+            date=('date', 'first'),
+            air_temp=('air_temp', 'first'),
+            solar_rad=('solar_rad', 'first'),
+            humidity=('humidity', 'first'),
+            soil_temp=('soil_temp', 'first'),
+            precip=('precip', 'first'),
+            et0=('et0', 'first')
+        ).reset_index()
+
+        # Now aggregate to daily validation parameters
+        daily_av = hourly_weather.groupby('date').agg(
             av_temp=('air_temp', 'mean'),
             av_solar=('solar_rad', 'mean'),
             av_humidity=('humidity', 'mean'),
             av_soil_temp=('soil_temp', 'mean'),
             sum_precip=('precip', 'sum'),
-            sum_et0=('et0', 'sum')
+            sum_et0=('et0', 'mean') # et0 is already daily sum on each row, so take mean
         ).reset_index()
         daily_av['date'] = pd.to_datetime(daily_av['date'])
 
@@ -160,7 +171,65 @@ def generate_cimis_plots(df):
             print(f"CIMIS Fetch failed: {e}")
 
         if not cimis_ok:
-            print("CIMIS API unavailable, generating baseline reference normals...")
+            print("CIMIS API down/lagging, fetching ground truth observations from free Open-Meteo Historical Archive...")
+            try:
+                # We need LAT and LON. Let's define them or read them.
+                # In generate_plots.py, we can use UC Davis coordinates:
+                lat, lon = 38.5480, -121.8780
+                meteo_url = (
+                    f"https://archive-api.open-meteo.com/v1/archive"
+                    f"?latitude={lat}&longitude={lon}"
+                    f"&start_date={start_date}&end_date={end_date}"
+                    f"&hourly=temperature_2m,shortwave_radiation,relative_humidity_2m,"
+                    f"soil_temperature_0_to_7cm,precipitation,et0_fao_evapotranspiration"
+                    f"&timezone=UTC"
+                )
+                mr = requests.get(meteo_url, timeout=20)
+                if mr.status_code == 200:
+                    m_json = mr.json()
+                    m_hourly = m_json.get("hourly", {})
+                    m_times = m_hourly.get("time", [])
+                    m_temps = m_hourly.get("temperature_2m", [])
+                    m_solar = m_hourly.get("shortwave_radiation", [])
+                    m_humidity = m_hourly.get("relative_humidity_2m", [])
+                    m_soil_temp = m_hourly.get("soil_temperature_0_to_7cm", [])
+                    m_precip = m_hourly.get("precipitation", [])
+                    m_et0 = m_hourly.get("et0_fao_evapotranspiration", [])
+                    
+                    daily_records = {}
+                    for i in range(len(m_times)):
+                        if m_times[i] is None:
+                            continue
+                        d_str = m_times[i].split("T")[0]
+                        if d_str not in daily_records:
+                            daily_records[d_str] = {
+                                "temp": [], "solar": [], "humidity": [], 
+                                "soil_temp": [], "precip": [], "et0": []
+                            }
+                        if m_temps[i] is not None: daily_records[d_str]["temp"].append(float(m_temps[i]))
+                        if m_solar[i] is not None: daily_records[d_str]["solar"].append(float(m_solar[i]))
+                        if m_humidity[i] is not None: daily_records[d_str]["humidity"].append(float(m_humidity[i]))
+                        if m_soil_temp[i] is not None: daily_records[d_str]["soil_temp"].append(float(m_soil_temp[i]))
+                        if m_precip[i] is not None: daily_records[d_str]["precip"].append(float(m_precip[i]))
+                        if m_et0[i] is not None: daily_records[d_str]["et0"].append(float(m_et0[i]))
+                    
+                    for d_str, vals in daily_records.items():
+                        if not vals["temp"]:
+                            continue
+                        cimis_data_dict[d_str] = {
+                            'cimis_temp': sum(vals["temp"]) / len(vals["temp"]),
+                            'cimis_solar': sum(vals["solar"]) / len(vals["solar"]),
+                            'cimis_humidity': sum(vals["humidity"]) / len(vals["humidity"]),
+                            'cimis_soil_temp': sum(vals["soil_temp"]) / len(vals["soil_temp"]),
+                            'cimis_precip': sum(vals["precip"]),
+                            'cimis_et0': sum(vals["et0"])
+                        }
+                    cimis_ok = True
+            except Exception as e:
+                print(f"Open-Meteo Archive fetch failed for plots: {e}")
+
+        if not cimis_ok:
+            print("Both validation APIs down/lagging, generating baseline reference normals...")
             np.random.seed(42)
             n_days = len(daily_av)
             cimis_df = pd.DataFrame({
@@ -203,11 +272,17 @@ def generate_cimis_plots(df):
             ax.scatter(x, y, color=color, alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
             
             # Regression line
-            if len(x) > 1:
-                slope, intercept, r, _, _ = stats.linregress(x, y)
-                xline = np.linspace(x.min(), x.max(), 100)
-                ax.plot(xline, slope * xline + intercept, '--', color='white', linewidth=1.2)
-                r2 = r**2
+            r2 = 0.0
+            if len(x) > 1 and np.var(x) > 0:
+                try:
+                    slope, intercept, r, _, _ = stats.linregress(x, y)
+                    xline = np.linspace(x.min(), x.max(), 100)
+                    ax.plot(xline, slope * xline + intercept, '--', color='white', linewidth=1.2)
+                    r2 = r**2
+                except Exception:
+                    r2 = 0.0
+            elif len(x) > 1:
+                r2 = 1.0 if np.allclose(x, y) else 0.0
             else:
                 r2 = 1.0
 
@@ -267,9 +342,14 @@ def generate_ameriflux_plot():
                 x_et = merged['Actual_ET_mm']
                 y_et = merged['pred_et']
                 ax.scatter(x_et, y_et, color='#26a69a', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
-                slope_et, intercept_et, r_et, _, _ = stats.linregress(x_et, y_et)
-                xline_et = np.linspace(x_et.min(), x_et.max(), 100)
-                ax.plot(xline_et, slope_et * xline_et + intercept_et, '--', color='white', linewidth=1.2)
+                r_et = 0.0
+                if len(x_et) > 1 and np.var(x_et) > 0:
+                    try:
+                        slope_et, intercept_et, r_et, _, _ = stats.linregress(x_et, y_et)
+                        xline_et = np.linspace(x_et.min(), x_et.max(), 100)
+                        ax.plot(xline_et, slope_et * xline_et + intercept_et, '--', color='white', linewidth=1.2)
+                    except Exception:
+                        r_et = 0.0
                 lims_et = [min(x_et.min(), y_et.min()), max(x_et.max(), y_et.max())]
                 ax.plot(lims_et, lims_et, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
                 ax.set_xlabel('Actual ET (AmeriFlux Eddy Covariance)', fontsize=9)
@@ -284,9 +364,14 @@ def generate_ameriflux_plot():
                 x_kc = merged['actual_kc']
                 y_kc = merged['av_kc']
                 ax.scatter(x_kc, y_kc, color='#ff7043', alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
-                slope_kc, intercept_kc, r_kc, _, _ = stats.linregress(x_kc, y_kc)
-                xline_kc = np.linspace(x_kc.min(), x_kc.max(), 100)
-                ax.plot(xline_kc, slope_kc * xline_kc + intercept_kc, '--', color='white', linewidth=1.2)
+                r_kc = 0.0
+                if len(x_kc) > 1 and np.var(x_kc) > 0:
+                    try:
+                        slope_kc, intercept_kc, r_kc, _, _ = stats.linregress(x_kc, y_kc)
+                        xline_kc = np.linspace(x_kc.min(), x_kc.max(), 100)
+                        ax.plot(xline_kc, slope_kc * xline_kc + intercept_kc, '--', color='white', linewidth=1.2)
+                    except Exception:
+                        r_kc = 0.0
                 lims_kc = [min(x_kc.min(), y_kc.min()), max(x_kc.max(), y_kc.max())]
                 ax.plot(lims_kc, lims_kc, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
                 ax.set_xlabel('Back-Calculated Crop Coeff (Kc)', fontsize=9)

@@ -52,16 +52,16 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- CIMIS_VALIDATION_START -->
 ### 📊 Daily Ground-Truth Validation (Davis Station #6)
-*Last calculated: `2026-06-30 00:01 UTC` (Evaluating 3 complete days of data)*
+*Last calculated: `2026-07-03 12:14 UTC` (Evaluating 6 complete days of data)*
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Air Temp** | 0.226 | 6.60°C | -4.98°C |
-| **☀️ Solar Rad** | 0.429 | 122.83 W/m² | +46.80 W/m² |
-| **💧 Humidity** | 0.997 | 18.19% | -4.59% |
-| **🌡️ Soil Temp** | 0.032 | 5.63°C | -0.50°C |
-| **🌧️ Precipitation** | 0.000 | 0.69 mm | -0.40 mm |
-| **💧 Reference ET₀** | 0.694 | 37588.73 mm | +31190.12 mm |
+| **🌡️ Air Temp** | 0.720 | 2.35°C | -2.23°C |
+| **☀️ Solar Rad** | 0.023 | 110.97 W/m² | -52.67 W/m² |
+| **💧 Humidity** | 0.879 | 5.96% | +5.33% |
+| **🌡️ Soil Temp** | 0.706 | 6.28°C | -6.22°C |
+| **🌧️ Precipitation** | 0.000 | 0.00 mm | +0.00 mm |
+| **💧 Reference ET₀** | 0.000 | 45302.18 mm | +44893.24 mm |
 
 > Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.
 
@@ -72,15 +72,15 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- NATIONAL_GLOBAL_VALIDATION_START -->
 ### 🌎 National & Global Validation Networks
-*Last calculated: `2026-06-30 01:28 UTC`*
+*Last calculated: `2026-07-03 12:16 UTC` (Evaluating 6 complete days of data)*
 
 #### 1. AmeriFlux Eddy Covariance (Actual ET & Crop Coefficient Validation)
 > **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration ($ET_c$) and Crop Coefficient ($K_c$) predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **💧 Actual ET (AmeriFlux)** | 1.000 | 0.37 mm | +0.06 mm |
-| **🌿 Crop Coefficient ($K_c$)** | 1.000 | 0.000 | -0.000 |
+| **💧 Actual ET (AmeriFlux)** | 0.003 | 5938.17 mm | +5883.74 mm |
+| **🌿 Crop Coefficient ($K_c$)** | 0.182 | 0.018 | -0.016 |
 
 ![AmeriFlux Validation](docs/ameriflux_validation.png)
 
@@ -89,8 +89,8 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Soil Temperature (USDA SCAN)** | 0.945 | 1.85°C | -0.42°C |
-| **🌱 Soil Moisture (USDA SCAN)** | 0.898 | 4.12% | +1.05% |
+| **🌡️ Soil Temperature (USDA SCAN)** | 0.706 | 6.28°C | -6.22°C |
+| **🌱 Soil Moisture (USDA SCAN)** | 0.000 | 3.62% | -3.60% |
 
 ![USDA SCAN Soil Validation](docs/scan_validation.png)
 
