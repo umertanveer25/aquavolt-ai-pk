@@ -1,4 +1,6 @@
 import os
+import warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
 import requests
 import json
 import math
@@ -190,7 +192,7 @@ def generate_cimis_plots(df):
             ('cimis_humidity', 'av_humidity', 'Humidity (%)', '#42a5f5'),
             ('cimis_soil_temp', 'av_soil_temp', 'Soil Temp (°C)', '#ab47bc'),
             ('cimis_precip', 'sum_precip', 'Precipitation (mm)', '#26a69a'),
-            ('cimis_et0', 'sum_et0', 'Reference ET₀ (mm)', '#26c6da')
+            ('cimis_et0', 'sum_et0', 'Reference ET0 (mm)', '#26c6da')
         ]
 
         for i, (cimis_col, av_col, title, color) in enumerate(pairs):
