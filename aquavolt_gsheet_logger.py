@@ -945,9 +945,151 @@ def main(push_to_sheets=True):
         print(f"\n[UPLOAD] Writing {len(rows_to_append)} records...")
         worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
         print(f"[OK] Done.")
-        
+
+    # =====================================================================
+    # EARLY WARNING SYSTEM — Physics-based crop stress alert engine
+    # =====================================================================
+    # Computes per-field averages of Dr, Ks, ETc, deficit_7d and classifies
+    # alert level. Writes GitHub Actions step summary + README alert banner.
+    # No new columns or schema changes — uses existing calculated values.
+    # =====================================================================
+    print("\n[ALERTS] Running early warning analysis...")
+    try:
+        # Aggregate per-field stress metrics from freshly computed rows
+        field_stress = {}
+        for row in rows_to_append:
+            fname  = row[28]   # field_name
+            Dr_val = row[15]   # root zone depletion (mm)
+            Ks_val = row[13]   # water stress coefficient (0-1)
+            ETc_v  = row[18]   # evapotranspiration demand (mm/hr)
+            irr_v  = row[19]   # irrigation needed (mm)
+            ndvi_v = row[5]    # crop greenness
+            if fname not in field_stress:
+                field_stress[fname] = {"Dr": [], "Ks": [], "ETc": [], "irr": [], "ndvi": []}
+            field_stress[fname]["Dr"].append(Dr_val)
+            field_stress[fname]["Ks"].append(Ks_val)
+            field_stress[fname]["ETc"].append(ETc_v)
+            field_stress[fname]["irr"].append(irr_v)
+            field_stress[fname]["ndvi"].append(ndvi_v)
+
+        alerts = []
+        ALERT_RULES = {
+            # (Dr_threshold_mm, Ks_threshold, 7d_deficit_mm) → alert level
+            "EMERGENCY": {"Dr_pct": 0.90, "Ks": 0.30, "deficit": 60.0},  # >90% TAW depleted
+            "CRITICAL":  {"Dr_pct": 0.75, "Ks": 0.50, "deficit": 40.0},  # >75% TAW depleted
+            "WATCH":     {"Dr_pct": 0.55, "Ks": 0.70, "deficit": 20.0},  # >55% TAW depleted
+        }
+
+        summary_lines = []
+        console_lines = []
+
+        for fname, vals in field_stress.items():
+            avg_Dr   = sum(vals["Dr"])   / len(vals["Dr"])
+            avg_Ks   = sum(vals["Ks"])   / len(vals["Ks"])
+            avg_ETc  = sum(vals["ETc"])  / len(vals["ETc"])
+            avg_irr  = sum(vals["irr"])  / len(vals["irr"])
+            avg_ndvi = sum(vals["ndvi"]) / len(vals["ndvi"])
+
+            # Estimate TAW from the first row that has it
+            TAW_est = None
+            for row in rows_to_append:
+                if row[28] == fname:
+                    TAW_est = row[16]
+                    break
+            TAW_est = TAW_est or 120.0
+            Dr_pct = avg_Dr / TAW_est  # fraction of TAW depleted
+
+            # Classify alert level
+            if Dr_pct >= ALERT_RULES["EMERGENCY"]["Dr_pct"] or avg_Ks <= ALERT_RULES["EMERGENCY"]["Ks"] or deficit_7d >= ALERT_RULES["EMERGENCY"]["deficit"]:
+                level = "🚨 EMERGENCY"
+                icon  = "🚨"
+                action = "IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted."
+            elif Dr_pct >= ALERT_RULES["CRITICAL"]["Dr_pct"] or avg_Ks <= ALERT_RULES["CRITICAL"]["Ks"] or deficit_7d >= ALERT_RULES["CRITICAL"]["deficit"]:
+                level = "🔴 CRITICAL"
+                icon  = "🔴"
+                action = "Schedule irrigation within 24 hours. Crop stress factor Ks={:.2f}".format(avg_Ks)
+            elif Dr_pct >= ALERT_RULES["WATCH"]["Dr_pct"] or avg_Ks <= ALERT_RULES["WATCH"]["Ks"] or deficit_7d >= ALERT_RULES["WATCH"]["deficit"]:
+                level = "🟡 WATCH"
+                icon  = "🟡"
+                action = "Monitor closely. Water deficit building — plan irrigation within 48–72h."
+            else:
+                level = "🟢 NORMAL"
+                icon  = "🟢"
+                action = "Soil water adequate. No immediate irrigation needed."
+
+            alerts.append({
+                "field": fname, "level": level, "icon": icon,
+                "Dr": avg_Dr, "Dr_pct": Dr_pct * 100,
+                "Ks": avg_Ks, "ETc": avg_ETc, "irr": avg_irr,
+                "ndvi": avg_ndvi, "action": action,
+            })
+
+            console_lines.append(
+                f"  {icon}  {fname:<22} Dr={avg_Dr:5.1f}mm ({Dr_pct*100:.0f}% TAW) "
+                f"Ks={avg_Ks:.2f}  ETc={avg_ETc:.2f}mm/hr  → {level}"
+            )
+            summary_lines.append(
+                f"| {icon} | **{fname}** | {avg_Dr:.1f} mm | {Dr_pct*100:.0f}% | "
+                f"{avg_Ks:.2f} | {avg_ETc:.2f} mm/hr | {action} |"
+            )
+
+        # Print console alert table
+        print("\n" + "─" * 70)
+        print("  🌾 EARLY WARNING ALERT SUMMARY")
+        print("─" * 70)
+        print(f"  🌡  Temp: {temp}°C  |  💧 Humidity: {humidity}%  |  ⛅ 7-day deficit: {deficit_7d:.1f}mm")
+        print("─" * 70)
+        for line in console_lines:
+            print(line)
+        print("─" * 70 + "\n")
+
+        # Write GitHub Actions step summary (visible in Actions run log)
+        gha_summary = os.environ.get("GITHUB_STEP_SUMMARY", "")
+        if gha_summary:
+            with open(gha_summary, "a", encoding="utf-8") as f:
+                f.write("## 🌾 AquaVolt-AI Early Warning Alerts\n\n")
+                f.write(f"**Timestamp:** `{now_str} UTC`  |  ")
+                f.write(f"**Temp:** {temp}°C  |  **7-day Water Deficit:** {deficit_7d:.1f}mm\n\n")
+                f.write("| Status | Field | Depletion (Dr) | TAW Used | Stress (Ks) | ETc | Recommended Action |\n")
+                f.write("|:---:|:---|---:|---:|---:|---:|:---|\n")
+                for line in summary_lines:
+                    f.write(line + "\n")
+            print("[ALERTS] GitHub Actions step summary updated.")
+
+        # Inject alert banner into README.md
+        readme_path = os.path.join(SCRIPT_DIR, "README.md")
+        if os.path.exists(readme_path):
+            import re
+            with open(readme_path, "r", encoding="utf-8") as f:
+                readme_text = f.read()
+
+            alert_md = f"<!-- ALERT_BANNER_START -->\n"
+            alert_md += f"## 🚨 Early Warning Alerts — `{now_str} UTC`\n\n"
+            alert_md += "| Status | Field | Depletion | TAW % | Ks | ETc | Action |\n"
+            alert_md += "|:---:|:---|---:|---:|---:|---:|:---|\n"
+            for line in summary_lines:
+                alert_md += line + "\n"
+            alert_md += "\n<!-- ALERT_BANNER_END -->"
+
+            if "<!-- ALERT_BANNER_START -->" in readme_text:
+                pattern = r"<!-- ALERT_BANNER_START -->.*?<!-- ALERT_BANNER_END -->"
+                readme_text = re.sub(pattern, alert_md, readme_text, flags=re.DOTALL)
+            else:
+                # Insert after the first heading if no placeholder exists
+                readme_text = readme_text.replace(
+                    "<!-- LIVE_TELEMETRY_START -->",
+                    alert_md + "\n\n<!-- LIVE_TELEMETRY_START -->"
+                )
+            with open(readme_path, "w", encoding="utf-8") as f:
+                f.write(readme_text)
+            print("[ALERTS] README.md alert banner updated.")
+
+    except Exception as e:
+        print(f"[ALERTS WARNING] Alert engine error: {e}")
+
     # --- GENERATE LIVE GITHUB DASHBOARD ---
     print("\n[DASHBOARD] Generating live GitHub markdown dashboard...")
+
     try:
         field_summaries = {}
         for row in rows_to_append:
