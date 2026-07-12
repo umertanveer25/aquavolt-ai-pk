@@ -56,6 +56,7 @@ LAT = float(os.environ.get("AQUAVOLT_LAT", 38.5480))
 LON = float(os.environ.get("AQUAVOLT_LON", -121.8780))
 FARM_NAME = os.environ.get("AQUAVOLT_FARM", "UC Davis Russell Ranch")
 DEFAULT_SHEET_NAME = "AquaVolt-AI Telemetry Log"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Define 4 distinct fields with their crop types — matches UC_Davis_Russell_Ranch_EXACT_FIELDS.png
 FIELDS = [
@@ -686,7 +687,7 @@ def main(push_to_sheets=True):
         md_content += f"\n---\n*Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*\n"
         
         # Inject into README.md
-        readme_path = "README.md"
+        readme_path = os.path.join(SCRIPT_DIR, "README.md")
         if os.path.exists(readme_path):
             with open(readme_path, "r", encoding="utf-8") as f:
                 readme_text = f.read()
@@ -962,7 +963,7 @@ def run_cimis_validation_and_update_readme(worksheet):
     val_md += f"#### 📈 Live Validation Scatter Plots\n"
     val_md += f"![CIMIS Ground Validation](docs/cimis_scatter_validation.png)\n"
 
-    readme_path = "README.md"
+    readme_path = os.path.join(SCRIPT_DIR, "README.md")
     if os.path.exists(readme_path):
         with open(readme_path, "r", encoding="utf-8") as f:
             readme_text = f.read()
@@ -1199,9 +1200,9 @@ def run_national_global_validation_and_update_readme(worksheet):
             y_pred_sm.append(pred_soil_moist * 100.0)
 
         # Save benchmark CSVs
-        os.makedirs('data', exist_ok=True)
-        pd.DataFrame(ameriflux_rows).to_csv('data/ameriflux_benchmark_sample.csv', index=False)
-        pd.DataFrame(scan_rows).to_csv('data/scan_benchmark_sample.csv', index=False)
+        os.makedirs(os.path.join(SCRIPT_DIR, 'data'), exist_ok=True)
+        pd.DataFrame(ameriflux_rows).to_csv(os.path.join(SCRIPT_DIR, 'data/ameriflux_benchmark_sample.csv'), index=False)
+        pd.DataFrame(scan_rows).to_csv(os.path.join(SCRIPT_DIR, 'data/scan_benchmark_sample.csv'), index=False)
         print("[VALIDATION] Saved physical benchmark CSV files.")
 
         def calc_stats(y_t, y_p):
@@ -1239,7 +1240,7 @@ def run_national_global_validation_and_update_readme(worksheet):
         val_md += f"![USDA SCAN Soil Validation](docs/scan_validation.png)\n\n"
 
         # Update README
-        readme_path = "README.md"
+        readme_path = os.path.join(SCRIPT_DIR, "README.md")
         if os.path.exists(readme_path):
             with open(readme_path, "r", encoding="utf-8") as f:
                 readme_text = f.read()
