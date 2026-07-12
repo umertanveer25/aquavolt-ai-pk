@@ -70,9 +70,14 @@ FIELD_COLORS = {
 }
 
 # ── Data Loader ────────────────────────────────────────────────────────────
-@st.cache_data(ttl=3600)   # refresh every hour automatically
+@st.cache_data
 def load_data():
-    df = pd.read_csv(SHEET_URL, low_memory=False)
+    import os
+    local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'teaser_telemetry.csv')
+    if os.path.exists(local_path):
+        df = pd.read_csv(local_path, low_memory=False)
+    else:
+        df = pd.read_csv(SHEET_URL, low_memory=False)
     df.columns = (df.columns.str.strip()
                              .str.lower()
                              .str.replace(' ', '_')
@@ -90,20 +95,22 @@ def load_data():
     df['date']  = df['timestamp'].dt.date
     return df
 
+
+
 # ── Header ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="main-header">
-  <h1>🛰️ AquaVolt-AI Live Telemetry</h1>
+  <h1>🛰️ AquaVolt-AI Telemetry</h1>
   <p>Physics-Informed Satellite-Driven Crop Water–Energy Optimization · UC Davis Russell Ranch, California</p>
-  <p style='color:#b0bec5; font-size:0.85rem;'>Data updates every hour automatically · 256 sectors across 4 crop fields</p>
+  <p style='color:#b0bec5; font-size:0.85rem;'>🔒 Commercial Teaser Demo · Protected Static Dataset (Live feeds restricted)</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ── Load ───────────────────────────────────────────────────────────────────
-with st.spinner('🛰️ Fetching live satellite telemetry...'):
+with st.spinner('🛰️ Loading satellite telemetry...'):
     try:
         df = load_data()
-        st.success(f'✅ Loaded **{len(df):,} records** · Latest: `{df["timestamp"].max()}`')
+        st.success(f'✅ Loaded **{len(df):,} records** (Teaser Subset)')
     except Exception as e:
         st.error(f'❌ Could not load data: {e}')
         st.stop()
@@ -117,9 +124,17 @@ with st.sidebar:
     
     date_min = df['date'].min()
     date_max = df['date'].max()
-    date_range = st.date_input("📅 Date Range", value=(date_min, date_max),
-                               min_value=date_min, max_value=date_max)
     
+    # Handle single date values or default ranges gracefully
+    if date_min == date_max:
+        date_range = [date_min, date_max]
+        st.info(f"📅 Telemetry Date: {date_min}")
+    else:
+        date_range = st.date_input("📅 Date Range", value=(date_min, date_max),
+                                   min_value=date_min, max_value=date_max)
+    
+    st.markdown("---")
+    st.warning("🔒 **Commercial Teaser Mode**\nThe live Google Sheets API streams are hidden to protect proprietary field telemetry. To license live feeds for your farms, contact sales.")
     st.markdown("---")
     st.markdown("### 📡 System Info")
     st.markdown(f"**Total Records:** `{len(df):,}`")
