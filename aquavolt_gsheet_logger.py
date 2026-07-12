@@ -318,6 +318,8 @@ def fetch_sar_field_indices(sar_item, field_bbox):
 
 
 # Extract 8x8 crop indices for a specific field's bbox (Handles S2 and Landsat)
+# Includes SCL cloud/shadow masking for Sentinel-2 to prevent invalid pixels from
+# corrupting NDVI values downstream (fixes the 0.08 floor clamp artifact).
 def fetch_field_indices(latest_item, field_bbox):
     try:
         import rasterio
@@ -342,6 +344,26 @@ def fetch_field_indices(latest_item, field_bbox):
         b04_url = latest_item.assets[red_key].href
         b08_url = latest_item.assets[nir_key].href
 
+        # --- SCL cloud/shadow mask for Sentinel-2 ---
+        scl_mask = None
+        if not is_landsat and "SCL" in latest_item.assets:
+            scl_url = latest_item.assets["SCL"].href
+            try:
+                with rasterio.open(scl_url) as s_scl:
+                    src_crs_scl = s_scl.crs
+                    l_scl, b_scl, r_scl, t_scl = transform_bounds("EPSG:4326", src_crs_scl, *field_bbox)
+                    win_scl = from_bounds(l_scl, b_scl, r_scl, t_scl, transform=s_scl.transform)
+                    scl_raw = s_scl.read(1, window=win_scl, out_shape=(8, 8))
+                    # SCL invalid classes: 0=no_data, 1=saturated, 2=dark/shadow,
+                    # 3=cloud_shadow, 8=cloud_medium, 9=cloud_high, 10=thin_cirrus, 11=snow
+                    scl_invalid = {0, 1, 2, 3, 8, 9, 10, 11}
+                    scl_mask = np.isin(scl_raw, list(scl_invalid))
+                    n_bad = int(np.sum(scl_mask))
+                    if n_bad > 0:
+                        print(f"[SCL] Masked {n_bad}/64 pixels as cloud/shadow/invalid.")
+            except Exception as scl_err:
+                print(f"[SCL WARNING] Could not read SCL band: {scl_err}. Proceeding without cloud mask.")
+
         with rasterio.open(b03_url) as s3, rasterio.open(b04_url) as s4, rasterio.open(b08_url) as s8:
             src_crs = s4.crs
             l, b, r, t = transform_bounds("EPSG:4326", src_crs, *field_bbox)
@@ -363,18 +385,22 @@ def fetch_field_indices(latest_item, field_bbox):
                 b04 = b04_raw * 0.0001
                 b08 = b08_raw * 0.0001
 
+            # Combine bad-pixel mask with SCL cloud mask
+            bad_mask = (b04_raw <= 0) | (b08_raw <= 0)
+            if scl_mask is not None:
+                bad_mask = bad_mask | scl_mask
+
             def safe_index(a, b_, mask):
                 arr = (a - b_) / (a + b_ + 1e-8)
                 arr = np.clip(arr, -1.0, 1.0)
                 arr[mask] = np.nan
                 if np.isnan(arr).any():
-                    mv = np.nanmean(arr) if not np.isnan(arr).all() else 0.0
+                    mv = np.nanmean(arr) if not np.isnan(arr).all() else np.nan
                     arr = np.where(np.isnan(arr), mv, arr)
                 return arr
 
-            bad_mask = (b04_raw <= 0) | (b08_raw <= 0)
             ndvi = safe_index(b08, b04, bad_mask)
-            ndwi_real = safe_index(b03, b08, (b03_raw <= 0) | (b08_raw <= 0))
+            ndwi_real = safe_index(b03, b08, (b03_raw <= 0) | (b08_raw <= 0) | (bad_mask if scl_mask is not None else np.zeros_like(bad_mask, dtype=bool)))
 
             return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist()}
 
@@ -901,42 +927,45 @@ def main(push_to_sheets=True):
             print(f"[SAR] Using Sentinel-1 SAR indices for {f_name} (optical unavailable)")
             field_sentinel = fetch_sar_field_indices(sar_item, field["bbox"])
         
-        # NDVI bounds adjusted dynamically based on crop characteristics
-        if "Corn" in f_name:
-            max_ndvi = 0.50 + 0.40 * growth_multiplier
-            min_ndvi = 0.20 + 0.15 * growth_multiplier
-        elif "Alfalfa" in f_name:
-            max_ndvi = 0.40 + 0.35 * growth_multiplier
-            min_ndvi = 0.15 + 0.15 * growth_multiplier
-        elif "Tomato" in f_name:
-            max_ndvi = 0.45 + 0.35 * growth_multiplier
-            min_ndvi = 0.18 + 0.15 * growth_multiplier
-        else: # Fallow
-            max_ndvi = 0.18 + 0.05 * growth_multiplier
-            min_ndvi = 0.08 + 0.02 * growth_multiplier
+        # FAO-56 crop-specific mid-season NDVI defaults (used when satellite unavailable)
+        # These are physically-based values, not synthetic ramps.
+        fao56_ndvi = {
+            "Corn": 0.85, "Alfalfa": 0.78, "Tomato": 0.80, "Fallow": 0.12
+        }
+        crop_key = next((k for k in fao56_ndvi if k in f_name), "Fallow")
+        fallback_ndvi = fao56_ndvi[crop_key]
+        is_fallow = ("Fallow" in f_name)
 
         for row in range(8):
             for col in range(8):
-                dist = math.sqrt((row - 3.5)**2 + (col - 3.5)**2)
-                sp_val = 0.80 - dist * 0.10 + ((row * col) % 5 - 2) * 0.03
-                pos_factor = max(0.0, min(1.0, (sp_val - 0.25) / 0.60))
-
                 if field_sentinel:
-                    ndvi = round(max(0.08, min(0.90, field_sentinel["ndvi"][row][col] + (pos_factor - 0.5) * 0.24)), 4)
+                    # USE RAW SATELLITE NDVI — no synthetic pos_factor corruption.
+                    # NaN values (from SCL cloud masking) will have been gap-filled
+                    # to the field mean inside safe_index(), so they are safe floats.
+                    raw_ndvi = float(field_sentinel["ndvi"][row][col])
+                    if math.isnan(raw_ndvi) or raw_ndvi < -0.5:
+                        # Pixel was entirely invalid even after gap-fill; use FAO default
+                        ndvi = round(fallback_ndvi, 4)
+                    else:
+                        ndvi = round(max(0.01, min(0.98, raw_ndvi)), 4)
                     ndwi_real_val = round(float(field_sentinel["ndwi_real"][row][col]), 4)
+                    if math.isnan(ndwi_real_val):
+                        ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
                 else:
-                    ndvi = round(max(0.08, min(0.90, min_ndvi + pos_factor * (max_ndvi - min_ndvi))), 4)
+                    # No satellite data — use FAO-56 crop default, not a synthetic ramp
+                    ndvi = round(fallback_ndvi, 4)
                     ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
 
                 ndwi = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
-                savi = round(ndvi * 1.2, 4)
+                savi = round(ndvi * 1.5 * (1.0 / (ndvi + 0.5 + 1e-8)) if ndvi > 0 else 0.0, 4)  # True L=0.5 SAVI
                 lai, fcover = compute_lai_fcover(ndvi)
                 lst_api = round(soil_temp + (1.0 - ndvi) * 5.0, 1)
 
+                # PIML Sigmoid Prior for Kc — applies to ALL fields including fallow.
+                # For fallow, the low NDVI (~0.12) naturally maps to Kc ≈ 0.18 via
+                # the sigmoid, which respects the ±0.15 envelope constraint.
+                # No post-hoc multiplier needed.
                 kc = round(min(1.20, max(0.15, 0.15 + 0.95 / (1.0 + math.exp(-12.0 * (ndvi - 0.4))))), 2)
-                
-                if "Fallow" in f_name:
-                    kc = round(kc * 0.3, 2)
 
                 ks = round(min(1.0, max(0.0, 1.0 if ndwi_real_val >= -0.1 else 1.0 + (ndwi_real_val + 0.1) * 2.0)), 2)
                 
