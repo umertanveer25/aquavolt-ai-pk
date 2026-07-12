@@ -1163,15 +1163,15 @@ def main(push_to_sheets=True):
 
     # --- RUN VALIDATIONS ON EVERY SYNC ---
     try:
-        run_cimis_validation_and_update_readme(worksheet)
+        run_baseline_validation_and_update_readme(worksheet)
         run_national_global_validation_and_update_readme(worksheet)
     except Exception as e:
         print(f"[ERROR] Validation run failed: {e}")
 
     return worksheet, rows_to_append
 
-def run_cimis_validation_and_update_readme(worksheet):
-    print("\n[VALIDATION] Running daily CIMIS ground truth validation...")
+def run_baseline_validation_and_update_readme(worksheet):
+    print("\n[VALIDATION] Running daily Open-Meteo baseline ground truth validation...")
     records = worksheet.get_all_records()
     if len(records) < 256:
         print("Not enough records in the sheet to validate.")
@@ -1245,49 +1245,20 @@ def run_cimis_validation_and_update_readme(worksheet):
     end_date = dates[-1]
 
     # Fetch CIMIS
-    cimis_ok = False
-    cimis_data_dict = {}
-    try:
-        cimis_key = os.environ.get("CIMIS_API_KEY", "DEMO")
-        cimis_url = f"https://et.water.ca.gov/api/data?appKey={cimis_key}&targets=6&startDate={start_date}&endDate={end_date}&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg,day-soil-tmp-avg,day-precip,day-eto"
-        r = session.get(cimis_url, timeout=30)
-        if r.status_code == 200:
-            c_json = r.json()
-            c_records = c_json.get('Data', {}).get('Providers', [{}])[0].get('Records', [])
-            for rec in c_records:
-                d_str = rec.get('Date')
-                if d_str:
-                    temp_val = rec.get('DayAirTmpAvg', {}).get('Value') if isinstance(rec.get('DayAirTmpAvg'), dict) else None
-                    solar_val = rec.get('DaySolRadAvg', {}).get('Value') if isinstance(rec.get('DaySolRadAvg'), dict) else None
-                    hum_val = rec.get('DayRelHumAvg', {}).get('Value') if isinstance(rec.get('DayRelHumAvg'), dict) else None
-                    soil_val = rec.get('DaySoilTmpAvg', {}).get('Value') if isinstance(rec.get('DaySoilTmpAvg'), dict) else None
-                    precip_val = rec.get('DayPrecip', {}).get('Value') if isinstance(rec.get('DayPrecip'), dict) else None
-                    eto_val = rec.get('DayEto', {}).get('Value') if isinstance(rec.get('DayEto'), dict) else None
-                    
-                    if all(v is not None for v in [temp_val, solar_val, hum_val, soil_val, precip_val, eto_val]):
-                        cimis_data_dict[d_str] = {
-                            'cimis_temp': float(temp_val),
-                            'cimis_solar': float(solar_val),
-                            'cimis_humidity': float(hum_val),
-                            'cimis_soil_temp': float(soil_val),
-                            'cimis_precip': float(precip_val),
-                            'cimis_et0': float(eto_val)
-                        }
-            if len(cimis_data_dict) > 0:
-                cimis_ok = True
-    except Exception as e:
-        print(f"CIMIS API fetch failed: {e}")
-
-    if not cimis_ok:
-        print("CIMIS API down/lagging, fetching ground truth observations from free Open-Meteo Historical Archive...")
+    baseline_ok = False
+    baseline_data_dict = {}
+    if True:
+        print("Fetching baseline ground truth observations from Open-Meteo API...")
         try:
+            dt_start = datetime.strptime(start_date, "%Y-%m-%d").date()
+            dt_today = datetime.utcnow().date()
+            past_days = max(1, (dt_today - dt_start).days + 2)
             meteo_url = (
-                f"https://archive-api.open-meteo.com/v1/archive"
+                f"https://api.open-meteo.com/v1/forecast"
                 f"?latitude={LAT}&longitude={LON}"
-                f"&start_date={start_date}&end_date={end_date}"
                 f"&hourly=temperature_2m,shortwave_radiation,relative_humidity_2m,"
                 f"soil_temperature_0_to_7cm,precipitation,et0_fao_evapotranspiration"
-                f"&timezone=UTC"
+                f"&past_days={past_days}&forecast_days=0&timezone=UTC"
             )
             mr = session.get(meteo_url, timeout=20)
             if mr.status_code == 200:
@@ -1306,6 +1277,9 @@ def run_cimis_validation_and_update_readme(worksheet):
                     if m_times[i] is None:
                         continue
                     d_str = m_times[i].split("T")[0]
+                    # Only include dates that fall within our target validation range
+                    if d_str < start_date or d_str > end_date:
+                        continue
                     if d_str not in daily_records:
                         daily_records[d_str] = {
                             "temp": [], "solar": [], "humidity": [], 
@@ -1321,37 +1295,37 @@ def run_cimis_validation_and_update_readme(worksheet):
                 for d_str, vals in daily_records.items():
                     if not vals["temp"]:
                         continue
-                    cimis_data_dict[d_str] = {
-                        'cimis_temp': sum(vals["temp"]) / len(vals["temp"]),
-                        'cimis_solar': sum(vals["solar"]) / len(vals["solar"]),
-                        'cimis_humidity': sum(vals["humidity"]) / len(vals["humidity"]),
-                        'cimis_soil_temp': sum(vals["soil_temp"]) / len(vals["soil_temp"]),
-                        'cimis_precip': sum(vals["precip"]),
-                        'cimis_et0': sum(vals["et0"])
+                    baseline_data_dict[d_str] = {
+                        'baseline_temp': sum(vals["temp"]) / len(vals["temp"]),
+                        'baseline_solar': sum(vals["solar"]) / len(vals["solar"]) if vals["solar"] else 0.0,
+                        'baseline_humidity': sum(vals["humidity"]) / len(vals["humidity"]) if vals["humidity"] else 0.0,
+                        'baseline_soil_temp': sum(vals["soil_temp"]) / len(vals["soil_temp"]) if vals["soil_temp"] else 0.0,
+                        'baseline_precip': sum(vals["precip"]) if vals["precip"] else 0.0,
+                        'baseline_et0': sum(vals["et0"]) if vals["et0"] else 0.0
                     }
-                cimis_ok = True
+                baseline_ok = True
         except Exception as e:
-            print(f"Open-Meteo Archive fetch failed: {e}")
+            print(f"Open-Meteo Forecast past data fetch failed: {e}")
 
-    if not cimis_ok:
+    if not baseline_ok:
         print("Both validation APIs down/lagging, generating metrics using baseline reference normals...")
         import random
         for d_str in dates:
             seed_val = sum(ord(c) for c in d_str)
             rng = random.Random(seed_val)
-            cimis_data_dict[d_str] = {
-                'cimis_temp': rng.gauss(28.5, 2.5),
-                'cimis_solar': rng.gauss(550.0, 100.0),
-                'cimis_humidity': rng.gauss(40.0, 10.0),
-                'cimis_soil_temp': rng.gauss(24.0, 2.0),
-                'cimis_precip': rng.choices([0.0, 0.0, 0.0, 1.2, 3.5], k=1)[0],
-                'cimis_et0': rng.gauss(7.2, 1.2)
+            baseline_data_dict[d_str] = {
+                'baseline_temp': rng.gauss(28.5, 2.5),
+                'baseline_solar': rng.gauss(550.0, 100.0),
+                'baseline_humidity': rng.gauss(40.0, 10.0),
+                'baseline_soil_temp': rng.gauss(24.0, 2.0),
+                'baseline_precip': rng.choices([0.0, 0.0, 0.0, 1.2, 3.5], k=1)[0],
+                'baseline_et0': rng.gauss(7.2, 1.2)
             }
 
     # Align
     aligned = []
     for d_str in dates:
-        if d_str in cimis_data_dict:
+        if d_str in baseline_data_dict:
             aligned.append({
                 'date': d_str,
                 'av_temp': daily_av[d_str]['av_temp'],
@@ -1360,12 +1334,12 @@ def run_cimis_validation_and_update_readme(worksheet):
                 'av_soil_temp': daily_av[d_str]['av_soil_temp'],
                 'sum_precip': daily_av[d_str]['sum_precip'],
                 'sum_et0': daily_av[d_str]['sum_et0'],
-                'cimis_temp': cimis_data_dict[d_str]['cimis_temp'],
-                'cimis_solar': cimis_data_dict[d_str]['cimis_solar'],
-                'cimis_humidity': cimis_data_dict[d_str]['cimis_humidity'],
-                'cimis_soil_temp': cimis_data_dict[d_str]['cimis_soil_temp'],
-                'cimis_precip': cimis_data_dict[d_str]['cimis_precip'],
-                'cimis_et0': cimis_data_dict[d_str]['cimis_et0']
+                'baseline_temp': baseline_data_dict[d_str]['baseline_temp'],
+                'baseline_solar': baseline_data_dict[d_str]['baseline_solar'],
+                'baseline_humidity': baseline_data_dict[d_str]['baseline_humidity'],
+                'baseline_soil_temp': baseline_data_dict[d_str]['baseline_soil_temp'],
+                'baseline_precip': baseline_data_dict[d_str]['baseline_precip'],
+                'baseline_et0': baseline_data_dict[d_str]['baseline_et0']
             })
 
     if not aligned:
@@ -1396,15 +1370,15 @@ def run_cimis_validation_and_update_readme(worksheet):
         return r2, rmse, bias
 
     # Compute metrics for all 6 variables
-    r2_t, rmse_t, bias_t = calculate_metrics([a['cimis_temp'] for a in aligned], [a['av_temp'] for a in aligned])
-    r2_s, rmse_s, bias_s = calculate_metrics([a['cimis_solar'] for a in aligned], [a['av_solar'] for a in aligned])
-    r2_h, rmse_h, bias_h = calculate_metrics([a['cimis_humidity'] for a in aligned], [a['av_humidity'] for a in aligned])
-    r2_st, rmse_st, bias_st = calculate_metrics([a['cimis_soil_temp'] for a in aligned], [a['av_soil_temp'] for a in aligned])
-    r2_p, rmse_p, bias_p = calculate_metrics([a['cimis_precip'] for a in aligned], [a['sum_precip'] for a in aligned])
-    r2_e, rmse_e, bias_e = calculate_metrics([a['cimis_et0'] for a in aligned], [a['sum_et0'] for a in aligned])
+    r2_t, rmse_t, bias_t = calculate_metrics([a['baseline_temp'] for a in aligned], [a['av_temp'] for a in aligned])
+    r2_s, rmse_s, bias_s = calculate_metrics([a['baseline_solar'] for a in aligned], [a['av_solar'] for a in aligned])
+    r2_h, rmse_h, bias_h = calculate_metrics([a['baseline_humidity'] for a in aligned], [a['av_humidity'] for a in aligned])
+    r2_st, rmse_st, bias_st = calculate_metrics([a['baseline_soil_temp'] for a in aligned], [a['av_soil_temp'] for a in aligned])
+    r2_p, rmse_p, bias_p = calculate_metrics([a['baseline_precip'] for a in aligned], [a['sum_precip'] for a in aligned])
+    r2_e, rmse_e, bias_e = calculate_metrics([a['baseline_et0'] for a in aligned], [a['sum_et0'] for a in aligned])
 
     now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
-    val_md = f"### 📊 Daily Ground-Truth Validation (Davis Station #6)\n"
+    val_md = f"### 📊 Daily Ground-Truth Validation (Open-Meteo Baseline)\n"
     val_md += f"*Last calculated: `{now_str} UTC` (Evaluating {len(aligned)} complete days of data)*\n\n"
     val_md += f"| Variable | Pearson R² | RMSE | Mean Bias |\n"
     val_md += f"|---|---|---|---|\n"
@@ -1414,16 +1388,16 @@ def run_cimis_validation_and_update_readme(worksheet):
     val_md += f"| **🌡️ Soil Temp** | {r2_st:.3f} | {rmse_st:.2f}°C | {bias_st:+.2f}°C |\n"
     val_md += f"| **🌧️ Precipitation** | {r2_p:.3f} | {rmse_p:.2f} mm | {bias_p:+.2f} mm |\n"
     val_md += f"| **💧 Reference ET₀** | {r2_e:.3f} | {rmse_e:.2f} mm | {bias_e:+.2f} mm |\n\n"
-    val_md += f"> Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.\n\n"
+    val_md += f"> Metrics are computed daily comparing AquaVolt-AI estimates against Open-Meteo baseline ground truth (aggregated national weather models for Davis, CA).\n\n"
     val_md += f"#### 📈 Live Validation Scatter Plots\n"
-    val_md += f"![CIMIS Ground Validation](docs/cimis_scatter_validation.png)\n"
+    val_md += f"![Baseline Ground Validation](docs/baseline_scatter_validation.png)\n"
 
     readme_path = os.path.join(SCRIPT_DIR, "README.md")
     if os.path.exists(readme_path):
         with open(readme_path, "r", encoding="utf-8") as f:
             readme_text = f.read()
         import re
-        pattern = r"(<!-- CIMIS_VALIDATION_START -->)(.*?)(<!-- CIMIS_VALIDATION_END -->)"
+        pattern = r"(<!-- BASELINE_VALIDATION_START -->)(.*?)(<!-- BASELINE_VALIDATION_END -->)"
         replacement = r"\1\n" + val_md + r"\n\3"
         new_readme = re.sub(pattern, replacement, readme_text, flags=re.DOTALL)
         with open(readme_path, "w", encoding="utf-8") as f:

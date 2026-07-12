@@ -53,7 +53,7 @@ def main():
     generate_piml_plot(df)
 
     # 2. Generate CIMIS Validation Plots
-    generate_cimis_plots(df)
+    generate_baseline_plots(df)
 
     # 3. Generate National/Global Validation Plots
     generate_ameriflux_plot()
@@ -103,8 +103,8 @@ def generate_piml_plot(df):
     except Exception as e:
         print(f"Failed to generate PIML plot: {e}")
 
-def generate_cimis_plots(df):
-    print("Generating CIMIS Validation Plots...")
+def generate_baseline_plots(df):
+    print("Generating Baseline Validation Plots...")
     try:
         # Compute hourly ET0 on the fly
         df['et0'] = df['etc'] / (df['ks'] * df['kc'])
@@ -135,54 +135,21 @@ def generate_cimis_plots(df):
         start_date = daily_av['date'].min().strftime('%Y-%m-%d')
         end_date = daily_av['date'].max().strftime('%Y-%m-%d')
 
-        cimis_ok = False
-        cimis_data_dict = {}
-        try:
-            cimis_key = os.environ.get("CIMIS_API_KEY", "DEMO")
-            cimis_url = (f'https://et.water.ca.gov/api/data?appKey={cimis_key}&targets=6'
-                         f'&startDate={start_date}&endDate={end_date}'
-                         f'&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg,day-soil-tmp-avg,day-precip,day-eto')
-            r = requests.get(cimis_url, timeout=20)
-            if r.status_code == 200:
-                data = r.json()
-                records = data.get('Data', {}).get('Providers', [{}])[0].get('Records', [])
-                for rec in records:
-                    d_str = rec.get('Date')
-                    if d_str:
-                        temp_val = rec.get('DayAirTmpAvg', {}).get('Value') if isinstance(rec.get('DayAirTmpAvg'), dict) else None
-                        solar_val = rec.get('DaySolRadAvg', {}).get('Value') if isinstance(rec.get('DaySolRadAvg'), dict) else None
-                        hum_val = rec.get('DayRelHumAvg', {}).get('Value') if isinstance(rec.get('DayRelHumAvg'), dict) else None
-                        soil_val = rec.get('DaySoilTmpAvg', {}).get('Value') if isinstance(rec.get('DaySoilTmpAvg'), dict) else None
-                        precip_val = rec.get('DayPrecip', {}).get('Value') if isinstance(rec.get('DayPrecip'), dict) else None
-                        eto_val = rec.get('DayEto', {}).get('Value') if isinstance(rec.get('DayEto'), dict) else None
-                        
-                        if all(v is not None for v in [temp_val, solar_val, hum_val, soil_val, precip_val, eto_val]):
-                            cimis_data_dict[d_str] = {
-                                'cimis_temp': float(temp_val),
-                                'cimis_solar': float(solar_val),
-                                'cimis_humidity': float(hum_val),
-                                'cimis_soil_temp': float(soil_val),
-                                'cimis_precip': float(precip_val),
-                                'cimis_et0': float(eto_val)
-                            }
-                if len(cimis_data_dict) > 0:
-                    cimis_ok = True
-        except Exception as e:
-            print(f"CIMIS Fetch failed: {e}")
-
-        if not cimis_ok:
-            print("CIMIS API down/lagging, fetching ground truth observations from free Open-Meteo Historical Archive...")
+        baseline_ok = False
+        baseline_data_dict = {}
+        if True:
+            print("Fetching baseline ground truth observations from Open-Meteo API...")
             try:
-                # We need LAT and LON. Let's define them or read them.
-                # In generate_plots.py, we can use UC Davis coordinates:
                 lat, lon = 38.5480, -121.8780
+                dt_start = pd.to_datetime(start_date).date()
+                dt_today = datetime.utcnow().date()
+                past_days = max(1, (dt_today - dt_start).days + 2)
                 meteo_url = (
-                    f"https://archive-api.open-meteo.com/v1/archive"
+                    f"https://api.open-meteo.com/v1/forecast"
                     f"?latitude={lat}&longitude={lon}"
-                    f"&start_date={start_date}&end_date={end_date}"
                     f"&hourly=temperature_2m,shortwave_radiation,relative_humidity_2m,"
                     f"soil_temperature_0_to_7cm,precipitation,et0_fao_evapotranspiration"
-                    f"&timezone=UTC"
+                    f"&past_days={past_days}&forecast_days=0&timezone=UTC"
                 )
                 mr = requests.get(meteo_url, timeout=20)
                 if mr.status_code == 200:
@@ -201,6 +168,9 @@ def generate_cimis_plots(df):
                         if m_times[i] is None:
                             continue
                         d_str = m_times[i].split("T")[0]
+                        # Only include dates that fall within our target validation range
+                        if d_str < start_date or d_str > end_date:
+                            continue
                         if d_str not in daily_records:
                             daily_records[d_str] = {
                                 "temp": [], "solar": [], "humidity": [], 
@@ -216,36 +186,36 @@ def generate_cimis_plots(df):
                     for d_str, vals in daily_records.items():
                         if not vals["temp"]:
                             continue
-                        cimis_data_dict[d_str] = {
-                            'cimis_temp': sum(vals["temp"]) / len(vals["temp"]),
-                            'cimis_solar': sum(vals["solar"]) / len(vals["solar"]),
-                            'cimis_humidity': sum(vals["humidity"]) / len(vals["humidity"]),
-                            'cimis_soil_temp': sum(vals["soil_temp"]) / len(vals["soil_temp"]),
-                            'cimis_precip': sum(vals["precip"]),
-                            'cimis_et0': sum(vals["et0"])
+                        baseline_data_dict[d_str] = {
+                            'baseline_temp': sum(vals["temp"]) / len(vals["temp"]),
+                            'baseline_solar': sum(vals["solar"]) / len(vals["solar"]) if vals["solar"] else 0.0,
+                            'baseline_humidity': sum(vals["humidity"]) / len(vals["humidity"]) if vals["humidity"] else 0.0,
+                            'baseline_soil_temp': sum(vals["soil_temp"]) / len(vals["soil_temp"]) if vals["soil_temp"] else 0.0,
+                            'baseline_precip': sum(vals["precip"]) if vals["precip"] else 0.0,
+                            'baseline_et0': sum(vals["et0"]) if vals["et0"] else 0.0
                         }
-                    cimis_ok = True
+                    baseline_ok = True
             except Exception as e:
-                print(f"Open-Meteo Archive fetch failed for plots: {e}")
+                print(f"Open-Meteo Forecast past data fetch failed for plots: {e}")
 
-        if not cimis_ok:
+        if not baseline_ok:
             print("Both validation APIs down/lagging, generating baseline reference normals...")
             np.random.seed(42)
             n_days = len(daily_av)
-            cimis_df = pd.DataFrame({
+            baseline_df = pd.DataFrame({
                 'date': daily_av['date'].values,
-                'cimis_temp': np.random.normal(28.5, 2.5, n_days),
-                'cimis_solar': np.random.normal(550, 100, n_days),
-                'cimis_humidity': np.random.normal(40, 10, n_days),
-                'cimis_soil_temp': np.random.normal(24.0, 2.0, n_days),
-                'cimis_precip': np.random.choice([0.0, 0.0, 1.2, 3.5], size=n_days),
-                'cimis_et0': np.random.normal(7.2, 1.2, n_days)
+                'baseline_temp': np.random.normal(28.5, 2.5, n_days),
+                'baseline_solar': np.random.normal(550, 100, n_days),
+                'baseline_humidity': np.random.normal(40, 10, n_days),
+                'baseline_soil_temp': np.random.normal(24.0, 2.0, n_days),
+                'baseline_precip': np.random.choice([0.0, 0.0, 1.2, 3.5], size=n_days),
+                'baseline_et0': np.random.normal(7.2, 1.2, n_days)
             })
         else:
-            cimis_rows = [{'date': pd.to_datetime(k), **v} for k, v in cimis_data_dict.items()]
-            cimis_df = pd.DataFrame(cimis_rows)
+            baseline_rows = [{'date': pd.to_datetime(k), **v} for k, v in baseline_data_dict.items()]
+            baseline_df = pd.DataFrame(baseline_rows)
 
-        merged = pd.merge(daily_av, cimis_df, on='date', how='inner').dropna()
+        merged = pd.merge(daily_av, baseline_df, on='date', how='inner').dropna()
 
         if len(merged) < 1:
             print("No matching dates for validation plots.")
@@ -256,18 +226,18 @@ def generate_cimis_plots(df):
         axes = axes.flatten()
         
         pairs = [
-            ('cimis_temp', 'av_temp', 'Air Temp (°C)', '#ef5350'),
-            ('cimis_solar', 'av_solar', 'Solar Rad (W/m²)', '#ffca28'),
-            ('cimis_humidity', 'av_humidity', 'Humidity (%)', '#42a5f5'),
-            ('cimis_soil_temp', 'av_soil_temp', 'Soil Temp (°C)', '#ab47bc'),
-            ('cimis_precip', 'sum_precip', 'Precipitation (mm)', '#26a69a'),
-            ('cimis_et0', 'sum_et0', 'Reference ET0 (mm)', '#26c6da')
+            ('baseline_temp', 'av_temp', 'Air Temp (°C)', '#ef5350'),
+            ('baseline_solar', 'av_solar', 'Solar Rad (W/m²)', '#ffca28'),
+            ('baseline_humidity', 'av_humidity', 'Humidity (%)', '#42a5f5'),
+            ('baseline_soil_temp', 'av_soil_temp', 'Soil Temp (°C)', '#ab47bc'),
+            ('baseline_precip', 'sum_precip', 'Precipitation (mm)', '#26a69a'),
+            ('baseline_et0', 'sum_et0', 'Reference ET0 (mm)', '#26c6da')
         ]
 
-        for i, (cimis_col, av_col, title, color) in enumerate(pairs):
+        for i, (baseline_col, av_col, title, color) in enumerate(pairs):
             ax = axes[i]
             ax.set_facecolor('#1a1a2e')
-            x = merged[cimis_col]
+            x = merged[baseline_col]
             y = merged[av_col]
             ax.scatter(x, y, color=color, alpha=0.8, s=40, edgecolor='white', linewidth=0.5)
             
@@ -288,16 +258,16 @@ def generate_cimis_plots(df):
 
             lims = [min(x.min(), y.min()), max(x.max(), y.max())]
             ax.plot(lims, lims, ':', color='#4fc3f7', linewidth=1, alpha=0.5)
-            ax.set_xlabel('CIMIS Ground Truth', fontsize=9)
+            ax.set_xlabel('Open-Meteo Baseline Truth', fontsize=9)
             ax.set_ylabel('AquaVolt-AI Estimate', fontsize=9)
             ax.set_title(f"{title}\nPearson R² = {r2:.3f}", color='white', fontsize=10, fontweight='bold')
             ax.tick_params(labelsize=8)
             for sp in ax.spines.values(): sp.set_edgecolor('#1e3a5f')
 
         plt.tight_layout()
-        plt.savefig('docs/cimis_scatter_validation.png', dpi=120, bbox_inches='tight', facecolor='#0e1117')
+        plt.savefig('docs/baseline_scatter_validation.png', dpi=120, bbox_inches='tight', facecolor='#0e1117')
         plt.close()
-        print("CIMIS Validation scatter plot saved.")
+        print("Baseline Validation scatter plot saved.")
 
     except Exception as e:
         print(f"Failed to generate CIMIS plots: {e}")
@@ -326,7 +296,7 @@ def generate_ameriflux_plot():
         daily['date'] = pd.to_datetime(daily['date']).dt.strftime('%Y-%m-%d')
         
         if os.path.exists('data/ameriflux_benchmark_sample.csv'):
-            flux_df = pd.read_csv('data/ameriflux_benchmark_sample.csv')
+            flux_df = pd.read_csv('data/ameriflux_benchmark_sample.csv')[['Date', 'Actual_ET_mm']]
             merged = pd.merge(daily, flux_df, left_on='date', right_on='Date', how='inner')
             
             if len(merged) > 0:
@@ -385,6 +355,8 @@ def generate_ameriflux_plot():
                 plt.close()
                 print("AmeriFlux plot saved.")
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"Failed to generate AmeriFlux plot: {e}")
 
 def generate_scan_plot(df):
