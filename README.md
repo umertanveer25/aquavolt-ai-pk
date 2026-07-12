@@ -23,39 +23,39 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 ---
 
 <!-- ALERT_BANNER_START -->
-## 🚨 Early Warning Alerts — `2026-07-12 12:00:00 UTC`
+## 🚨 Early Warning Alerts — `2026-07-12 15:00:00 UTC`
 
 | Status | Field | Depletion | TAW % | Ks | ETc | Action |
 |:---:|:---|---:|---:|---:|---:|:---|
-| 🔴 | **Field-A (Corn)** | 112.8 mm | 71% | 0.33 | 1.07 mm/hr | Schedule irrigation within 24 hours. Crop stress factor Ks=0.33 |
-| 🚨 | **Field-B (Alfalfa)** | 111.3 mm | 70% | 0.27 | 1.07 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
-| 🚨 | **Field-C (Fallow)** | 124.0 mm | 78% | 0.16 | 0.35 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
-| 🚨 | **Field-D (Tomato)** | 106.7 mm | 68% | 0.20 | 0.99 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
+| 🚨 | **Field-A (Corn)** | 112.8 mm | 71% | 0.33 | 1.11 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
+| 🚨 | **Field-B (Alfalfa)** | 111.3 mm | 70% | 0.27 | 1.11 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
+| 🚨 | **Field-C (Fallow)** | 124.0 mm | 78% | 0.16 | 0.36 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
+| 🚨 | **Field-D (Tomato)** | 106.7 mm | 68% | 0.20 | 1.02 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
 
 <!-- ALERT_BANNER_END -->
 
 <!-- LIVE_TELEMETRY_START -->
 # 📡 AquaVolt-AI Live Telemetry
 
-**Latest Update:** `2026-07-12 12:00:00 UTC`
+**Latest Update:** `2026-07-12 15:00:00 UTC`
 > This dashboard updates automatically every hour via GitHub Actions.
 
 ### ⛅ Current Weather (Russell Ranch)
 
-- **Air Temp:** 19.9°C
-- **Humidity:** 61.3%
-- **Solar Radiation:** 0.0 W/m²
-- **Soil Moisture (Proxy):** 6.9%
-- **Reference ET₀ (24h):** 6.67 mm
+- **Air Temp:** 21.7°C
+- **Humidity:** 60.4%
+- **Solar Radiation:** 214.0 W/m²
+- **Soil Moisture (Proxy):** 7.1%
+- **Reference ET₀ (24h):** 6.90 mm
 
 ### 🌱 Field Averages (Current Hour)
 
 | Field Name | Avg NDVI | Avg NDWI | Avg ETc (mm/hr) | Avg Water Deficit (mm) |
 |---|---|---|---|---|
-| **Field-A (Corn)** | 0.208 | -0.267 | 1.07 | **112.77** |
-| **Field-B (Alfalfa)** | 0.174 | -0.256 | 1.07 | **111.33** |
-| **Field-C (Fallow)** | 0.316 | -0.356 | 0.35 | **124.00** |
-| **Field-D (Tomato)** | 0.143 | -0.219 | 0.99 | **105.53** |
+| **Field-A (Corn)** | 0.208 | -0.267 | 1.11 | **112.77** |
+| **Field-B (Alfalfa)** | 0.174 | -0.256 | 1.11 | **111.33** |
+| **Field-C (Fallow)** | 0.316 | -0.356 | 0.36 | **124.00** |
+| **Field-D (Tomato)** | 0.143 | -0.219 | 1.02 | **105.53** |
 
 ---
 *Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*
@@ -64,16 +64,16 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- CIMIS_VALIDATION_START -->
 ### 📊 Daily Ground-Truth Validation (Davis Station #6)
-*Last calculated: `2026-07-12 12:15 UTC` (Evaluating 15 complete days of data)*
+*Last calculated: `2026-07-12 15:00 UTC` (Evaluating 15 complete days of data)*
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Air Temp** | 0.844 | 1.73°C | -1.63°C |
-| **☀️ Solar Rad** | 0.958 | 37.79 W/m² | +1.34 W/m² |
-| **💧 Humidity** | 0.653 | 5.82% | +4.52% |
-| **🌡️ Soil Temp** | 0.919 | 5.90°C | -5.87°C |
+| **🌡️ Air Temp** | 0.808 | 1.80°C | -1.67°C |
+| **☀️ Solar Rad** | 0.958 | 37.66 W/m² | +1.38 W/m² |
+| **💧 Humidity** | 0.618 | 6.09% | +4.73% |
+| **🌡️ Soil Temp** | 0.897 | 5.94°C | -5.92°C |
 | **🌧️ Precipitation** | 0.000 | 0.00 mm | +0.00 mm |
-| **💧 Reference ET₀** | 0.467 | 0.48 mm | +0.32 mm |
+| **💧 Reference ET₀** | 0.449 | 0.49 mm | +0.32 mm |
 
 > Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.
 
@@ -84,14 +84,14 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- NATIONAL_GLOBAL_VALIDATION_START -->
 ### 🌎 National & Global Validation Networks
-*Last calculated: `2026-07-12 12:15 UTC`*
+*Last calculated: `2026-07-12 15:00 UTC`*
 
 #### 1. AmeriFlux Eddy Covariance (Actual ET & Crop Coefficient Validation)
 > **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration ($ET_c$) and Crop Coefficient ($K_c$) predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **💧 Actual ET (AmeriFlux)** | 0.114 | 0.99 mm | -0.98 mm |
+| **💧 Actual ET (AmeriFlux)** | 0.108 | 0.99 mm | -0.98 mm |
 | **🌿 Crop Coefficient ($K_c$)** | 0.000 | 0.070 | -0.042 |
 
 ![AmeriFlux Validation](docs/ameriflux_validation.png)
@@ -101,8 +101,8 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Soil Temperature (USDA SCAN)** | 0.919 | 5.90°C | -5.87°C |
-| **🌱 Soil Moisture (USDA SCAN)** | 0.753 | 4.30% | -4.25% |
+| **🌡️ Soil Temperature (USDA SCAN)** | 0.897 | 5.94°C | -5.92°C |
+| **🌱 Soil Moisture (USDA SCAN)** | 0.726 | 4.28% | -4.24% |
 
 ![USDA SCAN Soil Validation](docs/scan_validation.png)
 
@@ -238,7 +238,27 @@ $$ET_c = K_s \cdot K_c \cdot ET_0$$
 
 $$D_r(t) = D_r(t-1) - P_{\text{eff}} + ET_c \qquad \text{if } D_r > RAW \Rightarrow \text{irrigate}$$
 
-## 📓 Interactive Google Colab Notebooks
+---
+
+## 🧬 Architecture: Self-Evolving Multi-Sensor Ensemble
+
+AquaVolt-AI has been massively upgraded into a **True Mathematical Ensemble Fusion Model**, the same architectural paradigm used by global climate models (IPCC, NASA).
+
+### 1. Multi-Sensor Data Fusion
+Instead of relying on a single satellite, the system uses a high-performance **Parallel ThreadPoolExecutor** to query 18+ free global Earth Observation APIs simultaneously. It dynamically fuses this data to eliminate cloud interference and sensor bias.
+
+### 2. Self-Evolving Machine Learning (Gradient Descent)
+The system actively learns which satellites are the most accurate for your specific farm micro-climate. Every night at midnight, the AI tests the satellite predictions against the **CIMIS ground-truth physical sensors**. Using a continuous Gradient Descent feedback loop, it mathematically rewards highly accurate satellites (increasing their voting weight) and penalizes noisy ones. Over 30 days, the AI fully evolves a custom physics model optimized perfectly for your coordinates without human intervention.
+
+### 3. The "Holy Grail" Auto-Discovery Registry
+Adding new data no longer breaks database schemas. AquaVolt-AI features a true plug-and-play **Dynamic Auto-Discovery Sensor Registry**. 
+To integrate a new satellite, simply drop a python fetch script into the `plugins/sensors/` directory. The AI engine automatically detects it on boot, fetches the data, and integrates it into the mathematical ensemble (giving it a default 5% voting weight), where the AI then begins evaluating its accuracy.
+
+Currently bundled with 18 open-access plugins including: **NASA ECOSTRESS (70m), ESA Sentinel-1 (10m SAR), NASA SMAP, NOAA GOES-16, and CHIRPS**.
+
+---
+
+## 💻 Interactive Google Colab Notebooks
 
 We provide four interactive, one-click Google Colab notebooks for instant analysis and scientific verification:
 
@@ -356,12 +376,12 @@ The `telemetry_log` table (SQLite) / sheet (Google Sheets) contains **29 columns
 
 ---
 
-## 🗺️ Roadmap
+## 🚀 Roadmap
 
 - [x] FAO-56 Penman-Monteith ET₀ engine
 - [x] Physics-Informed Neural Network (PIML) Kc/Ks estimator
 - [x] Dynamic astronomical NDVI growth model
-- [x] 8×8 spatial precision grid
+- [x] 8x8 spatial precision grid
 - [x] SQLite local telemetry logging
 - [x] Google Sheets cloud logging
 - [x] GitHub Actions hourly automation
@@ -369,7 +389,15 @@ The `telemetry_log` table (SQLite) / sheet (Google Sheets) contains **29 columns
 - [x] Real MODIS Land Surface Temperature integration
 - [x] Multi-Field concurrent crop monitoring
 - [x] Hybrid Resilient Local-Cloud Failover Sync
+- [x] **Multi-Sensor Mathematical Ensemble Fusion Engine**
+- [x] **Self-Evolving AI Machine Learning (Gradient Descent Weight Optimization)**
+- [x] **"Holy Grail" Auto-Discovery Sensor Registry (`plugins/sensors/`)**
+- [x] **Integration of 18 Global Open-Access Satellites (NASA, ESA, NOAA, Copernicus)**
 - [ ] LSTM crop yield forecasting module
+- [ ] District-level Pakistan soil classification
+- [ ] Mobile dashboard (Flutter)
+- [ ] REST API endpoint for external data access
+- [ ] Zenodo DOI registration for dataset
 - [ ] District-level Pakistan soil classification
 - [ ] Mobile dashboard (Flutter)
 - [ ] REST API endpoint for external data access

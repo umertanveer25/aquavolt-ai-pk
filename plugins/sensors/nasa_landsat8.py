@@ -1,0 +1,34 @@
+import requests
+
+SENSOR_INFO = {'name': 'NASA Landsat 8/9 (30m)', 'type': 'optical', 'resolution': '30m', 'source': 'Microsoft Planetary Computer STAC', 'status': 'active'}
+
+def fetch():
+    """Searches Planetary Computer STAC for the latest Landsat scene over Russell Ranch."""
+    try:
+        url = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
+        payload = {
+            "collections": ["landsat-c2-l2"],
+            "bbox": [-121.88000000000001, 38.53, -121.86, 38.55],
+            "limit": 1,
+            "sortby": [{"field": "datetime", "direction": "desc"}],
+            "filter-lang": "cql2-json",
+            "filter": {"op": "<=", "args": [{"property": "eo:cloud_cover"}, 30]}
+        }
+        r = requests.post(url, json=payload, timeout=20)
+        if r.status_code == 200:
+            features = r.json().get('features', [])
+            if features:
+                props = features[0]['properties']
+                return {
+                    'status': 'success',
+                    'source': 'Planetary Computer STAC (LIVE)',
+                    'scene_id': features[0].get('id', 'unknown'),
+                    'datetime': props.get('datetime'),
+                    'cloud_cover_pct': props.get('eo:cloud_cover'),
+                    'platform': props.get('platform'),
+                    'sun_elevation': props.get('view:sun_elevation'),
+                }
+            return {'status': 'no_scenes_found'}
+        return {'status': 'http_error', 'code': r.status_code}
+    except Exception as e:
+        return {'status': 'error', 'msg': str(e)}

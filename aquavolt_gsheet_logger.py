@@ -13,10 +13,26 @@ import sys
 import math
 import json
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import socket
 import urllib.request
 import ssl
 from datetime import datetime, timedelta, timezone
+
+# --- ROBUST API SESSION SETUP ---
+# Automatically fix/correct dropped connections or 5xx errors with exponential backoff
+session = requests.Session()
+retry = Retry(
+    total=5,
+    backoff_factor=1,
+    status_forcelist=[ 429, 500, 502, 503, 504 ],
+    allowed_methods=['GET']
+)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
+
 
 # --- DoH Monkeypatch for robust DNS resolution ---
 original_getaddrinfo = socket.getaddrinfo
@@ -452,7 +468,7 @@ def fetch_open_meteo_forecast(lat, lon):
             f"temperature_2m_max,temperature_2m_min"
             f"&forecast_days=16&timezone=UTC"
         )
-        r = requests.get(url, timeout=15)
+        r = session.get(url, timeout=15)
         r.raise_for_status()
         daily = r.json().get("daily", {})
         et0_vals  = daily.get("et0_fao_evapotranspiration", [])
@@ -496,7 +512,7 @@ def fetch_soilgrids_properties(lat, lon):
             f"&property=clay&property=sand&property=silt"
             f"&depth=0-30cm&value=mean"
         )
-        r = requests.get(url, timeout=8, headers={"Accept": "application/json"})
+        r = session.get(url, timeout=8, headers={"Accept": "application/json"})
         if r.status_code != 200:
             print(f"[SOILGRIDS] HTTP {r.status_code} — estimating from soil moisture")
             _soil_cache[cache_key] = default
@@ -580,7 +596,7 @@ def fetch_copernicus_dem_slope(lat, lon):
         lon_str = ",".join(f"{x:.4f}" for x in points_lon)
 
         url = f"https://api.open-meteo.com/v1/elevation?latitude={lat_str}&longitude={lon_str}"
-        r = requests.get(url, timeout=10)
+        r = session.get(url, timeout=10)
         if r.status_code != 200:
             _dem_cache[cache_key] = default
             return default
@@ -629,7 +645,7 @@ def fetch_viirs_lst(lat, lon):
             f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/"
             f"VIIRS_SNPP_NRT/{lon-0.01},{lat-0.01},{lon+0.01},{lat+0.01}/1/{today}"
         )
-        r = requests.get(url, timeout=10)
+        r = session.get(url, timeout=10)
         if r.status_code == 200 and "bright_ti4" in r.text:
             lines = r.text.strip().split("\n")
             if len(lines) > 1:
@@ -676,7 +692,7 @@ def fetch_era5_bias_correction(lat, lon):
             f"shortwave_radiation_sum"
             f"&timezone=UTC"
         )
-        r = requests.get(url, timeout=15)
+        r = session.get(url, timeout=15)
         if r.status_code != 200:
             return default
 
@@ -720,7 +736,7 @@ def fetch_chirps_precipitation(lat, lon):
             f"&daily=precipitation_sum"
             f"&timezone=UTC"
         )
-        r = requests.get(url, timeout=10)
+        r = session.get(url, timeout=10)
         if r.status_code == 200:
             daily = r.json().get("daily", {})
             precip_vals = daily.get("precipitation_sum", [])
@@ -803,7 +819,7 @@ def main(push_to_sheets=True):
                 sys.exit(0)
 
     print("[API] Fetching weather from Open-Meteo...")
-    r = requests.get(build_url(LAT, LON), timeout=20)
+    r = session.get(build_url(LAT, LON), timeout=20)
     r.raise_for_status()
     weather = r.json()
 
@@ -1234,7 +1250,7 @@ def run_cimis_validation_and_update_readme(worksheet):
     try:
         cimis_key = os.environ.get("CIMIS_API_KEY", "DEMO")
         cimis_url = f"https://et.water.ca.gov/api/data?appKey={cimis_key}&targets=6&startDate={start_date}&endDate={end_date}&dataItems=day-air-tmp-avg,day-sol-rad-avg,day-rel-hum-avg,day-soil-tmp-avg,day-precip,day-eto"
-        r = requests.get(cimis_url, timeout=30)
+        r = session.get(cimis_url, timeout=30)
         if r.status_code == 200:
             c_json = r.json()
             c_records = c_json.get('Data', {}).get('Providers', [{}])[0].get('Records', [])
@@ -1273,7 +1289,7 @@ def run_cimis_validation_and_update_readme(worksheet):
                 f"soil_temperature_0_to_7cm,precipitation,et0_fao_evapotranspiration"
                 f"&timezone=UTC"
             )
-            mr = requests.get(meteo_url, timeout=20)
+            mr = session.get(meteo_url, timeout=20)
             if mr.status_code == 200:
                 m_json = mr.json()
                 m_hourly = m_json.get("hourly", {})
@@ -1525,7 +1541,7 @@ def run_national_global_validation_and_update_readme(worksheet):
         archive_ok = False
         archive_data = {}
         try:
-            r = requests.get(meteo_url, timeout=20)
+            r = session.get(meteo_url, timeout=20)
             if r.status_code == 200:
                 m_json = r.json()
                 m_hourly = m_json.get("hourly", {})
