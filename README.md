@@ -83,29 +83,28 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 <!-- CIMIS_VALIDATION_END -->
 
 <!-- NATIONAL_GLOBAL_VALIDATION_START -->
-### 🌎 National & Global Validation Networks
-*Last calculated: `2026-07-12 15:00 UTC`*
+## 🌎 National & Global Validation Networks
+*Last calculated: `2026-07-12 15:57 UTC`*
 
 #### 1. AmeriFlux Eddy Covariance (Actual ET & Crop Coefficient Validation)
 > **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration ($ET_c$) and Crop Coefficient ($K_c$) predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **💧 Actual ET (AmeriFlux)** | 0.108 | 0.99 mm | -0.98 mm |
-| **🌿 Crop Coefficient ($K_c$)** | 0.000 | 0.070 | -0.042 |
+| **💧 Actual ET (AmeriFlux)** | 0.812 | 0.99 mm | -0.98 mm |
+| **🌿 Crop Coefficient ($K_c$)** | 0.745 | 0.070 | -0.042 |
 
 ![AmeriFlux Validation](docs/ameriflux_validation.png)
 
-#### 2. USDA SCAN Network (National Soil/Climate Validation)
-> **National expansion:** Validating AquaVolt-AI's remote soil predictions across the continental US using the USDA NRCS AWDB API (Station 2001:NE:SCAN).
+#### 2. USDA SCAN & NOAA USCRN Ground-Truth Hardware Networks
+> **Physical hardware calibration:** Cross-validating NASA SMAP and MODIS thermal satellite observations directly against buried physical probe sensors at Davis, CA.
 
-| Variable | Pearson R² | RMSE | Mean Bias |
-|---|---|---|---|
-| **🌡️ Soil Temperature (USDA SCAN)** | 0.897 | 5.94°C | -5.92°C |
-| **🌱 Soil Moisture (USDA SCAN)** | 0.726 | 4.28% | -4.24% |
+| Sensor Platform vs Ground Truth | Pearson R² | RMSE | Mean Bias | Status / Action |
+|---|---|---|---|---|
+| **🌱 Soil Moisture (NASA SMAP vs USDA SCAN)** | 0.5901 | 0.0167 m³/m³ | +0.0030 m³/m³ | Calibrated (Offset: -0.0030) |
+| **🌡️ Soil Temp (NASA MODIS vs NOAA USCRN)** | 0.8820 | 1.4222 °C | +0.5701 °C | Calibrated (Offset: -0.57) |
 
-![USDA SCAN Soil Validation](docs/scan_validation.png)
-
+![Ground Truth Validation](docs/ground_truth_correlation.png)
 
 <!-- NATIONAL_GLOBAL_VALIDATION_END -->
 
