@@ -25,25 +25,25 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 <!-- LIVE_TELEMETRY_START -->
 # 📡 AquaVolt-AI Live Telemetry
 
-**Latest Update:** `2026-07-03 06:00:00 UTC`
+**Latest Update:** `2026-07-12 11:00:00 UTC`
 > This dashboard updates automatically every hour via GitHub Actions.
 
 ### ⛅ Current Weather (Russell Ranch)
 
-- **Air Temp:** 18.6°C
-- **Humidity:** 54%
+- **Air Temp:** 18.9°C
+- **Humidity:** 65.5%
 - **Solar Radiation:** 0.0 W/m²
-- **Soil Moisture (Proxy):** 6.4%
-- **Reference ET₀ (24h):** 7.18 mm
+- **Soil Moisture (Proxy):** 6.8%
+- **Reference ET₀ (24h):** 6.63 mm
 
 ### 🌱 Field Averages (Current Hour)
 
 | Field Name | Avg NDVI | Avg NDWI | Avg ETc (mm/hr) | Avg Water Deficit (mm) |
 |---|---|---|---|---|
-| **Field-A (Corn)** | 0.197 | -0.261 | 1.10 | **51.02** |
-| **Field-B (Alfalfa)** | 0.194 | -0.274 | 1.17 | **51.76** |
-| **Field-C (Fallow)** | 0.256 | -0.313 | 0.40 | **54.05** |
-| **Field-D (Tomato)** | 0.140 | -0.214 | 1.07 | **47.78** |
+| **Field-A (Corn)** | 0.208 | -0.267 | 1.07 | **51.39** |
+| **Field-B (Alfalfa)** | 0.174 | -0.256 | 1.07 | **50.73** |
+| **Field-C (Fallow)** | 0.316 | -0.356 | 0.35 | **56.51** |
+| **Field-D (Tomato)** | 0.143 | -0.219 | 0.98 | **48.09** |
 
 ---
 *Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*
@@ -52,16 +52,16 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- CIMIS_VALIDATION_START -->
 ### 📊 Daily Ground-Truth Validation (Davis Station #6)
-*Last calculated: `2026-07-03 12:14 UTC` (Evaluating 6 complete days of data)*
+*Last calculated: `2026-07-12 11:14 UTC` (Evaluating 15 complete days of data)*
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Air Temp** | 0.720 | 2.35°C | -2.23°C |
-| **☀️ Solar Rad** | 0.023 | 110.97 W/m² | -52.67 W/m² |
-| **💧 Humidity** | 0.879 | 5.96% | +5.33% |
-| **🌡️ Soil Temp** | 0.706 | 6.28°C | -6.22°C |
+| **🌡️ Air Temp** | 0.855 | 1.70°C | -1.60°C |
+| **☀️ Solar Rad** | 0.952 | 37.84 W/m² | +1.33 W/m² |
+| **💧 Humidity** | 0.663 | 5.79% | +4.49% |
+| **🌡️ Soil Temp** | 0.921 | 5.87°C | -5.84°C |
 | **🌧️ Precipitation** | 0.000 | 0.00 mm | +0.00 mm |
-| **💧 Reference ET₀** | 0.000 | 45302.18 mm | +44893.24 mm |
+| **💧 Reference ET₀** | 0.494 | 0.44 mm | +0.31 mm |
 
 > Metrics are computed daily comparing AquaVolt-AI estimates against the physical ground-truth station at Davis, CA.
 
@@ -72,15 +72,15 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- NATIONAL_GLOBAL_VALIDATION_START -->
 ### 🌎 National & Global Validation Networks
-*Last calculated: `2026-07-03 12:16 UTC` (Evaluating 6 complete days of data)*
+*Last calculated: `2026-07-12 11:14 UTC`*
 
 #### 1. AmeriFlux Eddy Covariance (Actual ET & Crop Coefficient Validation)
 > **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration ($ET_c$) and Crop Coefficient ($K_c$) predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **💧 Actual ET (AmeriFlux)** | 0.003 | 5938.17 mm | +5883.74 mm |
-| **🌿 Crop Coefficient ($K_c$)** | 0.182 | 0.018 | -0.016 |
+| **💧 Actual ET (AmeriFlux)** | 0.137 | 0.99 mm | -0.99 mm |
+| **🌿 Crop Coefficient ($K_c$)** | 0.000 | 0.070 | -0.042 |
 
 ![AmeriFlux Validation](docs/ameriflux_validation.png)
 
@@ -89,8 +89,8 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Soil Temperature (USDA SCAN)** | 0.706 | 6.28°C | -6.22°C |
-| **🌱 Soil Moisture (USDA SCAN)** | 0.000 | 3.62% | -3.60% |
+| **🌡️ Soil Temperature (USDA SCAN)** | 0.921 | 5.87°C | -5.84°C |
+| **🌱 Soil Moisture (USDA SCAN)** | 0.762 | 4.30% | -4.26% |
 
 ![USDA SCAN Soil Validation](docs/scan_validation.png)
 
