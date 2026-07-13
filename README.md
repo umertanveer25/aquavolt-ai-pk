@@ -67,30 +67,35 @@ flowchart TD
     classDef database fill:#e2e3e5,stroke:#6c757d,stroke-width:2px,color:#000
     classDef validation fill:#fde8e8,stroke:#e53e3e,stroke-width:2px,color:#000
 
-    A[🕒 GitHub Actions<br/>Hourly Cron]:::trigger --> B
-    A2[💻 Windows Task Scheduler<br/>Local Failover]:::trigger --> B
+    A["🕒 GitHub Actions<br/>Hourly Cron"]:::trigger --> B
+    A2["💻 Windows Task Scheduler<br/>Local Failover"]:::trigger --> B
 
-    B[🐍 aquavolt_gsheet_logger.py<br/>+ aquavolt_logger.py]:::script
+    B["🐍 aquavolt_gsheet_logger.py<br/>+ aquavolt_logger.py"]:::script
 
-    subgraph SatLayer ["🛰️ Satellite Inputs"]
-        C1["Sentinel-2 L2A<br/>B03/B04/B08/SCL<br/>10m · ~5 day revisit"]:::external
-        C1b["Landsat 8/9 L2<br/>green/red/nir08<br/>30m · ~8 day revisit"]:::external
-        C2["NASA MODIS<br/>Land Surface Temp (LST)"]:::external
+    subgraph SatLayer ["🛰️ Satellite & Geospatial Inputs (8 sources, all real)"]
+        C1["Sentinel-2 L2A<br/>B03/B04/B08/SCL → NDVI, NDWI, SAVI<br/>10 m · ~5 day revisit"]:::external
+        C1b["Landsat 8/9 L2<br/>red/nir08 → NDVI, NDWI, SAVI<br/>30 m · fallback"]:::external
+        C1c["Sentinel-1 SAR GRD<br/>VV/VH → RVI proxy<br/>cloud-proof · experimental"]:::external
+        C2["MODIS LST (MYD11A1)<br/>Land Surface Temp · 1 km"]:::external
+        C2b["VIIRS Suomi-NPP<br/>LST fallback · 375 m"]:::external
+        C3["Open-Meteo / ERA5 archive<br/>Weather + 30-day bias correction"]:::external
+        C3b["CHIRPS Precipitation<br/>satellite-blended rainfall"]:::external
+        C4["SoilGrids + Copernicus DEM<br/>Clay % + slope per field"]:::external
     end
 
-    subgraph WeatherLayer ["🌦️ Meteorological Inputs"]
-        C3["Open-Meteo API<br/>Temp, Solar, Humidity, ET₀, Precip"]:::external
-    end
-
-    C1  -->|"B04/B08 → NDVI, SAVI (L=0.5)"| B
-    C1b -->|"red/nir08 → NDVI, SAVI"| B
-    C2  -->|"Real LST (°C)"| B
-    C3  -->|"Weather + 7-day forecast"| B
+    C1   -->|"NDVI, NDWI, SAVI"| B
+    C1b  -->|"NDVI, NDWI, SAVI"| B
+    C1c  -->|"RVI proxy (experimental)"| B
+    C2   -->|"Real LST (°C)"| B
+    C2b  -->|"LST fallback"| B
+    C3   -->|"Temp, Solar, ET₀, ERA5 bias"| B
+    C3b  -->|"Precip estimate"| B
+    C4   -->|"Clay%, DEM slope"| B
 
     subgraph PIMLCore ["⚙️ PIML Core Engine"]
         D1["📐 4 Fields × 8×8 = 256 Sectors"]:::processing
         D2["💧 FAO-56 Penman-Monteith ET₀<br/>+ Root-Zone Water Balance Dr"]:::processing
-        D3["🧠 7-Feature MLP Residual Network<br/>[NDVI, NDWI, SAVI, LST, Clay%, Slope, Dr]<br/>→ ΔKc, ΔKs residuals (±0.15 envelope)"]:::processing
+        D3["🧠 7-Feature MLP Residual Network<br/>[NDVI, NDWI, SAVI, LST, Clay%, Slope, Dr]"]:::processing
         D4["🌿 Kc = FAO-56 prior + MLP residual<br/>ETc = Ks · Kc · ET₀ (closed-loop Dr)"]:::processing
     end
 
@@ -104,9 +109,26 @@ flowchart TD
     D4 -..->|"Pearson r / RMSE"| V1
     D4 -..->|"ET footprint"| V2
 
-    D4 -->|"256 rows/hour"| E["📊 Google Sheets<br/>Cloud Database"]:::database
-    D4 -->|"256 rows/hour"| E2["🗄️ SQLite<br/>Local Database"]:::database
+    D4 -->|"256 rows/hour"| E["📊 Google Sheets"]:::database
+    D4 -->|"256 rows/hour"| E2["🗄️ SQLite"]:::database
 ```
+
+---
+
+## 🛰️ Real Data Sources (8 — all real, all called in code)
+
+| # | Source | Mission | What it provides | Resolution | Notes |
+|---|---|---|---|---|---|
+| 1 | **Sentinel-2 L2A** | ESA Copernicus | NDVI, NDWI, real SAVI (B03/B04/B08), SCL cloud mask | 10 m | Primary optical source |
+| 2 | **Landsat 8/9 L2** | NASA/USGS | NDVI, NDWI, SAVI (fallback when no S2) | 30 m | Used for ~8-day gap-fill |
+| 3 | **Sentinel-1 SAR GRD** | ESA Copernicus | RVI/NDWI proxy — cloud-proof | 10 m | Experimental; called but not yet merged into Kc |
+| 4 | **MODIS LST (MYD11A1)** | NASA Terra/Aqua | Real Land Surface Temperature | 1 km | Primary LST input |
+| 5 | **VIIRS Suomi-NPP** | NASA/NOAA | LST brightness temperature fallback | 375 m | Via NASA FIRMS API |
+| 6 | **ERA5 / Open-Meteo archive** | ECMWF | 30-day climate normals for weather bias correction | ~9 km | Corrects temp/humidity/solar inputs |
+| 7 | **CHIRPS** | UCSB/CHC | Satellite-blended precipitation estimate | ~5 km | Via Open-Meteo archive proxy |
+| 8 | **SoilGrids + Copernicus DEM** | ISRIC / ESA | Clay % and terrain slope per field | 250 m / 30 m | Independent MLP features |
+
+> ⚠️ The old README claimed "18 satellites". That was fabricated. There are **8 real data sources** — all verified in code, all actually called at runtime.
 
 ---
 
