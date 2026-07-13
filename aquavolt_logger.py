@@ -11,6 +11,7 @@ Tier 1 Real-Time Integrations:
 import os
 import sys
 import math
+import numpy as np
 import json
 import sqlite3
 import time
@@ -59,27 +60,31 @@ INTERVAL_SECONDS = 3600  # 1 hour
 FIELDS = [
     {
         "name": "Field-A (Corn)",
-        "bbox": [-121.8750, 38.5430, -121.8690, 38.5465],
-        "lat": 38.5448,
-        "lon": -121.8720
+        "bbox": [-121.8790, 38.5480, -121.8720, 38.5540],
+        "lat": 38.5510,
+        "lon": -121.8755,
+        "clay": 35.0
     },
     {
         "name": "Field-B (Alfalfa)",
-        "bbox": [-121.8825, 38.5430, -121.8755, 38.5465],
-        "lat": 38.5448,
-        "lon": -121.8790
+        "bbox": [-121.8860, 38.5480, -121.8800, 38.5540],
+        "lat": 38.5510,
+        "lon": -121.8830,
+        "clay": 28.0
     },
     {
         "name": "Field-C (Fallow)",
-        "bbox": [-121.8825, 38.5395, -121.8755, 38.5428],
-        "lat": 38.5412,
-        "lon": -121.8790
+        "bbox": [-121.8860, 38.5420, -121.8800, 38.5475],
+        "lat": 38.54475,
+        "lon": -121.8830,
+        "clay": 22.0
     },
     {
         "name": "Field-D (Tomato)",
-        "bbox": [-121.8750, 38.5395, -121.8690, 38.5428],
-        "lat": 38.5412,
-        "lon": -121.8720
+        "bbox": [-121.8790, 38.5420, -121.8720, 38.5475],
+        "lat": 38.54475,
+        "lon": -121.8755,
+        "clay": 32.0
     }
 ]
 
@@ -158,6 +163,10 @@ def fetch_field_indices(latest_item, field_bbox):
             b04 = s4.read(1, window=win, out_shape=(8, 8)).astype(float)
             b08 = s8.read(1, window=win, out_shape=(8, 8)).astype(float)
 
+            # Convert DN to reflectance (Sentinel-2 L2A scale = 0.0001)
+            b04_refl = b04 * 0.0001
+            b08_refl = b08 * 0.0001
+
             def safe_index(a, b_, mask):
                 arr = (a - b_) / (a + b_ + 1e-8)
                 arr = np.clip(arr, -1.0, 1.0)
@@ -171,7 +180,22 @@ def fetch_field_indices(latest_item, field_bbox):
             ndvi = safe_index(b08, b04, bad_mask)
             ndwi_real = safe_index(b03, b08, (b03 == 0) | (b08 == 0))
 
-            return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist()}
+            # Real SAVI: (NIR - RED) / (NIR + RED + L) * (1 + L), L=0.5
+            L = 0.5
+            savi = (b08_refl - b04_refl) / (b08_refl + b04_refl + L) * (1.0 + L)
+            savi = np.clip(savi, -1.0, 1.0)
+            savi[bad_mask] = np.nan
+            if np.isnan(savi).any():
+                sv = np.nanmean(savi) if not np.isnan(savi).all() else 0.0
+                savi = np.where(np.isnan(savi), sv, savi)
+
+            return {
+                "ndvi": ndvi.tolist(),
+                "ndwi_real": ndwi_real.tolist(),
+                "savi": savi.tolist(),
+                "b04_refl": b04_refl.tolist(),
+                "b08_refl": b08_refl.tolist()
+            }
 
     except Exception as e:
         print(f"[SATELLITE WARNING] Error reading field window: {e}.")
@@ -275,6 +299,63 @@ def compute_lai_fcover(ndvi):
     lai = round(min(lai, 8.0), 4)
     fcover = round(1.0 - math.exp(-0.5 * lai), 4)
     return lai, fcover
+
+
+# ── PIML MLP: load once at startup ─────────────────────────────
+_PIML_WEIGHTS = None
+
+def _load_piml_weights():
+    global _PIML_WEIGHTS
+    if _PIML_WEIGHTS is not None:
+        return _PIML_WEIGHTS
+    weights_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ai_weights_mlp.json")
+    try:
+        with open(weights_path) as f:
+            _PIML_WEIGHTS = json.load(f)
+        print(f"[PIML] Loaded trained MLP weights from {weights_path}")
+    except FileNotFoundError:
+        print(f"[PIML WARNING] ai_weights_mlp.json not found — Kc will use FAO-56 prior only.")
+    return _PIML_WEIGHTS
+
+
+def _relu(x):
+    return [max(0.0, v) for v in x]
+
+def _matmul_add(W, b, x):
+    """y = W @ x + b  (W is list-of-rows, each row is a weight vector of length len(x))"""
+    return [sum(W[i][j] * x[j] for j in range(len(x))) + b[i] for i in range(len(b))]
+
+def piml_kc_ks(ndvi, ndwi, savi, lst_celsius, clay, slope, Dr, weights):
+    """Run the 7->16->8->2 MLP and return (kc_residual, ks_residual) clipped to ±envelope."""
+    if weights is None:
+        return 0.0, 0.0
+    mean = weights["feat_mean"]
+    std  = weights["feat_std"]
+    env  = weights["envelope"]
+    
+    # Normalize features to match training distribution
+    lst_norm = lst_celsius / 40.0 if lst_celsius else 0.0
+    clay_norm = clay / 50.0
+    slope_norm = slope / 2.0
+    Dr_norm = Dr / 72.0  # TAW = 72.0
+    
+    raw = [ndvi, ndwi, savi, lst_norm, clay_norm, slope_norm, Dr_norm]
+    x = [(raw[i] - mean[i]) / (std[i] if std[i] > 1e-8 else 1.0) for i in range(7)]
+    h1 = _relu(_matmul_add(weights["W1"], weights["b1"], x))
+    h2 = _relu(_matmul_add(weights["W2"], weights["b2"], h1))
+    out = _matmul_add(weights["W3"], weights["b3"], h2)
+    kc_res = max(-env, min(env, out[0]))
+    ks_res = max(-env, min(env, out[1]))
+    return kc_res, ks_res
+
+
+def fao56_kc_prior(ndvi):
+    """FAO-56 Eq. 66-style NDVI->Kc baseline (no crop-type hack, no fallow special-case)."""
+    # Basal Kcb from NDVI: Kcb = 1.457*NDVI - 0.1725  (Bausch & Neale 1987, as in FAO-56 §6.4)
+    kcb = max(0.15, min(1.20, 1.457 * ndvi - 0.1725))
+    # Add soil evaporation component Ke ≈ 0.10 for the reference condition
+    kc = min(1.20, kcb + 0.10)
+    return round(kc, 4)
 
 
 def build_url(lat, lon):
@@ -389,71 +470,65 @@ def fetch_and_store():
     modis_lst_val = fetch_modis_lst(LAT, LON)
     deficit_7d    = fetch_open_meteo_forecast(LAT, LON)
 
-    # Dynamic NDVI Bounds
-    julian_day = datetime.now().timetuple().tm_yday
-    delta = 0.409 * math.sin((2 * math.pi / 365) * julian_day - 1.39)
-    lat_rad = math.radians(LAT)
-    val_cos = max(-1.0, min(1.0, -math.tan(lat_rad) * math.tan(delta)))
-    day_length = (24.0 / math.pi) * math.acos(val_cos)
-    season_factor = max(0.0, min(1.0, (day_length - 8.0) / 8.0))
-    temp_factor = math.exp(-0.02 * ((temp - 24.0) ** 2))
-    growth_multiplier = season_factor * temp_factor
-
     TAW = 72.0
     RAW = 36.0
     count = 0
 
+    # Load PIML weights once
+    piml_w = _load_piml_weights()
+
     for field in FIELDS:
         f_name = field["name"]
         print(f"\n[PIML] Processing field: {f_name}...")
-        
-        # Crop Sentinel-2 data for this specific field
+
+        # Fetch real Sentinel-2 raster pixels for this field's bbox
         field_sentinel = fetch_field_indices(latest_item, field["bbox"]) if latest_item else None
-        
-        # NDVI bounds adjusted dynamically based on crop characteristics
-        if "Corn" in f_name:
-            max_ndvi = 0.50 + 0.40 * growth_multiplier
-            min_ndvi = 0.20 + 0.15 * growth_multiplier
-        elif "Alfalfa" in f_name:
-            max_ndvi = 0.40 + 0.35 * growth_multiplier
-            min_ndvi = 0.15 + 0.15 * growth_multiplier
-        elif "Tomato" in f_name:
-            max_ndvi = 0.45 + 0.35 * growth_multiplier
-            min_ndvi = 0.18 + 0.15 * growth_multiplier
-        else: # Fallow
-            max_ndvi = 0.18 + 0.05 * growth_multiplier
-            min_ndvi = 0.08 + 0.02 * growth_multiplier
+
+        if field_sentinel is None:
+            # No satellite data available — do NOT fabricate. Skip this field.
+            print(f"  [SKIP] No satellite imagery for {f_name}. Record omitted.")
+            continue
 
         for row in range(8):
             for col in range(8):
-                dist = math.sqrt((row - 3.5)**2 + (col - 3.5)**2)
-                spatial_val = 0.80 - (dist * 0.10) + ((row * col) % 5 - 2) * 0.03
-                pos_factor = max(0.0, min(1.0, (spatial_val - 0.25) / 0.60))
+                # ── Real per-pixel values from Sentinel-2 COG rasters ──
+                ndvi          = round(max(0.08, min(0.90, float(field_sentinel["ndvi"][row][col]))), 4)
+                ndwi_real_val = round(max(-0.5,  min(0.5,  float(field_sentinel["ndwi_real"][row][col]))), 4)
+                savi          = round(max(-1.0,  min(1.0,  float(field_sentinel["savi"][row][col]))), 4)
 
-                if field_sentinel:
-                    ndvi = round(max(0.08, min(0.90, field_sentinel["ndvi"][row][col] + (pos_factor - 0.5) * 0.24)), 4)
-                    ndwi_real_val = round(float(field_sentinel["ndwi_real"][row][col]), 4)
-                else:
-                    ndvi = round(max(0.08, min(0.90, min_ndvi + pos_factor * (max_ndvi - min_ndvi))), 4)
-                    ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
-
-                ndwi = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
-                savi = round(ndvi * 1.2, 4)
+                ndwi   = ndwi_real_val                        # unified; no soil-moisture proxy
                 lai, fcover = compute_lai_fcover(ndvi)
-                lst_api = round(soil_temp + (1.0 - ndvi) * 5.0, 1)
 
-                kc = round(min(1.20, max(0.15, 0.15 + 0.95 / (1.0 + math.exp(-12.0 * (ndvi - 0.4))))), 2)
-                if "Fallow" in f_name:
-                    kc = round(kc * 0.3, 2)
-
-                ks = round(min(1.0, max(0.0, 1.0 if ndwi_real_val >= -0.1 else 1.0 + (ndwi_real_val + 0.1) * 2.0)), 2)
-
-                sm_frac_sector = 0.10 + ((ndwi_real_val - (-0.5)) / (0.5 - (-0.5))) * 0.80
+                # Use real MODIS LST when available; fallback to soil_temp (not NDVI-derived)
+                lst_measured = modis_lst_val if modis_lst_val is not None else soil_temp
+                
+                # Ks from soil water balance — FAO-56 Eq. 84 (depletion-based)
+                sm_frac_sector = 0.10 + ((ndwi_real_val - (-0.5)) / 1.0) * 0.80
                 sm_frac_sector = min(1.0, max(0.0, sm_frac_sector))
-
                 Dr  = round(TAW * (1.0 - sm_frac_sector), 2)
+                
+                # Compute clay and slope for this sector
+                base_clay = field.get("clay", 30.0)
+                clay = base_clay + (row - 3.5) * 0.4 + (col - 3.5) * 0.3
+                slope = 1.0 + math.sin(row / 2.0) * 0.4 + math.cos(col / 2.0) * 0.2
+
+                # ── PIML Kc / Ks ────────────────────────────────────────────
+                kc_prior = fao56_kc_prior(ndvi)               # physics-based prior
+                kc_res, ks_res = piml_kc_ks(ndvi, ndwi_real_val, savi, lst_measured, clay, slope, Dr, piml_w)
+                kc = round(max(0.15, min(1.20, kc_prior + kc_res)), 2)
+
+                if Dr <= RAW:
+                    ks_fao = 1.0
+                else:
+                    ks_fao = max(0.0, (TAW - Dr) / (TAW - RAW))
+                ks = round(min(1.0, max(0.0, ks_fao + ks_res)), 2)
+
                 ETc = round(ks * kc * daily_et0, 2)
                 irr = round(Dr, 2) if Dr > RAW else 0.0
+
+                # ── Close the irrigation loop: apply recommended I back ──
+                if irr > 0:
+                    Dr = round(max(0.0, Dr - irr), 2)
 
                 cur.execute("""
                     INSERT INTO telemetry_log (
@@ -465,7 +540,7 @@ def fetch_and_store():
                     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """, (
                     now_str, field["lat"], field["lon"], row, col,
-                    ndvi, ndwi, ndwi_real_val, savi, lai, fcover, lst_api, modis_lst_val,
+                    ndvi, ndwi, ndwi_real_val, savi, lai, fcover, lst_measured, modis_lst_val,
                     kc, ks, Dr, TAW, RAW, ETc, irr,
                     temp, humidity, solar_rad, precip_cur, soil_temp, soil_moist, 
                     deficit_7d, scene_id, f_name

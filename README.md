@@ -23,39 +23,39 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 ---
 
 <!-- ALERT_BANNER_START -->
-## 🚨 Early Warning Alerts — `2026-07-12 16:00:00 UTC`
+## 🚨 Early Warning Alerts — `2026-07-13 06:00:00 UTC`
 
 | Status | Field | Depletion | TAW % | Ks | ETc | Action |
 |:---:|:---|---:|---:|---:|---:|:---|
-| 🚨 | **Field-A (Corn)** | 112.8 mm | 71% | 0.33 | 1.10 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
-| 🚨 | **Field-B (Alfalfa)** | 111.3 mm | 70% | 0.27 | 1.09 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
-| 🚨 | **Field-C (Fallow)** | 124.0 mm | 78% | 0.16 | 0.36 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
-| 🚨 | **Field-D (Tomato)** | 106.7 mm | 68% | 0.20 | 1.01 mm/hr | IRRIGATE IMMEDIATELY — severe crop stress. >90% soil water depleted. |
+| 🔴 | **Field-A (Corn)** | 112.8 mm | 71% | 0.47 | 2.16 mm/hr | Schedule irrigation within 24 hours. Crop stress factor Ks=0.47 |
+| 🔴 | **Field-B (Alfalfa)** | 111.3 mm | 70% | 0.41 | 2.09 mm/hr | Schedule irrigation within 24 hours. Crop stress factor Ks=0.41 |
+| 🔴 | **Field-C (Fallow)** | 124.0 mm | 78% | 0.63 | 2.21 mm/hr | Schedule irrigation within 24 hours. Crop stress factor Ks=0.63 |
+| 🔴 | **Field-D (Tomato)** | 106.7 mm | 68% | 0.37 | 2.07 mm/hr | Schedule irrigation within 24 hours. Crop stress factor Ks=0.37 |
 
 <!-- ALERT_BANNER_END -->
 
 <!-- LIVE_TELEMETRY_START -->
 # 📡 AquaVolt-AI Live Telemetry
 
-**Latest Update:** `2026-07-12 16:00:00 UTC`
+**Latest Update:** `2026-07-13 06:00:00 UTC`
 > This dashboard updates automatically every hour via GitHub Actions.
 
 ### ⛅ Current Weather (Russell Ranch)
 
-- **Air Temp:** 23.7°C
-- **Humidity:** 54.5%
-- **Solar Radiation:** 283.0 W/m²
-- **Soil Moisture (Proxy):** 7.1%
-- **Reference ET₀ (24h):** 6.80 mm
+- **Air Temp:** 24.9°C
+- **Humidity:** 49.4%
+- **Solar Radiation:** 0.0 W/m²
+- **Soil Moisture (Proxy):** 4.2%
+- **Reference ET₀ (24h):** 6.49 mm
 
 ### 🌱 Field Averages (Current Hour)
 
 | Field Name | Avg NDVI | Avg NDWI | Avg ETc (mm/hr) | Avg Water Deficit (mm) |
 |---|---|---|---|---|
-| **Field-A (Corn)** | 0.208 | -0.267 | 1.10 | **112.77** |
-| **Field-B (Alfalfa)** | 0.174 | -0.256 | 1.09 | **111.33** |
-| **Field-C (Fallow)** | 0.316 | -0.356 | 0.36 | **124.00** |
-| **Field-D (Tomato)** | 0.143 | -0.219 | 1.01 | **105.53** |
+| **Field-A (Corn)** | 0.227 | -0.267 | 2.16 | **112.77** |
+| **Field-B (Alfalfa)** | 0.186 | -0.256 | 2.09 | **111.33** |
+| **Field-C (Fallow)** | 0.338 | -0.356 | 2.21 | **124.00** |
+| **Field-D (Tomato)** | 0.158 | -0.219 | 2.07 | **105.53** |
 
 ---
 *Powered by Python, Planetary Computer STAC APIs, and FAO-56 Thermodynamics.*
@@ -64,16 +64,16 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- BASELINE_VALIDATION_START -->
 ### 📊 Daily Ground-Truth Validation (Open-Meteo Baseline)
-*Last calculated: `2026-07-12 16:01 UTC` (Evaluating 15 complete days of data)*
+*Last calculated: `2026-07-13 06:02 UTC` (Evaluating 15 complete days of data)*
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Air Temp** | 0.808 | 1.80°C | -1.67°C |
-| **☀️ Solar Rad** | 0.957 | 35.00 W/m² | +2.11 W/m² |
-| **💧 Humidity** | 0.612 | 6.13% | +4.76% |
-| **🌡️ Soil Temp** | 0.897 | 5.94°C | -5.92°C |
+| **🌡️ Air Temp** | 0.895 | 0.51°C | -0.19°C |
+| **☀️ Solar Rad** | 0.856 | 49.24 W/m² | -10.26 W/m² |
+| **💧 Humidity** | 0.951 | 2.92% | -2.55% |
+| **🌡️ Soil Temp** | 0.000 | 22.73°C | +22.69°C |
 | **🌧️ Precipitation** | 0.000 | 0.00 mm | +0.00 mm |
-| **💧 Reference ET₀** | 0.451 | 0.48 mm | +0.32 mm |
+| **💧 Reference ET₀** | 0.937 | 0.28 mm | +0.26 mm |
 
 > Metrics are computed daily comparing AquaVolt-AI estimates against Open-Meteo baseline ground truth (aggregated national weather models for Davis, CA).
 
@@ -84,15 +84,15 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 <!-- NATIONAL_GLOBAL_VALIDATION_START -->
 ### 🌎 National & Global Validation Networks
-*Last calculated: `2026-07-12 16:01 UTC`*
+*Last calculated: `2026-07-13 06:02 UTC`*
 
 #### 1. AmeriFlux Eddy Covariance (Actual ET & Crop Coefficient Validation)
 > **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration ($ET_c$) and Crop Coefficient ($K_c$) predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **💧 Actual ET (AmeriFlux)** | 0.108 | 0.99 mm | -0.98 mm |
-| **🌿 Crop Coefficient ($K_c$)** | 0.000 | 0.070 | -0.042 |
+| **💧 Actual ET (AmeriFlux)** | 0.041 | 0.72 mm | -0.62 mm |
+| **🌿 Crop Coefficient ($K_c$)** | 0.157 | 0.217 | +0.007 |
 
 ![AmeriFlux Validation](docs/ameriflux_validation.png)
 
@@ -101,8 +101,8 @@ Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
 
 | Variable | Pearson R² | RMSE | Mean Bias |
 |---|---|---|---|
-| **🌡️ Soil Temperature (USDA SCAN)** | 0.897 | 5.94°C | -5.92°C |
-| **🌱 Soil Moisture (USDA SCAN)** | 0.717 | 4.28% | -4.24% |
+| **🌡️ Soil Temperature (USDA SCAN)** | 0.872 | 6.01°C | -5.98°C |
+| **🌱 Soil Moisture (USDA SCAN)** | 0.665 | 4.42% | -4.36% |
 
 ![USDA SCAN Soil Validation](docs/scan_validation.png)
 

@@ -12,6 +12,7 @@ import os
 import sys
 import math
 import json
+import numpy as np
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -78,27 +79,31 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 FIELDS = [
     {
         "name": "Field-A (Corn)",
-        "bbox": [-121.8750, 38.5430, -121.8690, 38.5465],
-        "lat": 38.5448,
-        "lon": -121.8720
+        "bbox": [-121.8790, 38.5480, -121.8720, 38.5540],
+        "lat": 38.5510,
+        "lon": -121.8755,
+        "clay": 35.0
     },
     {
         "name": "Field-B (Alfalfa)",
-        "bbox": [-121.8825, 38.5430, -121.8755, 38.5465],
-        "lat": 38.5448,
-        "lon": -121.8790
+        "bbox": [-121.8860, 38.5480, -121.8800, 38.5540],
+        "lat": 38.5510,
+        "lon": -121.8830,
+        "clay": 28.0
     },
     {
         "name": "Field-C (Fallow)",
-        "bbox": [-121.8825, 38.5395, -121.8755, 38.5428],
-        "lat": 38.5412,
-        "lon": -121.8790
+        "bbox": [-121.8860, 38.5420, -121.8800, 38.5475],
+        "lat": 38.54475,
+        "lon": -121.8830,
+        "clay": 22.0
     },
     {
         "name": "Field-D (Tomato)",
-        "bbox": [-121.8750, 38.5395, -121.8690, 38.5428],
-        "lat": 38.5412,
-        "lon": -121.8720
+        "bbox": [-121.8790, 38.5420, -121.8720, 38.5475],
+        "lat": 38.54475,
+        "lon": -121.8755,
+        "clay": 32.0
     }
 ]
 
@@ -135,6 +140,72 @@ def get_gspread_client():
 
     print("[ERROR] No Google credentials found.")
     sys.exit(1)
+
+
+# ---------------------------------------------------------
+# Physics-Informed Machine Learning (PIML) Optimization Engine
+# ---------------------------------------------------------
+class PIMLEngine:
+    def __init__(self, weights_path=None):
+        self.W1 = None
+        self.b1 = None
+        self.W2 = None
+        self.b2 = None
+        self.W3 = None
+        self.b3 = None
+        self.feat_mean = None
+        self.feat_std = None
+        if weights_path and os.path.exists(weights_path):
+            try:
+                with open(weights_path, "r") as f:
+                    data = json.load(f)
+                self.W1 = np.array(data["W1"])
+                self.b1 = np.array(data["b1"])
+                self.W2 = np.array(data["W2"])
+                self.b2 = np.array(data["b2"])
+                self.W3 = np.array(data["W3"])
+                self.b3 = np.array(data["b3"])
+                self.feat_mean = np.array(data["feat_mean"])
+                self.feat_std = np.array(data["feat_std"])
+                print(f"[PIML] Successfully loaded trained weights from {weights_path}")
+            except Exception as e:
+                print(f"[PIML WARNING] Failed to load trained weights: {e}. Falling back to prior physics.")
+        else:
+            print("[PIML WARNING] No weights file found. Falling back to prior physics.")
+
+    def estimate_coefficients(self, ndvi, ndwi, savi, lst, clay=30.0, slope=1.0, Dr=36.0):
+        """
+        Predict crop coefficient (Kc) and water-stress factor (Ks)
+        using a Physics-Informed residual learning framework.
+        7 features: ndvi, ndwi, savi, lst, clay, slope, Dr
+        """
+        # Physical priors (FAO-56 standard values)
+        kc_p = np.clip(1.457 * ndvi - 0.1725 + 0.10, 0.15, 1.20)
+        TAW = 72.0
+        RAW = 36.0
+        if Dr <= RAW:
+            ks_p = 1.0
+        else:
+            ks_p = max(0.0, (TAW - Dr) / (TAW - RAW))
+
+        # If weights are loaded, run neural forward pass to predict residuals
+        if self.W1 is not None:
+            lst_norm = lst / 40.0 if lst else 0.0
+            clay_norm = clay / 50.0
+            slope_norm = slope / 2.0
+            Dr_norm = Dr / 72.0
+            x = np.array([ndvi, ndwi, savi, lst_norm, clay_norm, slope_norm, Dr_norm])
+            x_norm = (x - self.feat_mean) / (self.feat_std + 1e-8)
+
+            h1 = np.maximum(0.0, np.dot(x_norm, self.W1) + self.b1)
+            h2 = np.maximum(0.0, np.dot(h1, self.W2) + self.b2)
+            residual = np.dot(h2, self.W3) + self.b3
+
+            Kc = float(np.clip(kc_p + np.clip(residual[0] * 0.15, -0.15, 0.15), 0.15, 1.20))
+            Ks = float(np.clip(ks_p + np.clip(residual[1] * 0.15, -0.15, 0.15), 0.0, 1.0))
+            return Kc, Ks
+        else:
+            return kc_p, ks_p
 
 
 # TIER 1 — Combined Satellite STAC Search (Sentinel-2 & Landsat-8/9)
@@ -402,7 +473,18 @@ def fetch_field_indices(latest_item, field_bbox):
             ndvi = safe_index(b08, b04, bad_mask)
             ndwi_real = safe_index(b03, b08, (b03_raw <= 0) | (b08_raw <= 0) | (bad_mask if scl_mask is not None else np.zeros_like(bad_mask, dtype=bool)))
 
-            return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist()}
+            # Real SAVI: (NIR - RED) / (NIR + RED + L) * (1 + L), L=0.5
+            L = 0.5
+            savi = (b08 - b04) / (b08 + b04 + L) * (1.0 + L)
+            savi = np.clip(savi, -1.0, 1.0)
+            savi[bad_mask] = np.nan
+            if scl_mask is not None:
+                savi[scl_mask] = np.nan
+            if np.isnan(savi).any():
+                sv = np.nanmean(savi) if not np.isnan(savi).all() else 0.0
+                savi = np.where(np.isnan(savi), sv, savi)
+
+            return {"ndvi": ndvi.tolist(), "ndwi_real": ndwi_real.tolist(), "savi": savi.tolist()}
 
     except Exception as e:
         print(f"[SATELLITE WARNING] Error reading field window: {e}.")
@@ -905,6 +987,10 @@ def main(push_to_sheets=True):
     temp_factor = math.exp(-0.02 * ((temp - 24.0) ** 2))
     growth_multiplier = season_factor * temp_factor
 
+    # Initialize PIMLEngine with the newly trained weights
+    weights_path = os.path.join(SCRIPT_DIR, "ai_weights_mlp.json")
+    piml_engine = PIMLEngine(weights_path)
+
     now_str = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:00:00")
     rows_to_append = []
 
@@ -927,6 +1013,12 @@ def main(push_to_sheets=True):
             print(f"[SAR] Using Sentinel-1 SAR indices for {f_name} (optical unavailable)")
             field_sentinel = fetch_sar_field_indices(sar_item, field["bbox"])
         
+        # DELETE THE SYNTHETIC PATHS:
+        # If the satellite fetch fails, the record should be absent, not fabricated.
+        if field_sentinel is None:
+            print(f"[SATELLITE] Skipping {f_name} — no satellite data available. Record is absent.")
+            continue
+        
         # FAO-56 crop-specific mid-season NDVI defaults (used when satellite unavailable)
         # These are physically-based values, not synthetic ramps.
         fao56_ndvi = {
@@ -938,55 +1030,66 @@ def main(push_to_sheets=True):
 
         for row in range(8):
             for col in range(8):
-                if field_sentinel:
-                    # USE RAW SATELLITE NDVI — no synthetic pos_factor corruption.
-                    # NaN values (from SCL cloud masking) will have been gap-filled
-                    # to the field mean inside safe_index(), so they are safe floats.
-                    raw_ndvi = float(field_sentinel["ndvi"][row][col])
-                    if math.isnan(raw_ndvi) or raw_ndvi < -0.5:
-                        # Pixel was entirely invalid even after gap-fill; use FAO default
-                        ndvi = round(fallback_ndvi, 4)
-                    else:
-                        ndvi = round(max(0.01, min(0.98, raw_ndvi)), 4)
-                    ndwi_real_val = round(float(field_sentinel["ndwi_real"][row][col]), 4)
-                    if math.isnan(ndwi_real_val):
-                        ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
-                else:
-                    # No satellite data — use FAO-56 crop default, not a synthetic ramp
+                # USE RAW SATELLITE NDVI — no synthetic pos_factor corruption.
+                # NaN values (from SCL cloud masking) will have been gap-filled
+                # to the field mean inside safe_index(), so they are safe floats.
+                raw_ndvi = float(field_sentinel["ndvi"][row][col])
+                if math.isnan(raw_ndvi) or raw_ndvi < -0.5:
+                    # Pixel was entirely invalid even after gap-fill; use FAO default
                     ndvi = round(fallback_ndvi, 4)
+                else:
+                    ndvi = round(max(0.01, min(0.98, raw_ndvi)), 4)
+                ndwi_real_val = round(float(field_sentinel["ndwi_real"][row][col]), 4)
+                if math.isnan(ndwi_real_val):
                     ndwi_real_val = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
 
-                ndwi = round(max(-0.5, min(0.5, soil_moist * 2.0 - 0.5)), 4)
-                savi = round(ndvi * 1.5 * (1.0 / (ndvi + 0.5 + 1e-8)) if ndvi > 0 else 0.0, 4)  # True L=0.5 SAVI
+                ndwi = ndwi_real_val  # unified; no soil-moisture proxy
+                # Use real SAVI from satellite if available
+                if "savi" in field_sentinel and not math.isnan(float(field_sentinel["savi"][row][col])):
+                    savi = round(max(-1.0, min(1.0, float(field_sentinel["savi"][row][col]))), 4)
+                else:
+                    savi = round(ndvi * 1.5 * (1.0 / (ndvi + 0.5 + 1e-8)) if ndvi > 0 else 0.0, 4)
                 lai, fcover = compute_lai_fcover(ndvi)
-                lst_api = round(soil_temp + (1.0 - ndvi) * 5.0, 1)
 
-                # PIML Sigmoid Prior for Kc — applies to ALL fields including fallow.
-                # For fallow, the low NDVI (~0.12) naturally maps to Kc ≈ 0.18 via
-                # the sigmoid, which respects the ±0.15 envelope constraint.
-                # No post-hoc multiplier needed.
-                kc = round(min(1.20, max(0.15, 0.15 + 0.95 / (1.0 + math.exp(-12.0 * (ndvi - 0.4))))), 2)
+                # Use real MODIS LST when available; fallback to soil_temp (not NDVI-derived)
+                lst_measured = modis_lst_val if modis_lst_val is not None else soil_temp
 
-                ks = round(min(1.0, max(0.0, 1.0 if ndwi_real_val >= -0.1 else 1.0 + (ndwi_real_val + 0.1) * 2.0)), 2)
-                
+                # Compute clay and slope for this sector
+                base_clay = field.get("clay", 30.0)
+                clay = base_clay + (row - 3.5) * 0.4 + (col - 3.5) * 0.3
+                slope = 1.0 + math.sin(row / 2.0) * 0.4 + math.cos(col / 2.0) * 0.2
+
+                # Water balance depletion
                 sm_frac_sector = 0.10 + ((ndwi_real_val - (-0.5)) / (0.5 - (-0.5))) * 0.80
                 sm_frac_sector = min(1.0, max(0.0, sm_frac_sector))
                 Dr  = round(TAW * (1.0 - sm_frac_sector), 2)
-                
+
+                # Compute neural corrected Kc and Ks using PIMLEngine (7 features)
+                kc_raw, ks_raw = piml_engine.estimate_coefficients(ndvi, ndwi_real_val, savi, lst_measured, clay, slope, Dr)
+                kc = round(kc_raw, 2)
+                ks = round(ks_raw, 2)
+
                 # TIER 2 — Slope-corrected ETc (water runoff multiplier)
                 ETc = round(ks * kc * daily_et0 * slope_factor, 2)
                 irr = round(Dr, 2) if Dr > RAW else 0.0
 
+                # Close the irrigation loop: apply recommended I back into Dr
+                if irr > 0:
+                    Dr = round(max(0.0, Dr - irr), 2)
+
                 rows_to_append.append([
                     now_str, field["lat"], field["lon"], row, col,
                     ndvi, ndwi, ndwi_real_val, savi, lai, fcover,
-                    lst_api, modis_lst_val,
+                    lst_measured, modis_lst_val,
                     kc, ks, Dr, TAW, RAW, ETc, irr,
                     temp, humidity, solar_rad, precip_cur,
                     soil_temp, soil_moist, deficit_7d, scene_id, f_name
                 ])
 
     if push_to_sheets:
+        if not rows_to_append:
+            print("\n[UPLOAD] No records to upload (satellite fetch was missing).")
+            return
         print(f"\n[UPLOAD] Writing {len(rows_to_append)} records...")
         worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
         print(f"[OK] Done.")
