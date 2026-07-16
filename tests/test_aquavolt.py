@@ -283,3 +283,41 @@ class TestPluginRegistry:
             name = plugin.SENSOR_INFO.get("name", "")
             assert isinstance(name, str) and len(name) > 0, \
                 f"Plugin has empty or invalid name: {plugin.__name__}"
+
+
+# ============================================================
+# 7. Real Data Integrity Tests (NEW)
+# ============================================================
+
+class TestDataIntegrity:
+    """Ensure no synthetic generation is used for validation."""
+    
+    def test_no_random_generation_in_logger(self):
+        """Random data generation is strictly banned in the telemetry logger."""
+        logger_path = os.path.join(os.path.dirname(__file__), "..", "aquavolt_gsheet_logger.py")
+        with open(logger_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            
+        assert "import random" not in content, "Synthetic 'import random' found in ground truth logger!"
+        assert "random.gauss" not in content, "Synthetic 'random.gauss' generation found!"
+        assert "rng.gauss" not in content, "Synthetic 'rng.gauss' generation found!"
+
+    def test_no_synthetic_plots(self):
+        """Synthetic plot generation (np.random in generate_plots.py) is strictly banned."""
+        plots_path = os.path.join(os.path.dirname(__file__), "..", "generate_plots.py")
+        with open(plots_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        assert "np.random.seed" not in content, "Synthetic 'np.random.seed' found in generate_plots.py!"
+        assert "np.random.uniform" not in content, "Synthetic 'np.random.uniform' found in generate_plots.py!"
+        assert "np.random.normal" not in content, "Synthetic 'np.random.normal' found in generate_plots.py!"
+
+    def test_no_ameriflux_fiction_in_logger(self):
+        """AmeriFlux references are banned — no tower exists near the site."""
+        logger_path = os.path.join(os.path.dirname(__file__), "..", "aquavolt_gsheet_logger.py")
+        with open(logger_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        assert "AmeriFlux" not in content, "Fictional 'AmeriFlux' reference found in logger!"
+        assert "2001:NE:SCAN" not in content, "Wrong SCAN station (Nebraska) found in logger!"
+

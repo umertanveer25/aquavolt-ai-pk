@@ -322,31 +322,27 @@ def _relu(x):
     return [max(0.0, v) for v in x]
 
 def _matmul_add(W, b, x):
-    """y = W @ x + b  (W is list-of-rows, each row is a weight vector of length len(x))"""
-    return [sum(W[i][j] * x[j] for j in range(len(x))) + b[i] for i in range(len(b))]
+    """y = W @ x + b  (where W is a 2D list with len(x) rows and len(b) columns)"""
+    return [sum(W[j][i] * x[j] for j in range(len(x))) + b[i] for i in range(len(b))]
 
-def piml_kc_ks(ndvi, ndwi, savi, lst_celsius, clay, slope, Dr, weights):
-    """Run the 7->16->8->2 MLP and return (kc_residual, ks_residual) clipped to ±envelope."""
+def piml_kc_ks(ndvi, ndwi, savi, Dr, weights):
+    """Run the 4->16->8->1 MLP and return (kc_residual, ks_residual) using loaded weights."""
     if weights is None:
         return 0.0, 0.0
     mean = weights["feat_mean"]
     std  = weights["feat_std"]
-    env  = weights["envelope"]
+    env  = weights.get("envelope", 0.30)
     
-    # Normalize features to match training distribution
-    lst_norm = lst_celsius / 40.0 if lst_celsius else 0.0
-    clay_norm = clay / 50.0
-    slope_norm = slope / 2.0
     Dr_norm = Dr / 72.0  # TAW = 72.0
+    x = [ndvi, ndwi, savi, Dr_norm]
+    x_norm = [(x[i] - mean[i]) / (std[i] if std[i] > 1e-8 else 1.0) for i in range(4)]
     
-    raw = [ndvi, ndwi, savi, lst_norm, clay_norm, slope_norm, Dr_norm]
-    x = [(raw[i] - mean[i]) / (std[i] if std[i] > 1e-8 else 1.0) for i in range(7)]
-    h1 = _relu(_matmul_add(weights["W1"], weights["b1"], x))
+    h1 = _relu(_matmul_add(weights["W1"], weights["b1"], x_norm))
     h2 = _relu(_matmul_add(weights["W2"], weights["b2"], h1))
     out = _matmul_add(weights["W3"], weights["b3"], h2)
+    
     kc_res = max(-env, min(env, out[0]))
-    ks_res = max(-env, min(env, out[1]))
-    return kc_res, ks_res
+    return kc_res, 0.0
 
 
 def fao56_kc_prior(ndvi):
@@ -514,7 +510,7 @@ def fetch_and_store():
 
                 # ── PIML Kc / Ks ────────────────────────────────────────────
                 kc_prior = fao56_kc_prior(ndvi)               # physics-based prior
-                kc_res, ks_res = piml_kc_ks(ndvi, ndwi_real_val, savi, lst_measured, clay, slope, Dr, piml_w)
+                kc_res, ks_res = piml_kc_ks(ndvi, ndwi_real_val, savi, Dr, piml_w)
                 kc = round(max(0.15, min(1.20, kc_prior + kc_res)), 2)
 
                 if Dr <= RAW:

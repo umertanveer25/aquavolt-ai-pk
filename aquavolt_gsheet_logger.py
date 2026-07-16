@@ -21,6 +21,16 @@ import urllib.request
 import ssl
 from datetime import datetime, timedelta, timezone
 
+# Load env variables from .env if present
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(env_path):
+    with open(env_path) as f:
+        for line in f:
+            if "=" in line and not line.strip().startswith("#"):
+                k, v = line.strip().split("=", 1)
+                os.environ[k.strip()] = v.strip()
+
+
 # --- ROBUST API SESSION SETUP ---
 # Automatically fix/correct dropped connections or 5xx errors with exponential backoff
 session = requests.Session()
@@ -155,6 +165,7 @@ class PIMLEngine:
         self.b3 = None
         self.feat_mean = None
         self.feat_std = None
+        self.envelope = 0.15
         if weights_path and os.path.exists(weights_path):
             try:
                 with open(weights_path, "r") as f:
@@ -167,17 +178,19 @@ class PIMLEngine:
                 self.b3 = np.array(data["b3"])
                 self.feat_mean = np.array(data["feat_mean"])
                 self.feat_std = np.array(data["feat_std"])
+                self.envelope = data.get("envelope", 0.15)
                 print(f"[PIML] Successfully loaded trained weights from {weights_path}")
             except Exception as e:
                 print(f"[PIML WARNING] Failed to load trained weights: {e}. Falling back to prior physics.")
         else:
             print("[PIML WARNING] No weights file found. Falling back to prior physics.")
 
-    def estimate_coefficients(self, ndvi, ndwi, savi, lst, clay=30.0, slope=1.0, Dr=36.0):
+    def estimate_coefficients(self, ndvi, ndwi, savi, lst=None, clay=30.0, slope=1.0, Dr=36.0):
         """
         Predict crop coefficient (Kc) and water-stress factor (Ks)
         using a Physics-Informed residual learning framework.
-        7 features: ndvi, ndwi, savi, lst, clay, slope, Dr
+        4 features: ndvi, ndwi, savi, Dr  (LST, clay, slope dropped — no sub-field variance)
+        Ks is computed from FAO-56 physics only (no neural head — no real stress target available).
         """
         # Physical priors (FAO-56 standard values)
         kc_p = np.clip(1.457 * ndvi - 0.1725 + 0.10, 0.15, 1.20)
@@ -188,21 +201,21 @@ class PIMLEngine:
         else:
             ks_p = max(0.0, (TAW - Dr) / (TAW - RAW))
 
-        # If weights are loaded, run neural forward pass to predict residuals
+        # If weights are loaded, run neural forward pass to predict Kc residual only
         if self.W1 is not None:
-            lst_norm = lst / 40.0 if lst else 0.0
-            clay_norm = clay / 50.0
-            slope_norm = slope / 2.0
             Dr_norm = Dr / 72.0
-            x = np.array([ndvi, ndwi, savi, lst_norm, clay_norm, slope_norm, Dr_norm])
+            # 4-feature input: ndvi, ndwi, savi, Dr — matches training script exactly
+            x = np.array([ndvi, ndwi, savi, Dr_norm])
             x_norm = (x - self.feat_mean) / (self.feat_std + 1e-8)
 
             h1 = np.maximum(0.0, np.dot(x_norm, self.W1) + self.b1)
             h2 = np.maximum(0.0, np.dot(h1, self.W2) + self.b2)
             residual = np.dot(h2, self.W3) + self.b3
 
-            Kc = float(np.clip(kc_p + np.clip(residual[0] * 0.15, -0.15, 0.15), 0.15, 1.20))
-            Ks = float(np.clip(ks_p + np.clip(residual[1] * 0.15, -0.15, 0.15), 0.0, 1.0))
+            # Single output: Kc residual only
+            env = self.envelope
+            Kc = float(np.clip(kc_p + np.clip(residual[0] * env, -env, env), 0.15, 1.20))
+            Ks = float(ks_p)   # physics-only — no neural Ks head
             return Kc, Ks
         else:
             return kc_p, ks_p
@@ -1377,82 +1390,38 @@ def run_baseline_validation_and_update_readme(worksheet):
     end_date = dates[-1]
 
     # Fetch CIMIS
+    import sys
+    import os
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
+    from plugins.sensors import cimis_api
+    
     baseline_ok = False
     baseline_data_dict = {}
-    if True:
-        print("Fetching baseline ground truth observations from Open-Meteo API...")
-        try:
-            dt_start = datetime.strptime(start_date, "%Y-%m-%d").date()
-            dt_today = datetime.utcnow().date()
-            past_days = max(1, (dt_today - dt_start).days + 2)
-            meteo_url = (
-                f"https://api.open-meteo.com/v1/forecast"
-                f"?latitude={LAT}&longitude={LON}"
-                f"&hourly=temperature_2m,shortwave_radiation,relative_humidity_2m,"
-                f"soil_temperature_0_to_7cm,precipitation,et0_fao_evapotranspiration"
-                f"&past_days={past_days}&forecast_days=0&timezone=UTC"
-            )
-            mr = session.get(meteo_url, timeout=20)
-            if mr.status_code == 200:
-                m_json = mr.json()
-                m_hourly = m_json.get("hourly", {})
-                m_times = m_hourly.get("time", [])
-                m_temps = m_hourly.get("temperature_2m", [])
-                m_solar = m_hourly.get("shortwave_radiation", [])
-                m_humidity = m_hourly.get("relative_humidity_2m", [])
-                m_soil_temp = m_hourly.get("soil_temperature_0_to_7cm", [])
-                m_precip = m_hourly.get("precipitation", [])
-                m_et0 = m_hourly.get("et0_fao_evapotranspiration", [])
-                
-                daily_records = {}
-                for i in range(len(m_times)):
-                    if m_times[i] is None:
-                        continue
-                    d_str = m_times[i].split("T")[0]
-                    # Only include dates that fall within our target validation range
-                    if d_str < start_date or d_str > end_date:
-                        continue
-                    if d_str not in daily_records:
-                        daily_records[d_str] = {
-                            "temp": [], "solar": [], "humidity": [], 
-                            "soil_temp": [], "precip": [], "et0": []
-                        }
-                    if m_temps[i] is not None: daily_records[d_str]["temp"].append(float(m_temps[i]))
-                    if m_solar[i] is not None: daily_records[d_str]["solar"].append(float(m_solar[i]))
-                    if m_humidity[i] is not None: daily_records[d_str]["humidity"].append(float(m_humidity[i]))
-                    if m_soil_temp[i] is not None: daily_records[d_str]["soil_temp"].append(float(m_soil_temp[i]))
-                    if m_precip[i] is not None: daily_records[d_str]["precip"].append(float(m_precip[i]))
-                    if m_et0[i] is not None: daily_records[d_str]["et0"].append(float(m_et0[i]))
-                
-                for d_str, vals in daily_records.items():
-                    if not vals["temp"]:
-                        continue
+    print(f"Fetching baseline ground truth observations from CIMIS API (Station {cimis_api.CIMIS_STATION})...")
+    
+    cimis_resp = cimis_api.fetch(start_date, end_date)
+    if cimis_resp.get('status') == 'success':
+        cimis_data = cimis_resp['data']
+        for d_str, vals in cimis_data.items():
+            if d_str in dates:
+                # Ensure values aren't completely missing
+                if vals.get('cimis_temp') is not None:
                     baseline_data_dict[d_str] = {
-                        'baseline_temp': sum(vals["temp"]) / len(vals["temp"]),
-                        'baseline_solar': sum(vals["solar"]) / len(vals["solar"]) if vals["solar"] else 0.0,
-                        'baseline_humidity': sum(vals["humidity"]) / len(vals["humidity"]) if vals["humidity"] else 0.0,
-                        'baseline_soil_temp': sum(vals["soil_temp"]) / len(vals["soil_temp"]) if vals["soil_temp"] else 0.0,
-                        'baseline_precip': sum(vals["precip"]) if vals["precip"] else 0.0,
-                        'baseline_et0': sum(vals["et0"]) if vals["et0"] else 0.0
+                        'baseline_temp': vals['cimis_temp'],
+                        'baseline_solar': vals['cimis_solar'] if vals['cimis_solar'] else 0.0,
+                        'baseline_humidity': vals['cimis_humidity'] if vals['cimis_humidity'] else 0.0,
+                        'baseline_soil_temp': vals['cimis_soil_temp'] if vals['cimis_soil_temp'] else 0.0,
+                        'baseline_precip': vals['cimis_precip'] if vals['cimis_precip'] else 0.0,
+                        'baseline_et0': vals['cimis_et0'] if vals['cimis_et0'] else 0.0
                     }
-                baseline_ok = True
-        except Exception as e:
-            print(f"Open-Meteo Forecast past data fetch failed: {e}")
+        if len(baseline_data_dict) > 0:
+            baseline_ok = True
+    else:
+        print(f"CIMIS API fetch failed: {cimis_resp.get('msg', cimis_resp.get('text'))}")
 
     if not baseline_ok:
-        print("Both validation APIs down/lagging, generating metrics using baseline reference normals...")
-        import random
-        for d_str in dates:
-            seed_val = sum(ord(c) for c in d_str)
-            rng = random.Random(seed_val)
-            baseline_data_dict[d_str] = {
-                'baseline_temp': rng.gauss(28.5, 2.5),
-                'baseline_solar': rng.gauss(550.0, 100.0),
-                'baseline_humidity': rng.gauss(40.0, 10.0),
-                'baseline_soil_temp': rng.gauss(24.0, 2.0),
-                'baseline_precip': rng.choices([0.0, 0.0, 0.0, 1.2, 3.5], k=1)[0],
-                'baseline_et0': rng.gauss(7.2, 1.2)
-            }
+        print("Both validation APIs down/lagging. Synthetic generation banned. Validation aborted.")
+        return
 
     # Align
     aligned = []
@@ -1542,21 +1511,24 @@ def run_baseline_validation_and_update_readme(worksheet):
 def run_national_global_validation_and_update_readme(worksheet):
     import pandas as pd
     import math
+    import json as json_mod
 
     now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
-    val_md = f"### 🌎 National & Global Validation Networks\n"
+    val_md = f"### 🌎 Independent Validation (OpenET + CIMIS)\n"
     val_md += f"*Last calculated: `{now_str} UTC`*\n\n"
 
-    # --- AmeriFlux Validation ---
-    val_md += f"#### 1. AmeriFlux Eddy Covariance (Actual ET & Crop Coefficient Validation)\n"
-    val_md += f"> **Gold Standard benchmark:** Validating AquaVolt-AI's Evapotranspiration ($ET_c$) and Crop Coefficient ($K_c$) predictions against actual ET measurements from a simulated AmeriFlux US-Tw1 eddy covariance tower.\n\n"
-    
+    # ── Provenance tracking ──────────────────────────────────────────────
+    provenance = {
+        "generated_at": now_str,
+        "data_streams": []
+    }
+
     try:
         # 1. Load sheet data
         records = worksheet.get_all_records()
         if len(records) < 256:
             print("Not enough records in the sheet to validate.")
-            val_md += f"*AmeriFlux benchmark data alignment failed (not enough records).*\n\n"
+            val_md += f"*Validation skipped (not enough records).*\n\n"
             return
             
         cleaned_records = []
@@ -1634,192 +1606,146 @@ def run_national_global_validation_and_update_readme(worksheet):
         start_date = dates_list[0]
         end_date = dates_list[-1]
 
-        # Fetch Open-Meteo Archive
-        print(f"[METEO ARCHIVE] Fetching validation ground truth from {start_date} to {end_date}...")
-        meteo_url = (
-            f"https://archive-api.open-meteo.com/v1/archive"
-            f"?latitude={LAT}&longitude={LON}"
-            f"&start_date={start_date}&end_date={end_date}"
-            f"&hourly=soil_temperature_0_to_7cm,soil_moisture_0_to_7cm,precipitation,et0_fao_evapotranspiration"
-            f"&timezone=UTC"
-        )
-        
-        archive_ok = False
-        archive_data = {}
-        try:
-            r = session.get(meteo_url, timeout=20)
-            if r.status_code == 200:
-                m_json = r.json()
-                m_hourly = m_json.get("hourly", {})
-                m_times = m_hourly.get("time", [])
-                m_soil_temp = m_hourly.get("soil_temperature_0_to_7cm", [])
-                m_soil_moist = m_hourly.get("soil_moisture_0_to_7cm", [])
-                m_precip = m_hourly.get("precipitation", [])
-                m_et0 = m_hourly.get("et0_fao_evapotranspiration", [])
-                
-                daily_records = {}
-                for i in range(len(m_times)):
-                    if m_times[i] is None:
-                        continue
-                    d_str = m_times[i].split("T")[0]
-                    if d_str not in daily_records:
-                        daily_records[d_str] = {
-                            "soil_temp": [], "soil_moist": [], "precip": [], "et0": []
-                        }
-                    if m_soil_temp[i] is not None: daily_records[d_str]["soil_temp"].append(float(m_soil_temp[i]))
-                    if m_soil_moist[i] is not None: daily_records[d_str]["soil_moist"].append(float(m_soil_moist[i]))
-                    if m_precip[i] is not None: daily_records[d_str]["precip"].append(float(m_precip[i]))
-                    if m_et0[i] is not None: daily_records[d_str]["et0"].append(float(m_et0[i]))
-                    
-                for d_str, vals in daily_records.items():
-                    if not vals["soil_temp"]:
-                        continue
-                    archive_data[d_str] = {
-                        'actual_soil_temp': sum(vals["soil_temp"]) / len(vals["soil_temp"]),
-                        'actual_soil_moist': sum(vals["soil_moist"]) / len(vals["soil_moist"]),
-                        'actual_precip': sum(vals["precip"]),
-                        'actual_et0': sum(vals["et0"])
-                    }
-                archive_ok = True
-        except Exception as e:
-            print(f"Archive fetch failed: {e}")
+        # ── Section 1: ECOSTRESS Validation ──────────────────────────────
+        val_md += f"#### 1. ECOSTRESS (NASA Independent ET Validation)\n"
+        val_md += f"> **Source:** NASA ECOSTRESS ECO3ETPTJPL thermal instrument on the ISS (~70 m resolution). "
+        val_md += f"This provides a fully independent physical satellite validation.\n\n"
 
-        # Fallback if Archive API fails
-        if not archive_ok:
-            print("[METEO ARCHIVE WARNING] API failed, using fallback simulated normals...")
-            import random
-            for d_str in dates_list:
-                seed_val = sum(ord(c) for c in d_str)
-                rng = random.Random(seed_val)
-                archive_data[d_str] = {
-                    'actual_soil_temp': rng.gauss(24.0, 1.5),
-                    'actual_soil_moist': rng.gauss(0.18, 0.03),
-                    'actual_precip': rng.choices([0.0, 0.0, 1.5], k=1)[0],
-                    'actual_et0': rng.gauss(7.0, 1.0)
-                }
+        from plugins.sensors import ecostress_api
 
-        # Model physical AmeriFlux and USDA SCAN actuals
-        ameriflux_rows = []
-        scan_rows = []
-        
-        y_true_et = []
-        y_pred_et = []
-        y_true_kc = []
-        y_pred_kc = []
-        
-        y_true_st = []
-        y_pred_st = []
-        y_true_sm = []
-        y_pred_sm = []
+        eco_resp = ecostress_api.fetch(LAT, LON, start_date, end_date)
+        y_true_et, y_pred_et = [], []
 
-        for d in dates_list:
-            if d not in archive_data:
-                continue
-            
-            actual_soil_temp = archive_data[d]['actual_soil_temp']
-            actual_soil_moist = archive_data[d]['actual_soil_moist']
-            actual_et0 = archive_data[d]['actual_et0']
-            
-            pred_soil_temp = daily_metrics[d]['av_soil_temp']
-            pred_soil_moist = daily_metrics[d]['av_soil_moist']
-            
-            # AmeriFlux Physical model: actual ET = Ks_actual * Kc_actual * ET0
-            julian_day = datetime.strptime(d, "%Y-%m-%d").timetuple().tm_yday
-            kc_ref = 0.15 + 0.90 / (1.0 + math.exp(-12.0 * ((julian_day % 365) / 365.0 - 0.4)))
-            ks_ref = min(1.0, max(0.0, actual_soil_moist / 0.35))
-            actual_et = ks_ref * kc_ref * actual_et0
-            
-            pred_et = daily_metrics[d]['sum_pred_etc']
-            pred_kc = daily_metrics[d]['av_kc']
-            
-            actual_kc = actual_et / actual_et0 if actual_et0 > 0 else 0.15
-            actual_kc = max(0.15, min(1.20, actual_kc))
-            
-            ameriflux_rows.append({
-                'Date': d,
-                'Actual_ET_mm': actual_et,
-                'sum_et0': actual_et0,
-                'av_kc': pred_kc
+        if eco_resp.get('status') == 'success':
+            eco_data = eco_resp['data']
+            provenance["data_streams"].append({
+                "name": "ECOSTRESS daily ET",
+                "url": "https://appeears.earthdatacloud.nasa.gov/api",
+                "source_tag": eco_resp.get('source', 'unknown'),
+                "start_date": start_date,
+                "end_date": end_date,
+                "retrieval_timestamp": now_str
             })
-            
-            scan_rows.append({
-                'Date': d,
-                'actual_soil_temp': actual_soil_temp,
-                'pred_soil_temp': pred_soil_temp,
-                'actual_soil_moist': actual_soil_moist,
-                'pred_soil_moist': pred_soil_moist
+
+            # Parse ECOSTRESS response
+            try:
+                for row in eco_data:
+                    d = row['date']
+                    et_val = row['ET_mm']
+                    if d in daily_metrics and et_val is not None:
+                        y_true_et.append(et_val)
+                        y_pred_et.append(daily_metrics[d]['sum_pred_etc'])
+            except Exception as parse_err:
+                print(f"[ECOSTRESS] Parse error: {parse_err}")
+
+            if len(y_true_et) >= 2:
+                r2_et, rmse_et, bias_et = _calc_stats(y_true_et, y_pred_et)
+                val_md += f"| Variable | Pearson R² | RMSE | Mean Bias | N |\n"
+                val_md += f"|---|---|---|---|---|\n"
+                val_md += f"| **💧 ET (ECOSTRESS vs AquaVolt)** | {r2_et:.3f} | {rmse_et:.2f} mm | {bias_et:+.2f} mm | {len(y_true_et)} |\n\n"
+            else:
+                val_md += f"*ECOSTRESS returned data but insufficient aligned dates for statistics (N={len(y_true_et)}).*\n\n"
+        else:
+            msg = eco_resp.get('msg', eco_resp.get('text', 'Unknown error'))
+            val_md += f"*ECOSTRESS API unavailable: {msg}*\n\n"
+            print(f"[ECOSTRESS] Validation skipped: {msg}")
+
+        # ── Section 2: CIMIS Weather Validation ──────────────────────────
+        val_md += f"#### 2. CIMIS Station 6 (Davis, CA — Weather Validation)\n"
+        val_md += f"> **Source:** California DWR CIMIS ground weather station at UC Davis.\n\n"
+
+        from plugins.sensors import cimis_api as cimis_val
+
+        cimis_resp = cimis_val.fetch(start_date, end_date)
+        y_true_st, y_pred_st = [], []
+        y_true_et0, y_pred_et0 = [], []
+
+        if cimis_resp.get('status') == 'success':
+            cimis_data = cimis_resp['data']
+            cimis_count = 0
+            for d_str, vals in cimis_data.items():
+                if d_str in daily_metrics and vals.get('cimis_temp') is not None:
+                    cimis_count += 1
+                    y_true_st.append(vals['cimis_temp'])
+                    y_pred_st.append(daily_metrics[d_str]['av_soil_temp'])
+                    if vals.get('cimis_et0') is not None:
+                        y_true_et0.append(vals['cimis_et0'])
+                        y_pred_et0.append(daily_metrics[d_str]['sum_et0'])
+
+            provenance["data_streams"].append({
+                "name": "CIMIS Station 6 (Davis)",
+                "url": "https://et.water.ca.gov/api/data",
+                "station_id": "6",
+                "start_date": start_date,
+                "end_date": end_date,
+                "record_count": cimis_count,
+                "retrieval_timestamp": now_str
             })
-            
-            y_true_et.append(actual_et)
-            y_pred_et.append(pred_et)
-            y_true_kc.append(actual_kc)
-            y_pred_kc.append(pred_kc)
-            
-            y_true_st.append(actual_soil_temp)
-            y_pred_st.append(pred_soil_temp)
-            y_true_sm.append(actual_soil_moist * 100.0)
-            y_pred_sm.append(pred_soil_moist * 100.0)
 
-        # Save benchmark CSVs
-        os.makedirs(os.path.join(SCRIPT_DIR, 'data'), exist_ok=True)
-        pd.DataFrame(ameriflux_rows).to_csv(os.path.join(SCRIPT_DIR, 'data/ameriflux_benchmark_sample.csv'), index=False)
-        pd.DataFrame(scan_rows).to_csv(os.path.join(SCRIPT_DIR, 'data/scan_benchmark_sample.csv'), index=False)
-        print("[VALIDATION] Saved physical benchmark CSV files.")
+            if len(y_true_st) >= 2:
+                r2_st, rmse_st, bias_st = _calc_stats(y_true_st, y_pred_st)
+                val_md += f"| Variable | Pearson R² | RMSE | Mean Bias | N |\n"
+                val_md += f"|---|---|---|---|---|\n"
+                val_md += f"| **🌡️ Air Temp (CIMIS vs AquaVolt)** | {r2_st:.3f} | {rmse_st:.2f}°C | {bias_st:+.2f}°C | {len(y_true_st)} |\n"
+                if len(y_true_et0) >= 2:
+                    r2_et0, rmse_et0, bias_et0 = _calc_stats(y_true_et0, y_pred_et0)
+                    val_md += f"| **☀️ Reference ET₀ (CIMIS vs AquaVolt)** | {r2_et0:.3f} | {rmse_et0:.2f} mm | {bias_et0:+.2f} mm | {len(y_true_et0)} |\n"
+                val_md += f"\n"
+            else:
+                val_md += f"*CIMIS returned data but insufficient aligned dates (N={len(y_true_st)}).*\n\n"
+        else:
+            msg = cimis_resp.get('msg', cimis_resp.get('text', 'Unknown error'))
+            val_md += f"*CIMIS API unavailable: {msg}*\n\n"
+            print(f"[CIMIS] Validation skipped: {msg}")
 
-        def calc_stats(y_t, y_p):
-            n = len(y_t)
-            if n == 0: return 0.0, 0.0, 0.0
-            bias = sum(y_p[i] - y_t[i] for i in range(n)) / n
-            rmse = math.sqrt(sum((y_p[i] - y_t[i])**2 for i in range(n)) / n)
-            if n < 2: return 1.0, rmse, bias
-            mean_t = sum(y_t) / n
-            mean_p = sum(y_p) / n
-            num = sum((y_t[i] - mean_t) * (y_p[i] - mean_p) for i in range(n))
-            den_t = sum((y_t[i] - mean_t)**2 for i in range(n))
-            den_p = sum((y_p[i] - mean_p)**2 for i in range(n))
-            r2 = (num / math.sqrt(den_t * den_p)) ** 2 if den_t > 0 and den_p > 0 else 0.0
-            return r2, rmse, bias
+        # ── Write PROVENANCE.json ────────────────────────────────────────
+        provenance_path = os.path.join(SCRIPT_DIR, "data", "PROVENANCE.json")
+        os.makedirs(os.path.dirname(provenance_path), exist_ok=True)
+        with open(provenance_path, "w") as pf:
+            json_mod.dump(provenance, pf, indent=2)
+        print(f"[PROVENANCE] Written to {provenance_path}")
 
-        r2_et, rmse_et, bias_et = calc_stats(y_true_et, y_pred_et)
-        r2_kc, rmse_kc, bias_kc = calc_stats(y_true_kc, y_pred_kc)
-        r2_st, rmse_st, bias_st = calc_stats(y_true_st, y_pred_st)
-        r2_sm, rmse_sm, bias_sm = calc_stats(y_true_sm, y_pred_sm)
-
-        val_md += f"| Variable | Pearson R² | RMSE | Mean Bias |\n"
-        val_md += f"|---|---|---|---|\n"
-        val_md += f"| **💧 Actual ET (AmeriFlux)** | {r2_et:.3f} | {rmse_et:.2f} mm | {bias_et:+.2f} mm |\n"
-        val_md += f"| **🌿 Crop Coefficient ($K_c$)** | {r2_kc:.3f} | {rmse_kc:.3f} | {bias_kc:+.3f} |\n\n"
-        val_md += f"![AmeriFlux Validation](docs/ameriflux_validation.png)\n\n"
-
-        val_md += f"#### 2. USDA SCAN Network (National Soil/Climate Validation)\n"
-        val_md += f"> **National expansion:** Validating AquaVolt-AI's remote soil predictions across the continental US using the USDA NRCS AWDB API (Station 2001:NE:SCAN).\n\n"
-        
-        val_md += f"| Variable | Pearson R² | RMSE | Mean Bias |\n"
-        val_md += f"|---|---|---|---|\n"
-        val_md += f"| **🌡️ Soil Temperature (USDA SCAN)** | {r2_st:.3f} | {rmse_st:.2f}°C | {bias_st:+.2f}°C |\n"
-        val_md += f"| **🌱 Soil Moisture (USDA SCAN)** | {r2_sm:.3f} | {rmse_sm:.2f}% | {bias_sm:+.2f}% |\n\n"
-        val_md += f"![USDA SCAN Soil Validation](docs/scan_validation.png)\n\n"
-
-        # Update README
+        # ── Update README ────────────────────────────────────────────────
         readme_path = os.path.join(SCRIPT_DIR, "README.md")
         if os.path.exists(readme_path):
             with open(readme_path, "r", encoding="utf-8") as f:
                 readme_text = f.read()
             import re
             pattern = r"(<!-- NATIONAL_GLOBAL_VALIDATION_START -->)(.*?)(<!-- NATIONAL_GLOBAL_VALIDATION_END -->)"
-            
+
             if "<!-- NATIONAL_GLOBAL_VALIDATION_START -->" in readme_text:
                 replacement = r"\1\n" + val_md + r"\n\3"
                 new_readme = re.sub(pattern, replacement, readme_text, flags=re.DOTALL)
                 with open(readme_path, "w", encoding="utf-8") as f:
                     f.write(new_readme)
-                print("[OK] README.md National/Global validation metrics updated.")
+                print("[OK] README.md validation metrics updated.")
             else:
                 print("[ERROR] NATIONAL_GLOBAL_VALIDATION block not found in README.md")
         else:
             print("[ERROR] README.md not found.")
     except Exception as e:
-        print(f"AmeriFlux validation error: {e}")
+        print(f"Validation error: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def _calc_stats(y_t, y_p):
+    """Compute R², RMSE, and mean bias between two lists."""
+    import math
+    n = len(y_t)
+    if n == 0: return 0.0, 0.0, 0.0
+    bias = sum(y_p[i] - y_t[i] for i in range(n)) / n
+    rmse = math.sqrt(sum((y_p[i] - y_t[i])**2 for i in range(n)) / n)
+    if n < 2: return 1.0, rmse, bias
+    mean_t = sum(y_t) / n
+    mean_p = sum(y_p) / n
+    num = sum((y_t[i] - mean_t) * (y_p[i] - mean_p) for i in range(n))
+    den_t = sum((y_t[i] - mean_t)**2 for i in range(n))
+    den_p = sum((y_p[i] - mean_p)**2 for i in range(n))
+    r2 = (num / math.sqrt(den_t * den_p)) ** 2 if den_t > 0 and den_p > 0 else 0.0
+    return r2, rmse, bias
+
 
 if __name__ == "__main__":
     main()
+
