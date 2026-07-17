@@ -70,7 +70,7 @@ class PIMLNet:
                 xi = X[idx[i:i+batch]]
                 yk = y_kc[idx[i:i+batch]]
                 out = self.forward(xi)
-                res_kc = np.clip(out[:, 0] * 0.30, -0.30, 0.30)
+                res_kc = np.clip(out[:, 0] * 0.15, -0.15, 0.15)
                 loss = ((res_kc - yk)**2).mean()
                 losses.append(loss)
                 
@@ -317,7 +317,7 @@ def main():
                     kc_obs = et_val / eto_val
                     kc_obs = max(0.05, min(1.40, kc_obs))
                     
-                    res_kc = np.clip(kc_obs - kc_prior, -0.30, 0.30)
+                    res_kc = np.clip(kc_obs - kc_prior, -0.15, 0.15)
                     
                     features = [ndvi, ndwi, savi, Dr_norm]
                     if is_test:
@@ -378,8 +378,8 @@ def main():
     
     # Model B: FAO-56 Prior + MLP residual correction
     out_test = net.forward(X_test_norm)
-    res_kc_pred = np.clip(out_test[:, 0] * 0.30, -0.30, 0.30)
-    kc_B = kc_prior_test + res_kc_pred
+    res_kc_pred = np.clip(out_test[:, 0] * 0.15, -0.15, 0.15)
+    kc_B = np.clip(kc_prior_test + res_kc_pred, 0.15, 1.20)
     rmse_B = np.sqrt(((kc_B - kc_obs_test)**2).mean())
     
     # Model C: Constant Kc (field-mean of observed Kc from training set)
