@@ -10,12 +10,14 @@ from matplotlib.colors import LinearSegmentedColormap
 import warnings, os
 warnings.filterwarnings('ignore')
 
-FIGURES_DIR = r"C:\Users\umert\aquavolt-ai-pk\papers\paper_stress_decoupling\figures"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FIGURES_DIR = os.path.join(BASE_DIR, "figures")
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 # ─── Load & clean ────────────────────────────────────────────────────────────
 print("Loading telemetry data...")
-df = pd.read_excel(r"C:\Users\umert\Downloads\AquaVolt-AI Telemetry Log (1).xlsx", engine='openpyxl')
+xlsx_path = os.path.join(BASE_DIR, "data", "AquaVolt-AI Telemetry Log (1).xlsx")
+df = pd.read_excel(xlsx_path, engine='openpyxl')
 df['datetime'] = pd.to_datetime(df['timestamp'])
 df = df[df['scene_id'] != 'Fallback']
 df = df[~df['field_name'].str.contains('Fallow', na=False)]
@@ -158,7 +160,8 @@ summary = {
     'border_interior_t': float(f'{t_val:.3f}'),
     'border_interior_p': float(f'{p_t:.4f}'),
 }
-with open(r'C:\Users\umert\aquavolt-ai-pk\papers\paper_stress_decoupling\real_stats.json', 'w') as f:
+stats_json_path = os.path.join(BASE_DIR, "real_stats.json")
+with open(stats_json_path, 'w') as f:
     json.dump(summary, f, indent=2)
 print("\n=== SAVED TO real_stats.json ===")
 
@@ -346,5 +349,5 @@ plt.savefig(f"{FIGURES_DIR}/fig5_spatial_dsi.pdf", dpi=200, bbox_inches='tight')
 plt.close()
 print("Figure 5 done.")
 
-print("\n✓ All real statistics computed. All figures regenerated from real data.")
+print("\n[OK] All real statistics computed. All figures regenerated from real data.")
 print("Summary saved to real_stats.json")
