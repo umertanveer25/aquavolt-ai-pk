@@ -1,0 +1,19 @@
+# LaTeX build artifacts and source — keep only code & data
+*.tex
+*.pdf
+*.bib
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.spl
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.idx
+*.ilg
+*.ind
