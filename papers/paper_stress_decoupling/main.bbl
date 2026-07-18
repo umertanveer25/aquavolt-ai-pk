@@ -1,4 +1,4 @@
-\begin{thebibliography}{21}
+\begin{thebibliography}{22}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -175,6 +175,19 @@
 \newblock \bibinfo{journal}{Agricultural and Forest Meteorology}
   \bibinfo{volume}{77}, \bibinfo{pages}{263--293}.
 \newblock \DOIprefix\doi{10.1016/0168-1923(95)02265-Y}.
+%Type = Article
+\bibitem[{Rafi et~al.(2023)Rafi, Merlin, Le~Dantec, Khabba, Er-Raki and
+  Amazirh}]{rafi2023high}
+\bibinfo{author}{Rafi, Z.}, \bibinfo{author}{Merlin, O.},
+  \bibinfo{author}{Le~Dantec, V.}, \bibinfo{author}{Khabba, S.},
+  \bibinfo{author}{Er-Raki, S.}, \bibinfo{author}{Amazirh, A.},
+  \bibinfo{year}{2023}.
+\newblock \bibinfo{title}{Partitioning of evapotranspiration using high
+  resolution thermal infrared imagery and {TSEB} model for wheat and tomato
+  crops}.
+\newblock \bibinfo{journal}{Agricultural Water Management}
+  \bibinfo{volume}{275}, \bibinfo{pages}{107989}.
+\newblock \DOIprefix\doi{10.1016/j.agwat.2022.107989}.
 %Type = Article
 \bibitem[{Saliendra et~al.(1995)Saliendra, Sperry and
   Comstock}]{saliendra1995influence}
