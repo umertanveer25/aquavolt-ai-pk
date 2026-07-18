@@ -62,7 +62,7 @@ The decoupled stress problem has significant agronomic consequences. An irrigati
 
 Despite extensive literature on the crop water stress index (CWSI) \citep{idso1981normalizing, moran1994combining}, on two-source energy balance (TSEB) models \citep{norman1995source, timmermans2007relationship}, and on satellite-derived evapotranspiration products \citep{bastiaanssen1998remote, anderson2011usability}, no study has systematically quantified the prevalence and spatial distribution of decoupled stress events at sub-field resolution using a combined high-temporal satellite-sensor fusion telemetry system. The majority of existing work either uses a single stress indicator in isolation or merges both into a composite crop coefficient ($K_c$) without decomposing their relative contribution.
 
-Recent advances in Physics-Informed Machine Learning (PIML) for hydrology and agriculture have opened new pathways for such decomposition \citep{shen2023deephydrology, chen2023piml, zhu2024piml}. By embedding physical constraints---such as FAO-56 water balance equations and Penman--Monteith atmospheric demand formulations---into a machine learning residual architecture, it becomes possible to maintain physical interpretability while capturing non-linear interactions between atmospheric and root-zone stress drivers.
+Recent advances in Physics-Informed Machine Learning (PIML) for hydrology and agriculture have opened new pathways for such decomposition \citep{shen2023deephydrology, zhu2024piml}. By embedding physical constraints---such as FAO-56 water balance equations and Penman--Monteith atmospheric demand formulations---into a machine learning residual architecture, it becomes possible to maintain physical interpretability while capturing non-linear interactions between atmospheric and root-zone stress drivers.
 
 In this study, we leverage the AquaVolt-AI PIML pipeline, deployed at the Russell Ranch Sustainable Agriculture Facility (UC Davis, California), to generate a 21-day (28 June–18 July 2026), 119,553-record hourly sub-field telemetry log covering 256 spatial sectors across four crop fields at 10-m resolution. We address the following research questions:
 
@@ -181,7 +181,7 @@ Four crop fields were monitored in the 2026 pilot deployment:
 \subsection{AquaVolt-AI Data Pipeline}
 \label{subsec:aquavolt}
 
-The AquaVolt-AI system performs real-time ingestion of multi-source satellite and meteorological data streams and applies a Physics-Informed Machine Learning residual architecture to compute crop-physiological variables at sub-field resolution. The full pipeline follows the Physics-Informed Machine Learning architecture documented in the preceding methodological publication from this series, wherein a residual MLP is constrained by FAO-56 physical bounds \citep{chen2023piml, zhu2024piml}.
+The AquaVolt-AI system performs real-time ingestion of multi-source satellite and meteorological data streams and applies a Physics-Informed Machine Learning residual architecture to compute crop-physiological variables at sub-field resolution. The full pipeline follows the Physics-Informed Machine Learning architecture documented in the preceding methodological publication from this series, wherein a residual MLP is constrained by FAO-56 physical bounds \citep{shen2023deephydrology, zhu2024piml}.
 
 Briefly, each of the four monitored fields is divided into an 8$\times$8 grid of 256 spatial sectors, each approximately 10 m $\times$ 10 m in extent, consistent with the native spatial resolution of the Sentinel-2 multispectral instrument. For each sector, at each hourly timestep, the pipeline computes:
 
@@ -463,13 +463,13 @@ Several limitations of this study should be acknowledged. First, the monitoring 
 \subsection{Comparison with Existing Literature}
 \label{subsec:literature_comparison}
 
-The DSI values reported in this study are broadly consistent with indirect evidence from prior work. \citet{jones2004assessment} documented that stomatal closure at high VPD conditions can cause leaf surface temperatures to rise by 3--5°C above air temperature even in well-watered crops, which is directly analogous to our decoupled stress category. \citet{moran1994combining} showed that the surface--air temperature differential contains information about both atmospheric demand and soil water status but cannot reliably separate the two using satellite data alone, motivating the dual-indicator approach we formalize here. More recently, \citet{chen2023piml} demonstrated that PIML frameworks integrating physical water balance constraints with satellite inputs outperform pure machine learning approaches at separating atmospheric and root-zone stress signals---providing methodological support for the AquaVolt-AI pipeline used in this study.
+The DSI values reported in this study are broadly consistent with indirect evidence from prior work. \citet{jones2004assessment} documented that stomatal closure at high VPD conditions can cause leaf surface temperatures to rise by 3--5°C above air temperature even in well-watered crops, which is directly analogous to our decoupled stress category. \citet{moran1994combining} showed that the surface--air temperature differential contains information about both atmospheric demand and soil water status but cannot reliably separate the two using satellite data alone, motivating the dual-indicator approach we formalize here. More recently, \citet{shen2023deephydrology} demonstrated that differentiable modelling frameworks integrating physical constraints with data-driven approaches outperform pure machine learning methods for geoscience applications---providing methodological support for the physics-informed AquaVolt-AI pipeline used in this study.
 
-To our knowledge, no prior study has directly quantified the proportion of thermal-anomaly stress events that are decoupled from root-zone depletion at sub-field, 10-m spatial resolution and hourly temporal resolution using a real-time operational satellite-telemetry fusion system. Table~\ref{tab:comparison} provides a direct comparison of the proposed framework against recent (2024--2027) state-of-the-art studies in this domain.
+To our knowledge, no prior study has directly quantified the proportion of thermal-anomaly stress events that are decoupled from root-zone depletion at sub-field, 10-m spatial resolution and hourly temporal resolution using a real-time operational satellite-telemetry fusion system. Table~\ref{tab:comparison} provides a direct comparison of the proposed framework against recent (2020--2024) state-of-the-art studies in this domain.
 
 \begin{table}[H]
 \centering
-\caption{Comparison of the proposed AquaVolt-AI Decoupled Stress Framework (DSI) with recent state-of-the-art studies (2024--2027) in satellite-based crop water stress detection. \textbf{Bold} indicates superior performance or capability. $\checkmark$ = available; $\times$ = not available; $\approx$ = partially available.}
+\caption{Comparison of the proposed AquaVolt-AI Decoupled Stress Framework (DSI) with recent state-of-the-art studies (2020--2024) in satellite-based crop water stress detection. \textbf{Bold} indicates superior performance or capability. $\checkmark$ = available; $\times$ = not available; $\approx$ = partially available.}
 \label{tab:comparison}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lllllll}
@@ -477,7 +477,7 @@ To our knowledge, no prior study has directly quantified the proportion of therm
 \textbf{Study} & \textbf{Spatial Res.} & \textbf{Temporal Res.} & \textbf{Soil+Thermal Fusion} & \textbf{Decoupling} & \textbf{Physical Constraints} & \textbf{Real-Time} \\
 \midrule
 Zhu et al. (2024) \citep{zhu2024piml} & 1 km & Daily & $\approx$ MODIS only & $\times$ & FAO-56 prior & $\times$ \\
-Chen et al. (2023) \citep{chen2023piml} & 250 m & Weekly & $\approx$ NDVI + VPD & $\times$ & Partial & $\times$ \\
+Shen et al. (2023) \citep{shen2023deephydrology} & 250 m & Weekly & $\approx$ NDVI + VPD & $\times$ & Differentiable physics & $\times$ \\
 Rafi et al. (2023) \citep{rafi2023high} & 30 m & Bi-weekly & $\checkmark$ TIR + Sentinel & $\times$ & TSEB energy balance & $\times$ \\
 Mart\'{i}nez-Ferrer et al. (2021) \citep{martinez2021neural} & 10 m & Weekly & $\approx$ Optical only & $\times$ & $\times$ None & $\times$ \\
 Gao et al. (2020) \citep{gao2020mapping} & 30 m & 8-day & $\checkmark$ Landsat TIR & $\times$ & $\times$ None & $\times$ \\

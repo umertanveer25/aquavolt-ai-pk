@@ -1,4 +1,4 @@
-\begin{thebibliography}{22}
+\begin{thebibliography}{21}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -57,16 +57,6 @@
 \newblock \bibinfo{journal}{Remote Sensing} \bibinfo{volume}{8},
   \bibinfo{pages}{39}.
 \newblock \DOIprefix\doi{10.3390/rs8010039}.
-%Type = Article
-\bibitem[{Chen et~al.(2023)Chen, Li, Fan, Wang and Deng}]{chen2023piml}
-\bibinfo{author}{Chen, Y.}, \bibinfo{author}{Li, Z.}, \bibinfo{author}{Fan,
-  Y.}, \bibinfo{author}{Wang, H.}, \bibinfo{author}{Deng, H.},
-  \bibinfo{year}{2023}.
-\newblock \bibinfo{title}{Physics-informed machine learning for crop water
-  stress estimation under drought and heat compound events}.
-\newblock \bibinfo{journal}{Agricultural and Forest Meteorology}
-  \bibinfo{volume}{338}, \bibinfo{pages}{109543}.
-\newblock \DOIprefix\doi{10.1016/j.agrformet.2023.109543}.
 %Type = Article
 \bibitem[{Fereres and Soriano(2007)}]{fereres2007deficit}
 \bibinfo{author}{Fereres, E.}, \bibinfo{author}{Soriano, M.A.},
