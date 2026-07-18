@@ -1,0 +1,238 @@
+\begin{thebibliography}{21}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\href}[2]{#2}
+\providecommand{\path}[1]{#1}
+\providecommand{\DOIprefix}{doi:}
+\providecommand{\ArXivprefix}{arXiv:}
+\providecommand{\URLprefix}{URL: }
+\providecommand{\Pubmedprefix}{pmid:}
+\providecommand{\doi}[1]{\href{http://dx.doi.org/#1}{\path{#1}}}
+\providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
+\providecommand{\bibinfo}[2]{#2}
+\ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Article
+\bibitem[{Allen et~al.(1998)Allen, Pereira, Raes and Smith}]{allen1998fao}
+\bibinfo{author}{Allen, R.G.}, \bibinfo{author}{Pereira, L.S.},
+  \bibinfo{author}{Raes, D.}, \bibinfo{author}{Smith, M.},
+  \bibinfo{year}{1998}.
+\newblock \bibinfo{title}{{FAO} irrigation and drainage paper no. 56: Crop
+  evapotranspiration}.
+\newblock \bibinfo{journal}{Food and Agriculture Organization of the United
+  Nations} \bibinfo{volume}{56}, \bibinfo{pages}{1--300}.
+%Type = Article
+\bibitem[{Anderson et~al.(2011)Anderson, Norman, Kustas, Houborg, Starks and
+  Agam}]{anderson2011usability}
+\bibinfo{author}{Anderson, M.C.}, \bibinfo{author}{Norman, J.M.},
+  \bibinfo{author}{Kustas, W.P.}, \bibinfo{author}{Houborg, R.},
+  \bibinfo{author}{Starks, P.J.}, \bibinfo{author}{Agam, N.},
+  \bibinfo{year}{2011}.
+\newblock \bibinfo{title}{A thermal-based remote sensing technique for routine
+  mapping of land-surface carbon, water and energy fluxes from field to
+  regional scales}.
+\newblock \bibinfo{journal}{Remote Sensing of Environment}
+  \bibinfo{volume}{112}, \bibinfo{pages}{4227--4241}.
+\newblock \DOIprefix\doi{10.1016/j.rse.2007.07.018}.
+%Type = Article
+\bibitem[{Bastiaanssen et~al.(1998)Bastiaanssen, Menenti, Feddes and
+  Holtslag}]{bastiaanssen1998remote}
+\bibinfo{author}{Bastiaanssen, W.G.M.}, \bibinfo{author}{Menenti, M.},
+  \bibinfo{author}{Feddes, R.A.}, \bibinfo{author}{Holtslag, A.A.M.},
+  \bibinfo{year}{1998}.
+\newblock \bibinfo{title}{A remote sensing surface energy balance algorithm for
+  land ({SEBAL}): 1. formulation}.
+\newblock \bibinfo{journal}{Journal of Hydrology} \bibinfo{volume}{212-213},
+  \bibinfo{pages}{198--212}.
+\newblock \DOIprefix\doi{10.1016/S0022-1694(98)00253-4}.
+%Type = Article
+\bibitem[{Bellvert et~al.(2016)Bellvert, Zarco-Tejada, Marsal, Girona,
+  Gonz{\'a}lez-Dugo and Fereres}]{bellvert2016airborne}
+\bibinfo{author}{Bellvert, J.}, \bibinfo{author}{Zarco-Tejada, P.J.},
+  \bibinfo{author}{Marsal, J.}, \bibinfo{author}{Girona, J.},
+  \bibinfo{author}{Gonz{\'a}lez-Dugo, V.}, \bibinfo{author}{Fereres, E.},
+  \bibinfo{year}{2016}.
+\newblock \bibinfo{title}{Airborne thermal imagery to detect the seasonal
+  evolution of crop water status in peach, nectarine and saturn peach
+  orchards}.
+\newblock \bibinfo{journal}{Remote Sensing} \bibinfo{volume}{8},
+  \bibinfo{pages}{39}.
+\newblock \DOIprefix\doi{10.3390/rs8010039}.
+%Type = Article
+\bibitem[{Chen et~al.(2023)Chen, Li, Fan, Wang and Deng}]{chen2023piml}
+\bibinfo{author}{Chen, Y.}, \bibinfo{author}{Li, Z.}, \bibinfo{author}{Fan,
+  Y.}, \bibinfo{author}{Wang, H.}, \bibinfo{author}{Deng, H.},
+  \bibinfo{year}{2023}.
+\newblock \bibinfo{title}{Physics-informed machine learning for crop water
+  stress estimation under drought and heat compound events}.
+\newblock \bibinfo{journal}{Agricultural and Forest Meteorology}
+  \bibinfo{volume}{338}, \bibinfo{pages}{109543}.
+\newblock \DOIprefix\doi{10.1016/j.agrformet.2023.109543}.
+%Type = Article
+\bibitem[{Fereres and Soriano(2007)}]{fereres2007deficit}
+\bibinfo{author}{Fereres, E.}, \bibinfo{author}{Soriano, M.A.},
+  \bibinfo{year}{2007}.
+\newblock \bibinfo{title}{Deficit irrigation for reducing agricultural water
+  use}.
+\newblock \bibinfo{journal}{Journal of Experimental Botany}
+  \bibinfo{volume}{58}, \bibinfo{pages}{147--159}.
+\newblock \DOIprefix\doi{10.1093/jxb/erl165}.
+%Type = Article
+\bibitem[{Gao et~al.(2020)Gao, Anderson, Kustas and Wang}]{gao2020mapping}
+\bibinfo{author}{Gao, F.}, \bibinfo{author}{Anderson, M.C.},
+  \bibinfo{author}{Kustas, W.P.}, \bibinfo{author}{Wang, Y.},
+  \bibinfo{year}{2020}.
+\newblock \bibinfo{title}{Mapping crop land-surface temperature from {Landsat}
+  8 and {Sentinel-2}}.
+\newblock \bibinfo{journal}{Remote Sensing of Environment}
+  \bibinfo{volume}{219}, \bibinfo{pages}{1--14}.
+\newblock \DOIprefix\doi{10.1016/j.rse.2018.09.030}.
+%Type = Article
+\bibitem[{Gerhards et~al.(2019)Gerhards, Schlerf, Mallick and
+  Udelhoven}]{gerhards2019challenges}
+\bibinfo{author}{Gerhards, M.}, \bibinfo{author}{Schlerf, M.},
+  \bibinfo{author}{Mallick, K.}, \bibinfo{author}{Udelhoven, T.},
+  \bibinfo{year}{2019}.
+\newblock \bibinfo{title}{Challenges and future perspectives of
+  multi/hyperspectral thermal infrared remote sensing for crop water-stress
+  detection}.
+\newblock \bibinfo{journal}{Remote Sensing} \bibinfo{volume}{11},
+  \bibinfo{pages}{1240}.
+\newblock \DOIprefix\doi{10.3390/rs11101240}.
+%Type = Article
+\bibitem[{Gonz{\'a}lez-Dugo et~al.(2012)Gonz{\'a}lez-Dugo, Su{\'a}rez,
+  Gonz{\'a}lez-Piqueras and Zarco-Tejada}]{gonzalez2012thermal}
+\bibinfo{author}{Gonz{\'a}lez-Dugo, V.}, \bibinfo{author}{Su{\'a}rez, L.},
+  \bibinfo{author}{Gonz{\'a}lez-Piqueras, J.}, \bibinfo{author}{Zarco-Tejada,
+  P.J.}, \bibinfo{year}{2012}.
+\newblock \bibinfo{title}{Thermal image indices to detect early water stress
+  symptoms in maize}.
+\newblock \bibinfo{journal}{Agricultural Water Management}
+  \bibinfo{volume}{107}, \bibinfo{pages}{103--113}.
+\newblock \DOIprefix\doi{10.1016/j.agwat.2012.01.008}.
+%Type = Article
+\bibitem[{Idso et~al.(1981)Idso, Jackson, Pinter, Reginato and
+  Hatfield}]{idso1981normalizing}
+\bibinfo{author}{Idso, S.B.}, \bibinfo{author}{Jackson, R.D.},
+  \bibinfo{author}{Pinter, P.J.}, \bibinfo{author}{Reginato, R.J.},
+  \bibinfo{author}{Hatfield, J.L.}, \bibinfo{year}{1981}.
+\newblock \bibinfo{title}{Normalizing the stress-degree-day parameter for
+  environmental variability}.
+\newblock \bibinfo{journal}{Agricultural Meteorology} \bibinfo{volume}{24},
+  \bibinfo{pages}{45--55}.
+\newblock \DOIprefix\doi{10.1016/0002-1571(81)90032-7}.
+%Type = Article
+\bibitem[{Jones(2004)}]{jones2004assessment}
+\bibinfo{author}{Jones, H.G.}, \bibinfo{year}{2004}.
+\newblock \bibinfo{title}{Assessment of stomatal control of plant water status
+  and the regulation of plant carbon gain from analysis of thermal images of
+  leaves}.
+\newblock \bibinfo{journal}{Plant, Cell \& Environment} \bibinfo{volume}{27},
+  \bibinfo{pages}{551--560}.
+\newblock \DOIprefix\doi{10.1111/j.1365-3040.2004.01163.x}.
+%Type = Article
+\bibitem[{Katul et~al.(2012)Katul, Oren, Manzoni, Higgins and
+  Parlange}]{katul2012evapotranspiration}
+\bibinfo{author}{Katul, G.G.}, \bibinfo{author}{Oren, R.},
+  \bibinfo{author}{Manzoni, S.}, \bibinfo{author}{Higgins, C.},
+  \bibinfo{author}{Parlange, M.B.}, \bibinfo{year}{2012}.
+\newblock \bibinfo{title}{Evapotranspiration: a process driving mass transport
+  and energy exchange in the soil-plant-atmosphere-climate system}.
+\newblock \bibinfo{journal}{Reviews of Geophysics} \bibinfo{volume}{50}.
+\newblock \DOIprefix\doi{10.1029/2011RG000366}.
+%Type = Article
+\bibitem[{Mart{\'i}nez-Ferrer et~al.(2021)Mart{\'i}nez-Ferrer,
+  Moreno-Mart{\'i}nez, Campos-Taberner, Garc{\'i}a-Haro, Piles, Adsuara,
+  Mu{\~n}oz-Mar{\'i} and Camps-Valls}]{martinez2021neural}
+\bibinfo{author}{Mart{\'i}nez-Ferrer, L.},
+  \bibinfo{author}{Moreno-Mart{\'i}nez, {\'A}.},
+  \bibinfo{author}{Campos-Taberner, M.}, \bibinfo{author}{Garc{\'i}a-Haro,
+  F.J.}, \bibinfo{author}{Piles, M.}, \bibinfo{author}{Adsuara, J.E.},
+  \bibinfo{author}{Mu{\~n}oz-Mar{\'i}, J.}, \bibinfo{author}{Camps-Valls, G.},
+  \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{Quantifying uncertainty in high resolution
+  biophysical variable retrieval with machine learning}.
+\newblock \bibinfo{journal}{Remote Sensing of Environment}
+  \bibinfo{volume}{280}, \bibinfo{pages}{113199}.
+\newblock \DOIprefix\doi{10.1016/j.rse.2022.113199}.
+%Type = Article
+\bibitem[{Moran et~al.(1994)Moran, Clarke, Inoue and
+  Vidal}]{moran1994combining}
+\bibinfo{author}{Moran, M.S.}, \bibinfo{author}{Clarke, T.R.},
+  \bibinfo{author}{Inoue, Y.}, \bibinfo{author}{Vidal, A.},
+  \bibinfo{year}{1994}.
+\newblock \bibinfo{title}{Estimating crop water deficit using the relation
+  between surface-air temperature and spectral vegetation index}.
+\newblock \bibinfo{journal}{Remote Sensing of Environment}
+  \bibinfo{volume}{49}, \bibinfo{pages}{246--263}.
+\newblock \DOIprefix\doi{10.1016/0034-4257(94)90020-5}.
+%Type = Article
+\bibitem[{Norman et~al.(1995)Norman, Kustas and Humes}]{norman1995source}
+\bibinfo{author}{Norman, J.M.}, \bibinfo{author}{Kustas, W.P.},
+  \bibinfo{author}{Humes, K.S.}, \bibinfo{year}{1995}.
+\newblock \bibinfo{title}{Source approach for estimating soil and vegetation
+  energy fluxes in observations of directional radiometric surface
+  temperature}.
+\newblock \bibinfo{journal}{Agricultural and Forest Meteorology}
+  \bibinfo{volume}{77}, \bibinfo{pages}{263--293}.
+\newblock \DOIprefix\doi{10.1016/0168-1923(95)02265-Y}.
+%Type = Article
+\bibitem[{Saliendra et~al.(1995)Saliendra, Sperry and
+  Comstock}]{saliendra1995influence}
+\bibinfo{author}{Saliendra, N.Z.}, \bibinfo{author}{Sperry, J.S.},
+  \bibinfo{author}{Comstock, J.P.}, \bibinfo{year}{1995}.
+\newblock \bibinfo{title}{Influence of leaf water status on stomatal response
+  to humidity, hydraulic conductance, and soil drought in {Betula
+  occidentalis}}.
+\newblock \bibinfo{journal}{Planta} \bibinfo{volume}{196},
+  \bibinfo{pages}{357--366}.
+\newblock \DOIprefix\doi{10.1007/BF00201396}.
+%Type = Article
+\bibitem[{Shen et~al.(2023)}]{shen2023deephydrology}
+\bibinfo{author}{Shen, C.}, et~al., \bibinfo{year}{2023}.
+\newblock \bibinfo{title}{Differentiable modelling to unify machine learning
+  and physical models for geosciences}.
+\newblock \bibinfo{journal}{Nature Reviews Earth \& Environment}
+  \bibinfo{volume}{4}, \bibinfo{pages}{552--567}.
+\newblock \DOIprefix\doi{10.1038/s43017-023-00450-9}.
+%Type = Article
+\bibitem[{Timmermans et~al.(2007)Timmermans, Kustas, Anderson and
+  French}]{timmermans2007relationship}
+\bibinfo{author}{Timmermans, W.J.}, \bibinfo{author}{Kustas, W.P.},
+  \bibinfo{author}{Anderson, M.C.}, \bibinfo{author}{French, A.N.},
+  \bibinfo{year}{2007}.
+\newblock \bibinfo{title}{An intercomparison of the surface energy balance
+  algorithm for land ({SEBAL}) and the two-source energy balance ({TSEB})
+  modeling schemes}.
+\newblock \bibinfo{journal}{Remote Sensing of Environment}
+  \bibinfo{volume}{108}, \bibinfo{pages}{369--384}.
+\newblock \DOIprefix\doi{10.1016/j.rse.2006.11.028}.
+%Type = Article
+\bibitem[{van~der Tol et~al.(2009)van~der Tol, Verhoef, Timmermans, Verhoef and
+  Su}]{vanderTol2009}
+\bibinfo{author}{van~der Tol, C.}, \bibinfo{author}{Verhoef, W.},
+  \bibinfo{author}{Timmermans, J.}, \bibinfo{author}{Verhoef, A.},
+  \bibinfo{author}{Su, Z.}, \bibinfo{year}{2009}.
+\newblock \bibinfo{title}{An integrated model of soil-canopy spectral
+  radiances, photosynthesis, fluorescence, temperature and energy balance}.
+\newblock \bibinfo{journal}{Biogeosciences} \bibinfo{volume}{6},
+  \bibinfo{pages}{3109--3129}.
+\newblock \DOIprefix\doi{10.5194/bg-6-3109-2009}.
+%Type = Article
+\bibitem[{Turner(2004)}]{turner2007relationships}
+\bibinfo{author}{Turner, N.C.}, \bibinfo{year}{2004}.
+\newblock \bibinfo{title}{Agronomic options for improving rainfall-use
+  efficiency of crops in dryland farming systems}.
+\newblock \bibinfo{journal}{Journal of Experimental Botany}
+  \bibinfo{volume}{55}, \bibinfo{pages}{2413--2425}.
+\newblock \DOIprefix\doi{10.1093/jxb/erh154}.
+%Type = Article
+\bibitem[{Zhu et~al.(2024)Zhu, Dong, Dong and Chen}]{zhu2024piml}
+\bibinfo{author}{Zhu, X.}, \bibinfo{author}{Dong, J.}, \bibinfo{author}{Dong,
+  G.}, \bibinfo{author}{Chen, Y.}, \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{Physics-informed deep learning for crop
+  evapotranspiration estimation in data-scarce regions}.
+\newblock \bibinfo{journal}{Computers and Electronics in Agriculture}
+  \bibinfo{volume}{216}, \bibinfo{pages}{108567}.
+\newblock \DOIprefix\doi{10.1016/j.compag.2024.108567}.
+
+\end{thebibliography}
