@@ -20,6 +20,11 @@ import socket
 import urllib.request
 import ssl
 from datetime import datetime, timedelta, timezone
+try:
+    from gibs_viirs_integration import fill_gap_with_gibs as _gibs_fill
+    _GIBS_AVAILABLE = True
+except ImportError:
+    _GIBS_AVAILABLE = False
 
 # --- DoH Monkeypatch for robust DNS resolution ---
 original_getaddrinfo = socket.getaddrinfo
@@ -411,7 +416,8 @@ def init_db():
         "lst_modis": "REAL",
         "et0_deficit_7d": "REAL",
         "scene_id": "TEXT",
-        "field_name": "TEXT"
+        "field_name": "TEXT",
+        "lst_source": "TEXT"
     }
     for col_name, col_type in new_cols.items():
         if col_name not in existing_cols:
@@ -466,6 +472,31 @@ def fetch_and_store():
     modis_lst_val = fetch_modis_lst(LAT, LON)
     deficit_7d    = fetch_open_meteo_forecast(LAT, LON)
 
+    # ── GIBS/VIIRS Gap-Fill: if MODIS returns None, attempt VIIRS daily fill ──
+    gibs_lst_val  = None
+    gibs_ndvi_val = None
+    if modis_lst_val is None and _GIBS_AVAILABLE:
+        print("[TIER 1] MODIS unavailable — attempting NASA GIBS/VIIRS gap-fill...")
+        try:
+            # Assume a 4-day gap as conservative worst-case
+            gap_start = datetime.now(timezone.utc) - timedelta(days=4)
+            gap_end   = datetime.now(timezone.utc)
+            filled    = _gibs_fill(LAT, LON, gap_start, gap_end)
+            if filled:
+                latest_fill  = filled[-1]                         # most recent gap day
+                raw_lst      = latest_fill.get("lst_celsius", None)
+                raw_ndvi     = latest_fill.get("ndvi", None)
+                # Sanity-check: reject POWER -999 fill-value and unphysical LSTs
+                if raw_lst is not None and -10 < raw_lst < 70:
+                    gibs_lst_val  = round(raw_lst, 2)
+                    gibs_ndvi_val = round(raw_ndvi, 4) if raw_ndvi else None
+                    print(f"[GIBS] Gap-fill accepted: LST={gibs_lst_val}C  NDVI={gibs_ndvi_val}  "
+                          f"(flag={latest_fill.get('flag','?')})")
+                else:
+                    print(f"[GIBS] Gap-fill rejected (unphysical LST={raw_lst}). Falling back to soil_temp.")
+        except Exception as _ge:
+            print(f"[GIBS] Gap-fill error: {_ge}")
+
     TAW = 72.0
     RAW = 36.0
     count = 0
@@ -495,8 +526,21 @@ def fetch_and_store():
                 ndwi   = ndwi_real_val                        # unified; no soil-moisture proxy
                 lai, fcover = compute_lai_fcover(ndvi)
 
-                # Use real MODIS LST when available; fallback to soil_temp (not NDVI-derived)
-                lst_measured = modis_lst_val if modis_lst_val is not None else soil_temp
+                # ── LST priority cascade: MODIS > GIBS/VIIRS > soil_temp ──
+                # If GIBS filled a valid NDVI, blend with Sentinel pixel (GIBS=field-scale, S2=pixel-scale)
+                if gibs_ndvi_val is not None:
+                    ndvi = round((ndvi * 0.7 + gibs_ndvi_val * 0.3), 4)  # 70% S2 pixel, 30% VIIRS field
+                    lai, fcover = compute_lai_fcover(ndvi)                # recompute with blended NDVI
+
+                if modis_lst_val is not None:
+                    lst_measured = modis_lst_val          # MODIS: best quality
+                    lst_source   = "MODIS"
+                elif gibs_lst_val is not None:
+                    lst_measured = gibs_lst_val           # GIBS/VIIRS: gap-filled
+                    lst_source   = "GIBS_VIIRS"
+                else:
+                    lst_measured = soil_temp              # final fallback
+                    lst_source   = "soil_temp_proxy"
                 
                 # Ks from soil water balance — FAO-56 Eq. 84 (depletion-based)
                 sm_frac_sector = 0.10 + ((ndwi_real_val - (-0.5)) / 1.0) * 0.80
@@ -532,14 +576,14 @@ def fetch_and_store():
                         ndvi, ndwi, ndwi_real, savi, lai, fcover, lst, lst_modis,
                         Kc, Ks, Dr, TAW, RAW, ETc, water_need,
                         air_temp, humidity, solar_rad, precip, soil_temp, soil_moisture, 
-                        et0_deficit_7d, scene_id, field_name
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        et0_deficit_7d, scene_id, field_name, lst_source
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """, (
                     now_str, field["lat"], field["lon"], row, col,
                     ndvi, ndwi, ndwi_real_val, savi, lai, fcover, lst_measured, modis_lst_val,
                     kc, ks, Dr, TAW, RAW, ETc, irr,
                     temp, humidity, solar_rad, precip_cur, soil_temp, soil_moist, 
-                    deficit_7d, scene_id, f_name
+                    deficit_7d, scene_id, f_name, lst_source
                 ))
                 count += 1
 
