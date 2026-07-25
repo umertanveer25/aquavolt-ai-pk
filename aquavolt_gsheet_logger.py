@@ -911,8 +911,6 @@ def main(push_to_sheets=True):
         print(f"[ERROR] Spreadsheet '{sheet_name}' not found!")
         sys.exit(1)
 
-    worksheet = sh.get_worksheet(0)
-
     # 29-column schema (added 'field_name')
     headers = [
         "timestamp", "latitude", "longitude", "sector_row", "sector_col",
@@ -921,9 +919,25 @@ def main(push_to_sheets=True):
         "air_temp", "humidity", "solar_rad", "precip",
         "soil_temp", "soil_moisture", "et0_deficit_7d", "scene_id", "field_name"
     ]
+
+    # Dynamically find or create a worksheet tab for the current Month & Year (e.g., "Telemetry Log - July 2026")
+    now_utc = datetime.now(timezone.utc)
+    month_year_str = now_utc.strftime("%B %Y")  # e.g., "July 2026", "August 2026"
+    subsheet_name = f"{sheet_name} - {month_year_str}"
+
+    worksheet = None
+    try:
+        worksheet = sh.worksheet(subsheet_name)
+        print(f"[SHEET] Using monthly worksheet partition: '{subsheet_name}'")
+    except gspread.exceptions.WorksheetNotFound:
+        print(f"[SHEET] New month detected! Creating partition tab: '{subsheet_name}'...")
+        # Create sheet with 1000 default rows and 30 columns. gspread auto-expands as needed.
+        worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=30)
+        worksheet.append_row(headers)
+
     existing = worksheet.row_values(1)
     if not existing or existing != headers:
-        print("[HEADER] Updating sheet headers for 29-column schema...")
+        print("[HEADER] Updating sheet headers...")
         worksheet.clear()
         worksheet.append_row(headers)
 
