@@ -101,7 +101,9 @@ def verify_month_authenticity(db_path: str, month_str: str) -> dict:
 
     # 3. Cross-Validate with European Copernicus (ERA5-Land)
     # Grab the middle date of the month to use as a representative reference day
+    today_str = datetime.utcnow().strftime("%Y-%m-%d")
     sample_dates = sorted(list(set([t.split(" ")[0] for t in timestamps])))
+    sample_dates = [d for d in sample_dates if d != today_str]
     copernicus_score = 90.0  # default baseline
     correlation_coefficient = 0.0
     
