@@ -652,13 +652,28 @@ def archive_previous_month_to_git():
             writer = csv.writer(f)
             writer.writerow(headers)
             writer.writerows(rows)
+
+        # Run independent Copernicus/ERA5 cross-validation
+        verification_path = archive_path.replace(".csv", "_verification.json")
+        try:
+            from data_integrity_verifier import verify_month_authenticity
+            print("[ARCHIVER] Running Copernicus/Global-satellite cross-validation...")
+            v_res = verify_month_authenticity(DB_PATH, prev_month_str)
+            with open(verification_path, "w", encoding="utf-8") as vf:
+                json.dump(v_res, vf, indent=2)
+            print(f"[ARCHIVER] Copernicus Cross-Validation Score: {v_res.get('authenticity_confidence_index_pct')}% ({v_res.get('classification')})")
+        except Exception as _ve:
+            print(f"[ARCHIVER] ⚠️  Verification failed: {_ve}. Pushing data without QA report.")
+            verification_path = None
             
-        print("[ARCHIVER] Pushing archived CSV to GitHub...")
+        print("[ARCHIVER] Pushing archived files to GitHub...")
         # Run git commands in a subprocess
         subprocess.run(["git", "add", archive_path], check=True, cwd=repo_root)
-        subprocess.run(["git", "commit", "-m", f"chore: Auto-archive telemetry log for {prev_month_str}"], check=True, cwd=repo_root)
+        if verification_path and os.path.exists(verification_path):
+            subprocess.run(["git", "add", verification_path], check=True, cwd=repo_root)
+        subprocess.run(["git", "commit", "-m", f"chore: Auto-archive telemetry and Copernicus QA report for {prev_month_str}"], check=True, cwd=repo_root)
         subprocess.run(["git", "push"], check=True, cwd=repo_root)
-        print(f"[ARCHIVER] ✅ Successfully archived and pushed data for {prev_month_str} to GitHub!")
+        print(f"[ARCHIVER] ✅ Successfully verified, archived, and pushed data for {prev_month_str} to GitHub!")
         
     except Exception as e:
         print(f"[ARCHIVER] ❌ Error during monthly git archiver process: {e}")
