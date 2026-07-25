@@ -20,6 +20,8 @@ import socket
 import urllib.request
 import ssl
 from datetime import datetime, timedelta, timezone
+import csv
+import subprocess
 try:
     from gibs_viirs_integration import fill_gap_with_gibs as _gibs_fill
     _GIBS_AVAILABLE = True
@@ -597,6 +599,73 @@ def fetch_and_store():
     return count
 
 
+def archive_previous_month_to_git():
+    """
+    Checks if the previous month's data has been archived to a CSV file in the 
+    'database' folder and pushed to GitHub. Runs automatically on the 1st of every month.
+    """
+    print("\n[ARCHIVER] Checking for previous month's database archive...")
+    now = datetime.now(timezone.utc)
+    
+    # Calculate previous month year and string
+    # E.g. if today is 2026-08-05, previous month is 2026-07
+    first_of_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    prev_month_dt = first_of_this_month - timedelta(days=1)
+    prev_month_str = prev_month_dt.strftime("%Y-%m")
+    
+    # Target directory and file paths
+    repo_root = os.path.dirname(os.path.abspath(__file__))
+    archive_dir = os.path.join(repo_root, "database")
+    archive_file_name = f"telemetry_log_{prev_month_dt.strftime('%Y_%m')}.csv"
+    archive_path = os.path.join(archive_dir, archive_file_name)
+    
+    if os.path.exists(archive_path):
+        print(f"[ARCHIVER] Archive already exists for {prev_month_str}: {archive_file_name}")
+        return
+
+    # Ensure archive folder exists
+    if not os.path.exists(archive_dir):
+        os.makedirs(archive_dir)
+        
+    print(f"[ARCHIVER] Archive missing for {prev_month_str}. Querying SQLite...")
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    
+    try:
+        # Check if table exists
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='telemetry_log';")
+        if not cur.fetchone():
+            print("[ARCHIVER] telemetry_log table does not exist yet. Skipping.")
+            return
+
+        cur.execute("SELECT * FROM telemetry_log WHERE timestamp LIKE ? ORDER BY timestamp ASC;", (f"{prev_month_str}%",))
+        rows = cur.fetchall()
+        if not rows:
+            print(f"[ARCHIVER] No records found in SQLite for {prev_month_str}. Nothing to archive.")
+            return
+            
+        # Get column names
+        headers = [desc[0] for desc in cur.description]
+        
+        print(f"[ARCHIVER] Writing {len(rows)} rows to {archive_path}...")
+        with open(archive_path, mode="w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(headers)
+            writer.writerows(rows)
+            
+        print("[ARCHIVER] Pushing archived CSV to GitHub...")
+        # Run git commands in a subprocess
+        subprocess.run(["git", "add", archive_path], check=True, cwd=repo_root)
+        subprocess.run(["git", "commit", "-m", f"chore: Auto-archive telemetry log for {prev_month_str}"], check=True, cwd=repo_root)
+        subprocess.run(["git", "push"], check=True, cwd=repo_root)
+        print(f"[ARCHIVER] ✅ Successfully archived and pushed data for {prev_month_str} to GitHub!")
+        
+    except Exception as e:
+        print(f"[ARCHIVER] ❌ Error during monthly git archiver process: {e}")
+    finally:
+        conn.close()
+
+
 def main():
     print("=" * 65)
     print("  AquaVolt-AI SQLite Logger [Tier 1 Multi-Field Upgrade]")
@@ -613,6 +682,10 @@ def main():
         print(f"\n{'-'*65}")
         print(f"  Logging Cycle #{cycle}")
         fetch_and_store()
+        
+        # Run monthly archiver check on every cycle
+        archive_previous_month_to_git()
+        
         next_time = datetime.fromtimestamp(time.time() + INTERVAL_SECONDS)
         print(f"  [TIME] Next run at: {next_time.strftime('%Y-%m-%d %H:%M:%S')}")
         time.sleep(INTERVAL_SECONDS)
