@@ -10,6 +10,13 @@ Tier 1 Real-Time Integrations:
 
 import os
 import sys
+
+# Reconfigure stdout/stderr to utf-8 for Windows console support
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import math
 import json
 import numpy as np

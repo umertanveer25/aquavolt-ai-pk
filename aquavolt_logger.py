@@ -22,6 +22,13 @@ import ssl
 from datetime import datetime, timedelta, timezone
 import csv
 import subprocess
+
+# Reconfigure stdout/stderr to utf-8 for Windows console support
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 try:
     from gibs_viirs_integration import fill_gap_with_gibs as _gibs_fill
     _GIBS_AVAILABLE = True
@@ -663,7 +670,7 @@ def archive_previous_month_to_git():
                 json.dump(v_res, vf, indent=2)
             print(f"[ARCHIVER] Copernicus Cross-Validation Score: {v_res.get('authenticity_confidence_index_pct')}% ({v_res.get('classification')})")
         except Exception as _ve:
-            print(f"[ARCHIVER] ⚠️  Verification failed: {_ve}. Pushing data without QA report.")
+            print(f"[ARCHIVER] [WARNING] Verification failed: {_ve}. Pushing data without QA report.")
             verification_path = None
             
         print("[ARCHIVER] Pushing archived files to GitHub...")
@@ -673,10 +680,10 @@ def archive_previous_month_to_git():
             subprocess.run(["git", "add", verification_path], check=True, cwd=repo_root)
         subprocess.run(["git", "commit", "-m", f"chore: Auto-archive telemetry and Copernicus QA report for {prev_month_str}"], check=True, cwd=repo_root)
         subprocess.run(["git", "push"], check=True, cwd=repo_root)
-        print(f"[ARCHIVER] ✅ Successfully verified, archived, and pushed data for {prev_month_str} to GitHub!")
+        print(f"[ARCHIVER] [OK] Successfully verified, archived, and pushed data for {prev_month_str} to GitHub!")
         
     except Exception as e:
-        print(f"[ARCHIVER] ❌ Error during monthly git archiver process: {e}")
+        print(f"[ARCHIVER] [ERROR] Monthly git archiver process: {e}")
     finally:
         conn.close()
 
@@ -696,15 +703,24 @@ def main():
         cycle += 1
         print(f"\n{'-'*65}")
         print(f"  Logging Cycle #{cycle}")
-        fetch_and_store()
-        
-        # Run monthly archiver check on every cycle
-        archive_previous_month_to_git()
-        
+        try:
+            fetch_and_store()
+            # Run monthly archiver check on every cycle
+            archive_previous_month_to_git()
+        except Exception as e:
+            print(f"  [ERROR] Cycle #{cycle} encountered an exception: {e}")
+            print("  [RECOVERY] Recovering automatically. Will retry next hour.")
+
         next_time = datetime.fromtimestamp(time.time() + INTERVAL_SECONDS)
         print(f"  [TIME] Next run at: {next_time.strftime('%Y-%m-%d %H:%M:%S')}")
         time.sleep(INTERVAL_SECONDS)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n[STOP] Logger stopped by user.")
+    except Exception as fatal_e:
+        print(f"\n[FATAL ERROR] Logger crashed: {fatal_e}")
+        input("\nPress ENTER to close window...")
