@@ -89,8 +89,8 @@ except ImportError:
 LAT = float(os.environ.get("AQUAVOLT_LAT", 38.5480))
 LON = float(os.environ.get("AQUAVOLT_LON", -121.8780))
 FARM_NAME = os.environ.get("AQUAVOLT_FARM", "UC Davis Russell Ranch")
-# Automatically partition Google Sheets by Month and Year (e.g., "August 2026")
-DEFAULT_SHEET_NAME = datetime.now().strftime("%B %Y")
+# Automatically partition Google Sheets by Month and Year (e.g., "AquaVolt-AI Telemetry Log - August 2026")
+DEFAULT_SHEET_NAME = f"AquaVolt-AI Telemetry Log - {datetime.now().strftime('%B %Y')}"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Define 4 distinct fields with their crop types — matches UC_Davis_Russell_Ranch_EXACT_FIELDS.png
@@ -916,8 +916,11 @@ def main(push_to_sheets=True):
     try:
         sh = gc.open(sheet_name)
     except gspread.exceptions.SpreadsheetNotFound:
-        print(f"[ERROR] Spreadsheet '{sheet_name}' not found!")
-        sys.exit(1)
+        print(f"[ERROR] Spreadsheet '{sheet_name}' not found. Creating a new one for this month...")
+        sh = gc.create(sheet_name)
+        # Share it with the user's email so it shows up in their Google Drive
+        sh.share("umertanveer25@gmail.com", perm_type="user", role="writer")
+        print(f"[SUCCESS] Created and shared new Spreadsheet: {sheet_name}")
 
     # 29-column schema (added 'field_name')
     headers = [
