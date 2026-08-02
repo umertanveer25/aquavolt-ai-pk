@@ -89,7 +89,7 @@ except ImportError:
 LAT = float(os.environ.get("AQUAVOLT_LAT", 38.5480))
 LON = float(os.environ.get("AQUAVOLT_LON", -121.8780))
 FARM_NAME = os.environ.get("AQUAVOLT_FARM", "UC Davis Russell Ranch")
-DEFAULT_SHEET_NAME = "AquaVolt-AI Telemetry Log"
+DEFAULT_SHEET_NAME = "Auguest 2026"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Define 4 distinct fields with their crop types — matches UC_Davis_Russell_Ranch_EXACT_FIELDS.png
