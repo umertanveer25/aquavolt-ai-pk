@@ -939,9 +939,9 @@ def main(push_to_sheets=True):
         print(f"[SHEET] Using monthly worksheet partition: '{subsheet_name}'")
     except gspread.exceptions.WorksheetNotFound:
         print(f"[SHEET] New month detected! Creating partition tab: '{subsheet_name}'...")
-        # Create sheet with 200,000 default rows and 30 columns.
-        print(f"[GOOGLE SHEETS] Tab '{subsheet_name}' not found. Creating it with 200,000 rows...")
-        worksheet = sh.add_worksheet(title=subsheet_name, rows=200000, cols=30)
+        # Create sheet with 1000 default rows and 30 columns. gspread auto-expands as needed.
+        print(f"[GOOGLE SHEETS] Tab '{subsheet_name}' not found. Creating it...")
+        worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=30)
         worksheet.append_row(headers)
 
     existing = worksheet.row_values(1)
