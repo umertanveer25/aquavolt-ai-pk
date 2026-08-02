@@ -918,8 +918,8 @@ def main(push_to_sheets=True):
     except gspread.exceptions.SpreadsheetNotFound:
         print(f"[ERROR] Spreadsheet '{sheet_name}' not found. Creating a new one for this month...")
         sh = gc.create(sheet_name)
-        # Share it with the user's email so it shows up in their Google Drive
-        sh.share("umertanveer25@gmail.com", perm_type="user", role="writer")
+        # Share it with the user's email so it shows up in their Google Drive (Service account is already the owner)
+        sh.share("umertanveer@awkum.edu.pk", perm_type="user", role="writer")
         print(f"[SUCCESS] Created and shared new Spreadsheet: {sheet_name}")
 
     # 29-column schema (added 'field_name')
