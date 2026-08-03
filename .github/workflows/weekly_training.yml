@@ -1,0 +1,45 @@
+name: AquaVolt-AI Weekly PIML Evolve
+
+on:
+  schedule:
+    # Run every Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  train-and-commit:
+    name: Train AI & Update Weights
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas gspread oauth2client
+
+      - name: Run 7-day PIML self-evolution
+        env:
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          PYTHONIOENCODING: "utf-8"
+        run: |
+          python train_piml_weekly.py
+
+      - name: Commit and push new AI weights
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add ai_weights_mlp.json
+          git commit -m "chore: Auto-evolve PIML weights for new week [skip ci]" || echo "No changes to commit"
+          git push

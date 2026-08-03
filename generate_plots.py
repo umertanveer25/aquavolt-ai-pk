@@ -26,14 +26,27 @@ sns.set_theme(style="darkgrid", rc={
 })
 
 def main():
-    print("[INFO] Loading live data from local CSV...")
-    csv_file = os.path.join(os.path.dirname(__file__), 'data', 'telemetry_log.csv')
-    if not os.path.isfile(csv_file):
-        print(f"[ERROR] No CSV found at {csv_file}")
+    print("[INFO] Loading live data from local CSVs...")
+    import glob
+    csv_dir = os.path.join(os.path.dirname(__file__), 'data')
+    csv_files = glob.glob(os.path.join(csv_dir, 'telemetry_log*.csv'))
+    
+    if not csv_files:
+        print("[ERROR] No CSV found in data directory")
+        return
+        
+    dfs = []
+    for f in csv_files:
+        try:
+            dfs.append(pd.read_csv(f))
+        except Exception as e:
+            print(f"[WARNING] Could not read {f}: {e}")
+            
+    if not dfs:
         return
         
     try:
-        df = pd.read_csv(csv_file, low_memory=False)
+        df = pd.concat(dfs, ignore_index=True)
         df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
         df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
         df = df.dropna(subset=['timestamp']).sort_values('timestamp').reset_index(drop=True)

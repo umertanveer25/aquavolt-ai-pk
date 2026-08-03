@@ -904,6 +904,12 @@ def build_url(lat, lon):
     )
 
 
+def get_csv_filename():
+    now_utc = datetime.now(timezone.utc)
+    if now_utc.year == 2026 and now_utc.month <= 8:
+        return "telemetry_log_2026_06_to_08.csv"
+    return f"telemetry_log_{now_utc.strftime('%Y_%m')}.csv"
+
 def main(push_to_sheets=True):
     print("=" * 70)
     print("  AquaVolt-AI Sheets Sync  [Tier 1: Multi-Field Upgrade]")
@@ -968,7 +974,7 @@ def main(push_to_sheets=True):
         current_hour_str = now_utc.strftime("%Y-%m-%d %H:")
         
         # Check CSV first
-        csv_file = os.path.join(SCRIPT_DIR, "data", "telemetry_log.csv")
+        csv_file = os.path.join(SCRIPT_DIR, "data", get_csv_filename())
         if os.path.isfile(csv_file):
             try:
                 with open(csv_file, mode="r", encoding="utf-8") as f:
@@ -1158,7 +1164,7 @@ def main(push_to_sheets=True):
         import csv
         csv_dir = os.path.join(SCRIPT_DIR, "data")
         os.makedirs(csv_dir, exist_ok=True)
-        csv_file = os.path.join(csv_dir, "telemetry_log.csv")
+        csv_file = os.path.join(csv_dir, get_csv_filename())
         file_exists = os.path.isfile(csv_file)
         try:
             with open(csv_file, mode="a", newline="", encoding="utf-8") as f:

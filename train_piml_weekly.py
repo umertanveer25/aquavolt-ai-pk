@@ -23,25 +23,48 @@ def save_weights(weights):
         json.dump(weights, f, indent=2)
 
 def fetch_training_data():
-    """Fetch recent data from local CSV to use as training data."""
-    print("[TRAINING] Fetching latest telemetry from local CSV...")
-    import csv
-    csv_file = os.path.join(os.path.dirname(__file__), "data", "telemetry_log.csv")
-    if not os.path.isfile(csv_file):
-        print(f"[TRAINING] Local CSV not found: {csv_file}")
-        return np.array([]), np.array([])
+    print("[TRAINING] Fetching latest telemetry from local CSVs...")
+    import csv, glob
     
-    records = []
-    with open(csv_file, mode='r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        header = next(reader, None)
-        for row in reader:
-            records.append(row)
+    csv_dir = os.path.join(os.path.dirname(__file__), "data")
+    csv_files = glob.glob(os.path.join(csv_dir, "telemetry_log*.csv"))
+    
+    if not csv_files:
+        print("[TRAINING] No local CSV files found.")
+        return None
+        
+    all_data = []
+    headers = None
+    
+    for f in csv_files:
+        print(f"[TRAINING] Reading {f}...")
+        try:
+            with open(f, mode="r", encoding="utf-8") as file:
+                reader = csv.reader(file)
+                rows = list(reader)
+                if len(rows) > 1:
+                    if headers is None:
+                        headers = rows[0]
+                    all_data.extend(rows[1:])
+        except Exception as e:
+            print(f"[TRAINING ERROR] Reading {f}: {e}")
+            
+    if not all_data:
+        return None
+
+    # Sort data by timestamp (column 0) to ensure chronological order across partitions
+    try:
+        all_data.sort(key=lambda x: x[0])
+    except Exception as e:
+        print(f"[TRAINING] Could not sort data: {e}")
+        
+    df = pd.DataFrame(all_data, columns=headers)
+    df = df.apply(pd.to_numeric, errors='ignore')
     
     X = []
     y = []
     
-    for row in records:
+    for _, row in df.tail(1000).iterrows():
         try:
             # Indices based on aquavolt_gsheet_logger.py columns:
             # 5: ndvi, 6: ndwi, 8: savi, 13: kc, 15: Dr, 18: ETc
