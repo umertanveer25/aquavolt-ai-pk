@@ -93,15 +93,3 @@ jobs:
           git commit -m "chore: Update live telemetry dashboard and plots [skip ci]" || echo "No changes to commit"
           git push
 
-      - name: Send WhatsApp Notification
-        if: always()
-        run: |
-          STATUS="✅ Success"
-          if [ "${{ job.status }}" != "success" ]; then
-            STATUS="❌ Failed"
-          fi
-          MESSAGE="AquaVolt Hourly Sync: $STATUS. Data update attempted."
-          # URL encode the message using python
-          ENCODED_MSG=$(python -c "import urllib.parse; print(urllib.parse.quote('$MESSAGE'))")
-          # Send GET request to CallMeBot API
-          curl -s -X GET "https://api.callmebot.com/whatsapp.php?phone=${{ secrets.CALLMEBOT_PHONE }}&text=$ENCODED_MSG&apikey=${{ secrets.CALLMEBOT_API_KEY }}" || echo "WhatsApp notification skipped"
