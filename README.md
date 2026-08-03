@@ -9,6 +9,7 @@
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/umertanveer25/aquavolt-ai-pk/hourly_sync.yml?label=Hourly%20Data%20Sync)](https://github.com/umertanveer25/aquavolt-ai-pk/actions)
 [![FAO-56](https://img.shields.io/badge/Standard-FAO--56%20PM-lightgrey)](http://www.fao.org/3/x0490e/x0490e00.htm)
 [![AWKUM](https://img.shields.io/badge/Institution-AWKUM%20Pakistan-darkgreen)](https://www.awkum.edu.pk/)
+[![Architecture](https://img.shields.io/badge/Architecture-Interactive_Graph-purple.svg)](graphify-out/graph.html)
 
 **Umer Tanveer** · PhD Candidate, Dept. of Computer Science  
 Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
@@ -206,6 +207,21 @@ Output [2]  → Δkc_residual, Δks_residual  (clipped ±0.15)
 | Dr | 0.071 |
 
 Weights saved to `ai_weights_mlp.json` (JSON, human-readable).
+
+---
+
+## 🧠 Interactive AI Knowledge Graph
+
+To ensure maximum transparency, reproducibility, and ease of onboarding for researchers, this repository is structurally mapped using [Graphify](https://github.com/Graphify-Labs/graphify). 
+
+**[🔗 View the Interactive 3D Architecture Graph](graphify-out/graph.html)**
+
+The automated graph provides an instantly navigable visual map of the codebase, outlining:
+- **God Nodes**: Core abstraction layers (e.g., `aquavolt_gsheet_logger.py`, PIML Engine).
+- **Logical Communities**: AI-inferred clusters separating physics calculations, API ingestion, and telemetry logging.
+- **Dependency Paths**: Showing exactly how the raw satellite data cascades down into the final ETc computations.
+
+*(This graph is automatically recompiled on the cloud via GitHub Actions upon every new commit to ensure it is never out-of-date).*
 
 ---
 
