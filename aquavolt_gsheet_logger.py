@@ -910,17 +910,21 @@ def main(push_to_sheets=True):
     print(f"  Farm: {FARM_NAME}  |  Coords: {LAT}N, {LON}W")
     print("=" * 70)
 
-    gc = get_gspread_client()
     sheet_name = os.environ.get("GSHEET_NAME", DEFAULT_SHEET_NAME)
     print(f"[FILE] Accessing: '{sheet_name}'...")
+    sh = None
     try:
-        sh = gc.open(sheet_name)
-    except gspread.exceptions.SpreadsheetNotFound:
-        print(f"[ERROR] Spreadsheet '{sheet_name}' not found. Creating a new one for this month...")
-        sh = gc.create(sheet_name)
-        # Share it with the user's email so it shows up in their Google Drive (Service account is already the owner)
-        sh.share("umertanveer@awkum.edu.pk", perm_type="user", role="writer")
-        print(f"[SUCCESS] Created and shared new Spreadsheet: {sheet_name}")
+        gc = get_gspread_client()
+        try:
+            sh = gc.open(sheet_name)
+        except gspread.exceptions.SpreadsheetNotFound:
+            print(f"[ERROR] Spreadsheet '{sheet_name}' not found. Creating a new one for this month...")
+            sh = gc.create(sheet_name)
+            # Share it with the user's email so it shows up in their Google Drive (Service account is already the owner)
+            sh.share("umertanveer@awkum.edu.pk", perm_type="user", role="writer")
+            print(f"[SUCCESS] Created and shared new Spreadsheet: {sheet_name}")
+    except Exception as e:
+        print(f"[GOOGLE SHEETS ERROR] {e}. Falling back to LOCAL CSV storage only.")
 
     # 29-column schema (added 'field_name')
     headers = [
@@ -937,33 +941,54 @@ def main(push_to_sheets=True):
     subsheet_name = f"{sheet_name} - {month_year_str}"
 
     worksheet = None
-    try:
-        worksheet = sh.worksheet(subsheet_name)
-        print(f"[SHEET] Using monthly worksheet partition: '{subsheet_name}'")
-    except gspread.exceptions.WorksheetNotFound:
-        print(f"[SHEET] New month detected! Creating partition tab: '{subsheet_name}'...")
-        # Create sheet with 1000 default rows and 30 columns. gspread auto-expands as needed.
-        print(f"[GOOGLE SHEETS] Tab '{subsheet_name}' not found. Creating it...")
-        worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=30)
-        worksheet.append_row(headers)
+    if sh:
+        try:
+            worksheet = sh.worksheet(subsheet_name)
+            print(f"[SHEET] Using monthly worksheet partition: '{subsheet_name}'")
+        except gspread.exceptions.WorksheetNotFound:
+            print(f"[SHEET] New month detected! Creating partition tab: '{subsheet_name}'...")
+            # Create sheet with 1000 default rows and 30 columns. gspread auto-expands as needed.
+            print(f"[GOOGLE SHEETS] Tab '{subsheet_name}' not found. Creating it...")
+            worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=30)
+            worksheet.append_row(headers)
 
-    existing = worksheet.row_values(1)
-    if not existing or existing != headers:
-        print("[HEADER] Updating sheet headers...")
-        worksheet.clear()
-        worksheet.append_row(headers)
+        try:
+            existing = worksheet.row_values(1)
+            if not existing or existing != headers:
+                print("[HEADER] Updating sheet headers...")
+                worksheet.clear()
+                worksheet.append_row(headers)
+        except Exception as e:
+            print(f"[HEADER ERROR] {e}")
 
 
     # Duplicate-hour guard
     if push_to_sheets:
         now_utc = datetime.now(timezone.utc)
         current_hour_str = now_utc.strftime("%Y-%m-%d %H:")
-        all_timestamps = worksheet.col_values(1)
-        if len(all_timestamps) > 1:
-            last_ts = all_timestamps[-1]
-            if last_ts.startswith(current_hour_str):
-                print(f"[SKIP] Data for UTC hour {now_utc.strftime('%Y-%m-%d %H:00')} already exists. Skipping.")
-                sys.exit(0)
+        
+        # Check CSV first
+        csv_file = os.path.join(SCRIPT_DIR, "data", "telemetry_log.csv")
+        if os.path.isfile(csv_file):
+            try:
+                with open(csv_file, mode="r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                    if lines and lines[-1].startswith(current_hour_str):
+                        print(f"[SKIP] Data for UTC hour {now_utc.strftime('%Y-%m-%d %H:00')} already exists in CSV. Skipping.")
+                        sys.exit(0)
+            except Exception:
+                pass
+
+        if worksheet:
+            try:
+                all_timestamps = worksheet.col_values(1)
+                if len(all_timestamps) > 1:
+                    last_ts = all_timestamps[-1]
+                    if last_ts.startswith(current_hour_str):
+                        print(f"[SKIP] Data for UTC hour {now_utc.strftime('%Y-%m-%d %H:00')} already exists in Sheets. Skipping.")
+                        sys.exit(0)
+            except Exception as e:
+                print(f"[GUARD WARNING] {e}")
 
     print("[API] Fetching weather from Open-Meteo...")
     r = session.get(build_url(LAT, LON), timeout=20)
@@ -1129,9 +1154,31 @@ def main(push_to_sheets=True):
         if not rows_to_append:
             print("\n[UPLOAD] No records to upload (satellite fetch was missing).")
             return
-        print(f"\n[UPLOAD] Writing {len(rows_to_append)} records...")
-        worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
-        print(f"[OK] Done.")
+            
+        import csv
+        csv_dir = os.path.join(SCRIPT_DIR, "data")
+        os.makedirs(csv_dir, exist_ok=True)
+        csv_file = os.path.join(csv_dir, "telemetry_log.csv")
+        file_exists = os.path.isfile(csv_file)
+        try:
+            with open(csv_file, mode="a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                if not file_exists:
+                    writer.writerow(headers)
+                writer.writerows(rows_to_append)
+            print(f"\n[LOCAL STORAGE] Successfully appended {len(rows_to_append)} records to {csv_file}")
+        except Exception as e:
+            print(f"[LOCAL STORAGE ERROR] {e}")
+
+        if worksheet:
+            print(f"\n[UPLOAD] Writing {len(rows_to_append)} records to Google Sheets...")
+            try:
+                worksheet.append_rows(rows_to_append, value_input_option='USER_ENTERED')
+                print(f"[OK] Done.")
+            except Exception as e:
+                print(f"[UPLOAD ERROR] {e}")
+        else:
+            print("\n[UPLOAD] Skipping Google Sheets upload due to prior API errors. Local CSV is safe.")
 
     # =====================================================================
     # EARLY WARNING SYSTEM — Physics-based crop stress alert engine
@@ -1334,16 +1381,27 @@ def main(push_to_sheets=True):
 
     # --- RUN VALIDATIONS ON EVERY SYNC ---
     try:
-        run_baseline_validation_and_update_readme(worksheet)
-        run_national_global_validation_and_update_readme(worksheet)
+        # Pass csv_file instead of worksheet for validation
+        run_baseline_validation_and_update_readme(csv_file)
+        run_national_global_validation_and_update_readme(csv_file)
     except Exception as e:
         print(f"[ERROR] Validation run failed: {e}")
 
     return worksheet, rows_to_append
 
-def run_baseline_validation_and_update_readme(worksheet):
+def run_baseline_validation_and_update_readme(csv_file):
     print("\n[VALIDATION] Running daily Open-Meteo baseline ground truth validation...")
-    records = worksheet.get_all_records()
+    import csv
+    if not os.path.isfile(csv_file):
+        print("No local CSV found for validation.")
+        return
+        
+    records = []
+    with open(csv_file, mode='r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            records.append(row)
+            
     if len(records) < 256:
         print("Not enough records in the sheet to validate.")
         return
@@ -1534,10 +1592,11 @@ def run_baseline_validation_and_update_readme(worksheet):
         print("[ERROR] README.md not found.")
 
 
-def run_national_global_validation_and_update_readme(worksheet):
+def run_national_global_validation_and_update_readme(csv_file):
     import pandas as pd
     import math
     import json as json_mod
+    import csv
 
     now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
     val_md = f"### 🌎 Independent Validation (OpenET + CIMIS)\n"
@@ -1551,7 +1610,16 @@ def run_national_global_validation_and_update_readme(worksheet):
 
     try:
         # 1. Load sheet data
-        records = worksheet.get_all_records()
+        if not os.path.isfile(csv_file):
+            print("No local CSV found for validation.")
+            return
+            
+        records = []
+        with open(csv_file, mode='r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                records.append(row)
+                
         if len(records) < 256:
             print("Not enough records in the sheet to validate.")
             val_md += f"*Validation skipped (not enough records).*\n\n"

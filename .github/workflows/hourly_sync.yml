@@ -89,6 +89,6 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git pull --rebase origin main
-          git add README.md docs/*.png
+          git add README.md docs/*.png data/*.csv data/PROVENANCE.json
           git commit -m "chore: Update live telemetry dashboard and plots [skip ci]" || echo "No changes to commit"
           git push

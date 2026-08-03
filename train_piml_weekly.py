@@ -23,19 +23,20 @@ def save_weights(weights):
         json.dump(weights, f, indent=2)
 
 def fetch_training_data():
-    """Fetch recent data from Google Sheets to use as training data."""
-    print("[TRAINING] Fetching latest telemetry from Google Sheets...")
-    gc = aquavolt_gsheet_logger.get_gspread_client()
-    sheet_name = aquavolt_gsheet_logger.DEFAULT_SHEET_NAME
-    try:
-        sh = gc.open(sheet_name)
-        worksheet = sh.get_worksheet(0)
-    except Exception as e:
-        print(f"[TRAINING] Could not open sheet {sheet_name}. It may not exist yet this month. Exiting. Error: {e}")
+    """Fetch recent data from local CSV to use as training data."""
+    print("[TRAINING] Fetching latest telemetry from local CSV...")
+    import csv
+    csv_file = os.path.join(os.path.dirname(__file__), "data", "telemetry_log.csv")
+    if not os.path.isfile(csv_file):
+        print(f"[TRAINING] Local CSV not found: {csv_file}")
         return np.array([]), np.array([])
     
-    # Get all records, ignoring header
-    records = worksheet.get_all_values()[1:]
+    records = []
+    with open(csv_file, mode='r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        header = next(reader, None)
+        for row in reader:
+            records.append(row)
     
     X = []
     y = []

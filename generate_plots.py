@@ -25,13 +25,15 @@ sns.set_theme(style="darkgrid", rc={
     "ytick.color": "#90a4ae"
 })
 
-SHEET_ID = '1c2a-3t8fF2g_PX_0ape4ASTsbr5uX0Zb6YPzT8jtuN8'
-url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1'
-
 def main():
-    print("[INFO] Loading live data from Google Sheet...")
+    print("[INFO] Loading live data from local CSV...")
+    csv_file = os.path.join(os.path.dirname(__file__), 'data', 'telemetry_log.csv')
+    if not os.path.isfile(csv_file):
+        print(f"[ERROR] No CSV found at {csv_file}")
+        return
+        
     try:
-        df = pd.read_csv(url, low_memory=False)
+        df = pd.read_csv(csv_file, low_memory=False)
         df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
         df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
         df = df.dropna(subset=['timestamp']).sort_values('timestamp').reset_index(drop=True)
@@ -43,7 +45,7 @@ def main():
         df['date'] = df['timestamp'].dt.date
         print(f"Loaded {len(df)} rows.")
     except Exception as e:
-        print(f"Error loading sheet: {e}")
+        print(f"Error loading CSV: {e}")
         return
 
     # Ensure docs directory exists
@@ -258,4 +260,3 @@ def generate_baseline_plots(df):
 
 if __name__ == '__main__':
     main()
-
