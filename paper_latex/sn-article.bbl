@@ -1,0 +1,506 @@
+%% BioMed_Central_Bib_Style_v1.01
+
+\begin{thebibliography}{27}
+% BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
+\ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
+\ifx \binits  \undefined \def \binits#1{#1}\fi
+\ifx \bauthor  \undefined \def \bauthor#1{#1}\fi
+\ifx \batitle  \undefined \def \batitle#1{#1}\fi
+\ifx \bjtitle  \undefined \def \bjtitle#1{#1}\fi
+\ifx \bvolume  \undefined \def \bvolume#1{\textbf{#1}}\fi
+\ifx \byear  \undefined \def \byear#1{#1}\fi
+\ifx \bissue  \undefined \def \bissue#1{#1}\fi
+\ifx \bfpage  \undefined \def \bfpage#1{#1}\fi
+\ifx \blpage  \undefined \def \blpage #1{#1}\fi
+\ifx \burl  \undefined \def \burl#1{\textsf{#1}}\fi
+\ifx \doiurl  \undefined \def \doiurl#1{\url{https://doi.org/#1}}\fi
+\ifx \betal  \undefined \def \betal{\textit{et al.}}\fi
+\ifx \binstitute  \undefined \def \binstitute#1{#1}\fi
+\ifx \binstitutionaled  \undefined \def \binstitutionaled#1{#1}\fi
+\ifx \bctitle  \undefined \def \bctitle#1{#1}\fi
+\ifx \beditor  \undefined \def \beditor#1{#1}\fi
+\ifx \bpublisher  \undefined \def \bpublisher#1{#1}\fi
+\ifx \bbtitle  \undefined \def \bbtitle#1{#1}\fi
+\ifx \bedition  \undefined \def \bedition#1{#1}\fi
+\ifx \bseriesno  \undefined \def \bseriesno#1{#1}\fi
+\ifx \blocation  \undefined \def \blocation#1{#1}\fi
+\ifx \bsertitle  \undefined \def \bsertitle#1{#1}\fi
+\ifx \bsnm \undefined \def \bsnm#1{#1}\fi
+\ifx \bsuffix \undefined \def \bsuffix#1{#1}\fi
+\ifx \bparticle \undefined \def \bparticle#1{#1}\fi
+\ifx \barticle \undefined \def \barticle#1{#1}\fi
+\bibcommenthead
+\ifx \bconfdate \undefined \def \bconfdate #1{#1}\fi
+\ifx \botherref \undefined \def \botherref #1{#1}\fi
+\ifx \url \undefined \def \url#1{\textsf{#1}}\fi
+\ifx \bchapter \undefined \def \bchapter#1{#1}\fi
+\ifx \bbook \undefined \def \bbook#1{#1}\fi
+\ifx \bcomment \undefined \def \bcomment#1{#1}\fi
+\ifx \oauthor \undefined \def \oauthor#1{#1}\fi
+\ifx \citeauthoryear \undefined \def \citeauthoryear#1{#1}\fi
+\ifx \endbibitem  \undefined \def \endbibitem {}\fi
+\ifx \bconflocation  \undefined \def \bconflocation#1{#1}\fi
+\ifx \arxivurl  \undefined \def \arxivurl#1{\textsf{#1}}\fi
+\csname PreBibitemsHook\endcsname
+
+%%% 1
+\bibitem[\protect\citeauthoryear{Mu{\~n}oz-Sabater
+  et~al.}{2021}]{MunozSabater2021}
+\begin{barticle}
+\bauthor{\bsnm{Mu{\~n}oz-Sabater}, \binits{J.}},
+\bauthor{\bsnm{Dutra}, \binits{E.}},
+\bauthor{\bsnm{Agust{\'\i}-Panareda}, \binits{A.}},
+\bauthor{\bsnm{Albergel}, \binits{C.}},
+\bauthor{\bsnm{Arduini}, \binits{G.}},
+\bauthor{\bsnm{Balsamo}, \binits{G.}}, \betal:
+\batitle{Era5-land: a state-of-the-art global reanalysis dataset for land
+  applications}.
+\bjtitle{Earth System Science Data}
+\bvolume{13}(\bissue{9}),
+\bfpage{4349}--\blpage{4383}
+(\byear{2021})
+\doiurl{10.5194/essd-13-4349-2021}
+\end{barticle}
+\endbibitem
+
+%%% 2
+\bibitem[\protect\citeauthoryear{Friedlingstein
+  et~al.}{2023}]{Friedlingstein2023}
+\begin{barticle}
+\bauthor{\bsnm{Friedlingstein}, \binits{P.}},
+\bauthor{\bsnm{O'Sullivan}, \binits{M.}},
+\bauthor{\bsnm{Jones}, \binits{M.W.}},
+\bauthor{\bsnm{Andrew}, \binits{R.M.}},
+\bauthor{\bsnm{Bakker}, \binits{D.C.E.}},
+\bauthor{\bsnm{Hauck}, \binits{J.}}, \betal:
+\batitle{Global carbon budget 2023}.
+\bjtitle{Earth System Science Data}
+\bvolume{15}(\bissue{12}),
+\bfpage{5301}--\blpage{5369}
+(\byear{2023})
+\doiurl{10.5194/essd-15-5301-2023}
+\end{barticle}
+\endbibitem
+
+%%% 3
+\bibitem[\protect\citeauthoryear{Jiao et~al.}{2021}]{Jiao2021}
+\begin{barticle}
+\bauthor{\bsnm{Jiao}, \binits{W.}},
+\bauthor{\bsnm{Wang}, \binits{L.}},
+\bauthor{\bsnm{Smith}, \binits{W.K.}},
+\bauthor{\bsnm{Chang}, \binits{Q.}},
+\bauthor{\bsnm{Wang}, \binits{H.}},
+\bauthor{\bsnm{D'Odorico}, \binits{P.}}:
+\batitle{Observed increasing water constraint on vegetation growth over the
+  last three decades}.
+\bjtitle{Nature Communications}
+\bvolume{12}(\bissue{1}),
+\bfpage{3777}
+(\byear{2021})
+\doiurl{10.1038/s41467-021-24016-9}
+\end{barticle}
+\endbibitem
+
+%%% 4
+\bibitem[\protect\citeauthoryear{Allen et~al.}{1998}]{Allen1998}
+\begin{bbook}
+\bauthor{\bsnm{Allen}, \binits{R.G.}},
+\bauthor{\bsnm{Pereira}, \binits{L.S.}},
+\bauthor{\bsnm{Raes}, \binits{D.}},
+\bauthor{\bsnm{Smith}, \binits{M.}}:
+\bbtitle{Crop evapotranspiration-Guidelines for Computing Crop Water
+  requirements-FAO Irrigation and Drainage Paper 56}
+vol. \bseriesno{300},
+p. \bfpage{05109}.
+\bpublisher{Food and Agriculture Organization of the United Nations},
+\blocation{Rome, Italy}
+(\byear{1998})
+\end{bbook}
+\endbibitem
+
+%%% 5
+\bibitem[\protect\citeauthoryear{Kool et~al.}{2014}]{Kool2014}
+\begin{barticle}
+\bauthor{\bsnm{Kool}, \binits{D.}},
+\bauthor{\bsnm{Ben-Gal}, \binits{A.}},
+\bauthor{\bsnm{Agam}, \binits{N.}},
+\bauthor{\bsnm{{\v{S}}im{\r{u}}nek}, \binits{J.}},
+\bauthor{\bsnm{Heitman}, \binits{J.L.}},
+\bauthor{\bsnm{Sauer}, \binits{T.J.}}, \betal:
+\batitle{A review of approaches for partitioning evapotranspiration into plant
+  transpiration and soil evaporation}.
+\bjtitle{Agricultural and Forest Meteorology}
+\bvolume{184},
+\bfpage{56}--\blpage{70}
+(\byear{2014})
+\doiurl{10.1016/j.agrformet.2013.09.003}
+\end{barticle}
+\endbibitem
+
+%%% 6
+\bibitem[\protect\citeauthoryear{Vasisht et~al.}{2017}]{Vasisht2017}
+\begin{bchapter}
+\bauthor{\bsnm{Vasisht}, \binits{D.}},
+\bauthor{\bsnm{Kapetanovic}, \binits{Z.}},
+\bauthor{\bsnm{Won}, \binits{J.}},
+\bauthor{\bsnm{Xhafa}, \binits{X.}},
+\bauthor{\bsnm{Shah}, \binits{M.}},
+\bauthor{\bsnm{Kapoor}, \binits{A.}}, \betal:
+\bctitle{Farmbeats: An iot platform for data-driven agriculture}.
+In: \bbtitle{14th USENIX Symposium on Networked Systems Design and
+  Implementation (NSDI 17)},
+pp. \bfpage{515}--\blpage{529}
+(\byear{2017})
+\end{bchapter}
+\endbibitem
+
+%%% 7
+\bibitem[\protect\citeauthoryear{Kamilaris and
+  Prenafeta-Bold{\'u}}{2018}]{Kamilaris2018}
+\begin{barticle}
+\bauthor{\bsnm{Kamilaris}, \binits{A.}},
+\bauthor{\bsnm{Prenafeta-Bold{\'u}}, \binits{F.X.}}:
+\batitle{Deep learning in agriculture: A survey}.
+\bjtitle{Computers and Electronics in Agriculture}
+\bvolume{147},
+\bfpage{70}--\blpage{90}
+(\byear{2018})
+\doiurl{10.1016/j.compag.2018.02.016}
+\end{barticle}
+\endbibitem
+
+%%% 8
+\bibitem[\protect\citeauthoryear{Benos et~al.}{2021}]{Benos2021}
+\begin{barticle}
+\bauthor{\bsnm{Benos}, \binits{L.}},
+\bauthor{\bsnm{Tagarakis}, \binits{A.C.}},
+\bauthor{\bsnm{Dolias}, \binits{G.}},
+\bauthor{\bsnm{Berruto}, \binits{R.}},
+\bauthor{\bsnm{Kateris}, \binits{D.}},
+\bauthor{\bsnm{Bochtis}, \binits{D.}}:
+\batitle{Machine learning in agriculture: A comprehensive updated review}.
+\bjtitle{Sensors}
+\bvolume{21}(\bissue{11}),
+\bfpage{3758}
+(\byear{2021})
+\doiurl{10.3390/s21113758}
+\end{barticle}
+\endbibitem
+
+%%% 9
+\bibitem[\protect\citeauthoryear{Karniadakis et~al.}{2021}]{Karniadakis2021}
+\begin{barticle}
+\bauthor{\bsnm{Karniadakis}, \binits{G.E.}},
+\bauthor{\bsnm{Kevrekidis}, \binits{I.G.}},
+\bauthor{\bsnm{Lu}, \binits{L.}},
+\bauthor{\bsnm{Perdikaris}, \binits{P.}},
+\bauthor{\bsnm{Wang}, \binits{S.}},
+\bauthor{\bsnm{Yang}, \binits{L.}}:
+\batitle{Physics-informed machine learning}.
+\bjtitle{Nature Reviews Physics}
+\bvolume{3}(\bissue{6}),
+\bfpage{422}--\blpage{440}
+(\byear{2021})
+\doiurl{10.1038/s42254-021-00314-5}
+\end{barticle}
+\endbibitem
+
+%%% 10
+\bibitem[\protect\citeauthoryear{Reichstein et~al.}{2019}]{Reichstein2019}
+\begin{barticle}
+\bauthor{\bsnm{Reichstein}, \binits{M.}},
+\bauthor{\bsnm{Camps-Valls}, \binits{G.}},
+\bauthor{\bsnm{Stevens}, \binits{B.}},
+\bauthor{\bsnm{Jung}, \binits{M.}},
+\bauthor{\bsnm{Denzler}, \binits{J.}},
+\bauthor{\bsnm{Carvalhais}, \binits{N.}},
+\bauthor{\bsnm{Prabhat}}:
+\batitle{Deep learning and process understanding for data-driven earth system
+  science}.
+\bjtitle{Nature}
+\bvolume{566}(\bissue{7743}),
+\bfpage{195}--\blpage{204}
+(\byear{2019})
+\doiurl{10.1038/s41586-019-0912-1}
+\end{barticle}
+\endbibitem
+
+%%% 11
+\bibitem[\protect\citeauthoryear{Penman}{1948}]{Penman1948}
+\begin{barticle}
+\bauthor{\bsnm{Penman}, \binits{H.L.}}:
+\batitle{Natural evaporation from open water, bare soil and grass}.
+\bjtitle{Proceedings of the Royal Society of London. Series A. Mathematical and
+  Physical Sciences}
+\bvolume{193}(\bissue{1032}),
+\bfpage{120}--\blpage{145}
+(\byear{1948})
+\doiurl{10.1098/rspa.1948.0037}
+\end{barticle}
+\endbibitem
+
+%%% 12
+\bibitem[\protect\citeauthoryear{Monteith}{1965}]{Monteith1965}
+\begin{bchapter}
+\bauthor{\bsnm{Monteith}, \binits{J.L.}}:
+\bctitle{Evaporation and environment}.
+In: \bbtitle{Symposia of the Society for Experimental Biology},
+vol. \bseriesno{19},
+pp. \bfpage{205}--\blpage{234}
+(\byear{1965})
+\end{bchapter}
+\endbibitem
+
+%%% 13
+\bibitem[\protect\citeauthoryear{Allen et~al.}{2007}]{Allen2007}
+\begin{barticle}
+\bauthor{\bsnm{Allen}, \binits{R.G.}},
+\bauthor{\bsnm{Tasumi}, \binits{M.}},
+\bauthor{\bsnm{Trezza}, \binits{R.}}:
+\batitle{Satellite-based energy balance for mapping evapotranspiration with
+  internalized calibration (metric)—model}.
+\bjtitle{Journal of Irrigation and Drainage Engineering}
+\bvolume{133}(\bissue{4}),
+\bfpage{380}--\blpage{394}
+(\byear{2007})
+\doiurl{10.1061/(ASCE)0733-9437(2007)133:4(380)}
+\end{barticle}
+\endbibitem
+
+%%% 14
+\bibitem[\protect\citeauthoryear{Bastiaanssen et~al.}{1998}]{Bastiaanssen1998}
+\begin{barticle}
+\bauthor{\bsnm{Bastiaanssen}, \binits{W.G.M.}},
+\bauthor{\bsnm{Menenti}, \binits{M.}},
+\bauthor{\bsnm{Feddes}, \binits{R.A.}},
+\bauthor{\bsnm{Holtslag}, \binits{A.A.M.}}:
+\batitle{A remote sensing surface energy balance algorithm for land (sebal). 1.
+  formulation}.
+\bjtitle{Journal of Hydrology}
+\bvolume{212-213},
+\bfpage{198}--\blpage{212}
+(\byear{1998})
+\doiurl{10.1016/S0022-1694(98)00253-4}
+\end{barticle}
+\endbibitem
+
+%%% 15
+\bibitem[\protect\citeauthoryear{Li et~al.}{2022}]{Li2022}
+\begin{barticle}
+\bauthor{\bsnm{Li}, \binits{Z.-L.}},
+\bauthor{\bsnm{Wu}, \binits{H.}},
+\bauthor{\bsnm{Duan}, \binits{S.-B.}},
+\bauthor{\bsnm{Zhao}, \binits{W.}},
+\bauthor{\bsnm{Ren}, \binits{H.}},
+\bauthor{\bsnm{Liu}, \binits{X.}}, \betal:
+\batitle{Satellite remote sensing of global land surface temperature:
+  Definition, methods, products, and applications}.
+\bjtitle{Reviews of Geophysics}
+\bvolume{60}(\bissue{4}),
+\bfpage{2022}--\blpage{000777}
+(\byear{2022})
+\doiurl{10.1029/2022RG000777}
+\end{barticle}
+\endbibitem
+
+%%% 16
+\bibitem[\protect\citeauthoryear{Anderson et~al.}{2012}]{Anderson2012}
+\begin{barticle}
+\bauthor{\bsnm{Anderson}, \binits{M.C.}},
+\bauthor{\bsnm{Allen}, \binits{R.G.}},
+\bauthor{\bsnm{Femiglietti}, \binits{J.S.}},
+\bauthor{\bsnm{Kustas}, \binits{W.P.}},
+\bauthor{\bsnm{Norman}, \binits{J.M.}}:
+\batitle{Thermal remote sensing of drought and evapotranspiration}.
+\bjtitle{Remote Sensing of Environment}
+\bvolume{118},
+\bfpage{257}--\blpage{272}
+(\byear{2012})
+\doiurl{10.1016/j.rse.2011.08.025}
+\end{barticle}
+\endbibitem
+
+%%% 17
+\bibitem[\protect\citeauthoryear{Fisher et~al.}{2017}]{Fisher2017}
+\begin{barticle}
+\bauthor{\bsnm{Fisher}, \binits{J.B.}},
+\bauthor{\bsnm{Lee}, \binits{B.}},
+\bauthor{\bsnm{Purdy}, \binits{A.J.}},
+\bauthor{\bsnm{Halverson}, \binits{G.H.}},
+\bauthor{\bsnm{Dohlen}, \binits{M.B.}},
+\bauthor{\bsnm{Cawse-Nicholson}, \binits{K.}}, \betal:
+\batitle{The ecostress mission: Nasa's next-generation thermal infrared
+  radiometer on the international space station}.
+\bjtitle{Water Resources Research}
+\bvolume{53}(\bissue{10}),
+\bfpage{8184}--\blpage{8198}
+(\byear{2017})
+\doiurl{10.1002/2017WR021417}
+\end{barticle}
+\endbibitem
+
+%%% 18
+\bibitem[\protect\citeauthoryear{Drusch et~al.}{2012}]{Drusch2012}
+\begin{barticle}
+\bauthor{\bsnm{Drusch}, \binits{M.}},
+\bauthor{\bsnm{Del~Bello}, \binits{U.}},
+\bauthor{\bsnm{Carlier}, \binits{S.}},
+\bauthor{\bsnm{Colin}, \binits{O.}},
+\bauthor{\bsnm{Fernandez}, \binits{V.}},
+\bauthor{\bsnm{Gascon}, \binits{F.}}, \betal:
+\batitle{Sentinel-2: Esa's optical high-resolution mission for gmes operational
+  services}.
+\bjtitle{Remote Sensing of Environment}
+\bvolume{120},
+\bfpage{25}--\blpage{36}
+(\byear{2012})
+\doiurl{10.1016/j.rse.2011.11.026}
+\end{barticle}
+\endbibitem
+
+%%% 19
+\bibitem[\protect\citeauthoryear{Sarker}{2021}]{Sarker2021}
+\begin{barticle}
+\bauthor{\bsnm{Sarker}, \binits{I.H.}}:
+\batitle{Machine learning: Algorithms, real-world applications and research
+  directions}.
+\bjtitle{SN Computer Science}
+\bvolume{2}(\bissue{3}),
+\bfpage{160}
+(\byear{2021})
+\doiurl{10.1007/s42979-021-00592-x}
+\end{barticle}
+\endbibitem
+
+%%% 20
+\bibitem[\protect\citeauthoryear{Li et~al.}{2021}]{Li2021CNN}
+\begin{barticle}
+\bauthor{\bsnm{Li}, \binits{Z.}},
+\bauthor{\bsnm{Liu}, \binits{F.}},
+\bauthor{\bsnm{Yang}, \binits{W.}},
+\bauthor{\bsnm{Peng}, \binits{S.}},
+\bauthor{\bsnm{Zhou}, \binits{J.}}:
+\batitle{A survey of convolutional neural networks: Analysis, applications, and
+  prospects}.
+\bjtitle{IEEE Transactions on Neural Networks and Learning Systems}
+\bvolume{33}(\bissue{12}),
+\bfpage{6999}--\blpage{7019}
+(\byear{2021})
+\doiurl{10.1109/TNNLS.2021.3084827}
+\end{barticle}
+\endbibitem
+
+%%% 21
+\bibitem[\protect\citeauthoryear{Alzubaidi et~al.}{2021}]{Alzubaidi2021}
+\begin{barticle}
+\bauthor{\bsnm{Alzubaidi}, \binits{L.}},
+\bauthor{\bsnm{Zhang}, \binits{J.}},
+\bauthor{\bsnm{Humaidi}, \binits{A.J.}},
+\bauthor{\bsnm{Al-Dujaili}, \binits{A.}},
+\bauthor{\bsnm{Duan}, \binits{Y.}},
+\bauthor{\bsnm{Al-Shamma}, \binits{O.}}, \betal:
+\batitle{Review of deep learning: concepts, cnn architectures, challenges,
+  applications, future directions}.
+\bjtitle{Journal of Big Data}
+\bvolume{8}(\bissue{1}),
+\bfpage{53}
+(\byear{2021})
+\doiurl{10.1186/s40537-021-00444-8}
+\end{barticle}
+\endbibitem
+
+%%% 22
+\bibitem[\protect\citeauthoryear{Read et~al.}{2019}]{Read2019}
+\begin{barticle}
+\bauthor{\bsnm{Read}, \binits{J.S.}},
+\bauthor{\bsnm{Jia}, \binits{X.}},
+\bauthor{\bsnm{Thomas}, \binits{J.}},
+\bauthor{\bsnm{Appling}, \binits{A.P.}},
+\bauthor{\bsnm{Zwart}, \binits{J.A.}},
+\bauthor{\bsnm{Oliver}, \binits{S.K.}}, \betal:
+\batitle{Process-guided deep learning predictions of lake water temperature}.
+\bjtitle{Water Resources Research}
+\bvolume{55}(\bissue{11}),
+\bfpage{9173}--\blpage{9190}
+(\byear{2019})
+\doiurl{10.1029/2019WR024922}
+\end{barticle}
+\endbibitem
+
+%%% 23
+\bibitem[\protect\citeauthoryear{Shen et~al.}{2021}]{Shen2021}
+\begin{barticle}
+\bauthor{\bsnm{Shen}, \binits{C.}},
+\bauthor{\bsnm{Chen}, \binits{X.}},
+\bauthor{\bsnm{Laloy}, \binits{E.}}:
+\batitle{A transdisciplinary roadmap for ai in hydrology and water resources}.
+\bjtitle{Nature Reviews Earth \& Environment}
+\bvolume{2}(\bissue{7}),
+\bfpage{432}--\blpage{445}
+(\byear{2021})
+\doiurl{10.1038/s43017-021-00168-w}
+\end{barticle}
+\endbibitem
+
+%%% 24
+\bibitem[\protect\citeauthoryear{Zhao et~al.}{2019}]{Zhao2019}
+\begin{barticle}
+\bauthor{\bsnm{Zhao}, \binits{W.}},
+\bauthor{\bsnm{Sanchez}, \binits{N.}},
+\bauthor{\bsnm{Lu}, \binits{H.}},
+\bauthor{\bsnm{Li}, \binits{Z.}}:
+\batitle{Physics-constrained machine learning for crop evapotranspiration
+  estimation}.
+\bjtitle{Journal of Hydrology}
+\bvolume{577},
+\bfpage{123988}
+(\byear{2019})
+\doiurl{10.1016/j.jhydrol.2019.123988}
+\end{barticle}
+\endbibitem
+
+%%% 25
+\bibitem[\protect\citeauthoryear{Chicco et~al.}{2021}]{Chicco2021}
+\begin{barticle}
+\bauthor{\bsnm{Chicco}, \binits{D.}},
+\bauthor{\bsnm{Warrens}, \binits{M.J.}},
+\bauthor{\bsnm{Jurman}, \binits{G.}}:
+\batitle{The coefficient of determination r-squared is more informative than
+  smape, mae, mape, mse and rmse in regression analysis evaluation}.
+\bjtitle{PeerJ Computer Science}
+\bvolume{7},
+\bfpage{623}
+(\byear{2021})
+\doiurl{10.7717/peerj-cs.623}
+\end{barticle}
+\endbibitem
+
+%%% 26
+\bibitem[\protect\citeauthoryear{Willmott}{1981}]{Willmott1981}
+\begin{barticle}
+\bauthor{\bsnm{Willmott}, \binits{C.J.}}:
+\batitle{On the validation of models}.
+\bjtitle{Physical Geography}
+\bvolume{2}(\bissue{2}),
+\bfpage{184}--\blpage{194}
+(\byear{1981})
+\doiurl{10.1080/02723646.1981.10656002}
+\end{barticle}
+\endbibitem
+
+%%% 27
+\bibitem[\protect\citeauthoryear{Nash and Sutcliffe}{1970}]{Nash1970}
+\begin{barticle}
+\bauthor{\bsnm{Nash}, \binits{J.E.}},
+\bauthor{\bsnm{Sutcliffe}, \binits{J.V.}}:
+\batitle{River flow forecasting through conceptual models part i—a discussion
+  of principles}.
+\bjtitle{Journal of Hydrology}
+\bvolume{10}(\bissue{3}),
+\bfpage{282}--\blpage{290}
+(\byear{1970})
+\doiurl{10.1016/0022-1694(70)90098-3}
+\end{barticle}
+\endbibitem
+
+\end{thebibliography}

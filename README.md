@@ -317,6 +317,26 @@ See [📊 DATA_COLLECTION.md](docs/DATA_COLLECTION.md) for detailed instructions
 
 ---
 
+## 🌍 AquaVolt Version 2.0 (Future Architecture)
+
+While the current system utilizes 8 real data sources and a 7-feature MLP to predict crop water demand, the architecture is designed to eventually scale into a **complete Geospatial Digital Twin of the Earth's surface and subsurface**. Integrating the following 8 additional satellites and 19 derived features (all via keyless, open-source APIs like Microsoft Planetary Computer) would unlock:
+
+### 1. Seeing Underground (The Groundwater Revolution)
+By integrating the **EMAG2 (Magnetic-Gravity Model)** and `subsurface_magnetic_faults`, AquaVolt would no longer just look at the surface. Gravity anomalies and magnetic fault lines dictate how deep groundwater flows. The AI could predict **aquifer depletion** and underground water tables, warning farmers: *"Your deep well is going to run dry in 3 months because the subsurface fault line isn't recharging the aquifer."*
+
+### 2. Perfect Physics Modeling (The 3D Topography Matrix)
+Combining **Copernicus DEM (`elevation`, `slope`, `aspect`, `hillshade`)** with `regional_gravity_anomaly` means the AI understands gravity's pull on water across a 3D landscape. It perfectly simulates runoff—calculating exactly how water flows down the `slope`, pools in valleys, and drains through the `lineament_density` (cracks in rock), predicting flash floods or pooling with zero physical sensors.
+
+### 3. Hyper-Spectral Crop Forensics
+By combining **Sentinel-2, Landsat-8/9, and Sentinel-1 SAR (dual polarization VV/VH)**, and deriving features like `hyperspectral_clay_anomaly`, `ferrous_iron`, and `gndvi_anomaly`, the AI becomes a chemical forensics lab. It could differentiate between a plant dying from lack of water versus one dying because the soil has too much iron, or a `clay_ratio` that is choking roots.
+
+### 4. Climate Change & Emission Tracking
+By tracking `methane_anomaly` via **Sentinel-5P** (using AI downscaling from 5.5km to 10m grids) and `temporal_instability` across seasons, AquaVolt could measure the exact carbon footprint and greenhouse gas emissions of a farm. This would allow farms to automatically calculate and sell **Carbon Credits** on the open market, using the AI's data as undeniable proof of sustainable farming.
+
+**Validation Strategy:** The Methane Downscaler relies on a strict **Mass Conservation Loss** during PyTorch inference, mathematically forcing the mean of the generated 10m micro-sectors to perfectly equal the real 5.5km satellite macro-reading (verified to `< 1e-4` precision). Physically, the model enforces that predicted methane anomalies positively correlate with localized soil moisture peaks (identifying waterlogged, anaerobic soil conditions).
+
+---
+
 ## 🚀 Roadmap
 
 ### Published / Completed

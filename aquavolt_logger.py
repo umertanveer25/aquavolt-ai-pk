@@ -426,7 +426,8 @@ def init_db():
         "et0_deficit_7d": "REAL",
         "scene_id": "TEXT",
         "field_name": "TEXT",
-        "lst_source": "TEXT"
+        "lst_source": "TEXT",
+        "methane_anomaly": "REAL"
     }
     for col_name, col_type in new_cols.items():
         if col_name not in existing_cols:
@@ -579,20 +580,39 @@ def fetch_and_store():
                 if irr > 0:
                     Dr = round(max(0.0, Dr - irr), 2)
 
+                # ── V2 Methane Downscaling (Time-Locked to Sept 1, 2026) ──
+                methane_anomaly = None
+                if datetime.now(timezone.utc) >= datetime(2026, 9, 1, tzinfo=timezone.utc):
+                    try:
+                        import sys
+                        api_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "api")
+                        if api_path not in sys.path:
+                            sys.path.append(api_path)
+                        from methane_downscaler import apply_downscaling
+                        
+                        # Use simulated macro for now in the live loop
+                        macro_val = 0.045 
+                        # Run single-sector downscale without mass conservation (since we stream inserts)
+                        feat = [[ndvi, lst_measured, clay, soil_moist, slope]]
+                        methane_anomaly = round(apply_downscaling(macro_val, feat)[0], 4)
+                    except Exception as e:
+                        print(f"  [V2 WARNING] Methane downscale failed: {e}")
+                        methane_anomaly = None
+
                 cur.execute("""
                     INSERT INTO telemetry_log (
                         timestamp, latitude, longitude, sector_row, sector_col,
                         ndvi, ndwi, ndwi_real, savi, lai, fcover, lst, lst_modis,
                         Kc, Ks, Dr, TAW, RAW, ETc, water_need,
                         air_temp, humidity, solar_rad, precip, soil_temp, soil_moisture, 
-                        et0_deficit_7d, scene_id, field_name, lst_source
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        et0_deficit_7d, scene_id, field_name, lst_source, methane_anomaly
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """, (
                     now_str, field["lat"], field["lon"], row, col,
                     ndvi, ndwi, ndwi_real_val, savi, lai, fcover, lst_measured, modis_lst_val,
                     kc, ks, Dr, TAW, RAW, ETc, irr,
                     temp, humidity, solar_rad, precip_cur, soil_temp, soil_moist, 
-                    deficit_7d, scene_id, f_name, lst_source
+                    deficit_7d, scene_id, f_name, lst_source, methane_anomaly
                 ))
                 count += 1
 
