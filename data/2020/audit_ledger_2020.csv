@@ -8,3 +8,6 @@ year,month,month_name,status,reason,num_orbits,methane_ppb,confidence
 2020,7,July,SUCCESS,"439 orbits composited, 18 SAR passes, conf=1.0",439,1855.76,1.0
 2020,8,August,SUCCESS,"430 orbits composited, 20 SAR passes, conf=1.0",430,1879.29,1.0
 2020,9,September,SUCCESS,"422 orbits composited, 17 SAR passes, conf=1.0",422,1892.3,1.0
+2020,10,October,SUCCESS,"419 orbits composited, 19 SAR passes, conf=1.0",419,1885.23,1.0
+2020,11,November,SUCCESS,"424 orbits composited, 17 SAR passes, conf=1.0",424,1894.47,1.0
+2020,12,December,SUCCESS,"411 orbits composited, 18 SAR passes, conf=1.0",411,1894.9,1.0
