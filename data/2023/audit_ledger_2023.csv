@@ -10,3 +10,4 @@ year,month,month_name,status,reason,num_orbits,methane_ppb,confidence
 2023,9,September,SUCCESS,"425 orbits composited, 10 SAR passes, conf=1.0",425,1918.07,1.0
 2023,10,October,SUCCESS,"440 orbits composited, 9 SAR passes, conf=1.0",440,1918.86,1.0
 2023,11,November,SUCCESS,"287 orbits composited, 9 SAR passes, conf=1.0",287,1930.62,1.0
+2023,12,December,SUCCESS,"436 orbits composited, 10 SAR passes, conf=1.0",436,1917.14,1.0
