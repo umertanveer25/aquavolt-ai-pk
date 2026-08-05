@@ -7,6 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/umertanveer25/aquavolt-ai-pk/hourly_sync.yml?label=Hourly%20Data%20Sync)](https://github.com/umertanveer25/aquavolt-ai-pk/actions)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21802983.svg)](https://doi.org/10.5281/zenodo.21802983)
 [![FAO-56](https://img.shields.io/badge/Standard-FAO--56%20PM-lightgrey)](http://www.fao.org/3/x0490e/x0490e00.htm)
 [![AWKUM](https://img.shields.io/badge/Institution-AWKUM%20Pakistan-darkgreen)](https://www.awkum.edu.pk/)
 [![Architecture](https://img.shields.io/badge/Architecture-Interactive_Graph-purple.svg)](graphify-out/graph.html)
@@ -357,7 +358,7 @@ By tracking `methane_anomaly` via **Sentinel-5P** (using AI downscaling from 5.5
 - [ ] Multi-season validation (full growing season, multiple sites)
 - [ ] Rainfall-suppression logic field test (requires real rain events)
 - [ ] Paired-plot irrigation trial (AI-scheduled vs conventional)
-- [ ] Zenodo DOI registration for dataset
+- [x] Zenodo DOI registration for dataset
 - [ ] REST API endpoint for external data access
 - [ ] Mobile dashboard (Flutter)
 - [ ] District-level Pakistan soil classification
@@ -372,10 +373,10 @@ By tracking `methane_anomaly` via **Sentinel-5P** (using AI downscaling from 5.5
   title        = {{AquaVolt-AI: Physics-Informed Machine Learning for
                    Sub-Field Precision Irrigation Scheduling}},
   year         = {2026},
-  publisher    = {GitHub},
-  institution  = {Abdul Wali Khan University Mardan (AWKUM), Pakistan},
-  url          = {https://github.com/umertanveer25/aquavolt-ai-pk},
-  note         = {Department of Computer Science, AWKUM, Mardan, KP, Pakistan}
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.21802983},
+  url          = {https://doi.org/10.5281/zenodo.21802983},
+  institution  = {Abdul Wali Khan University Mardan (AWKUM), Pakistan}
 }
 ```
 

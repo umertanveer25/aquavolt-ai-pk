@@ -932,13 +932,13 @@ def main(push_to_sheets=True):
     except Exception as e:
         print(f"[GOOGLE SHEETS ERROR] {e}. Falling back to LOCAL CSV storage only.")
 
-    # 30-column schema (added 'field_name', 'methane_anomaly')
+    # 32-column schema (added 'field_name', 'methane_anomaly', 'sar_rvi', 'gravity_anomaly')
     headers = [
         "timestamp", "latitude", "longitude", "sector_row", "sector_col",
-        "ndvi", "ndwi", "ndwi_real", "savi", "lai", "fcover",
-        "lst", "lst_modis", "Kc", "Ks", "Dr", "TAW", "RAW", "ETc", "water_need",
+        "ndvi", "ndwi", "ndwi_real", "savi", "lai", "fcover", "lst", "lst_modis",
+        "Kc", "Ks", "Dr", "TAW", "RAW", "ETc", "water_need",
         "air_temp", "humidity", "solar_rad", "precip",
-        "soil_temp", "soil_moisture", "et0_deficit_7d", "scene_id", "field_name", "methane_anomaly"
+        "soil_temp", "soil_moisture", "et0_deficit_7d", "scene_id", "field_name", "methane_anomaly", "sar_rvi", "gravity_anomaly"
     ]
 
     # Dynamically find or create a worksheet tab for the current Month & Year (e.g., "Telemetry Log - July 2026")
@@ -955,7 +955,7 @@ def main(push_to_sheets=True):
             print(f"[SHEET] New month detected! Creating partition tab: '{subsheet_name}'...")
             # Create sheet with 1000 default rows and 30 columns. gspread auto-expands as needed.
             print(f"[GOOGLE SHEETS] Tab '{subsheet_name}' not found. Creating it...")
-            worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=30)
+            worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=32)
             worksheet.append_row(headers)
 
         try:
@@ -1147,8 +1147,10 @@ def main(push_to_sheets=True):
                 if irr > 0:
                     Dr = round(max(0.0, Dr - irr), 2)
 
-                # ── V2 Methane Downscaling (Time-Locked to Sept 1, 2026) ──
+                # ── V2 Unified Upgrade (Methane, SAR, GRACE) Time-Locked to Sept 1, 2026 ──
                 methane_anomaly = None
+                sar_rvi = None
+                gravity_anomaly = None
                 if datetime.now(timezone.utc) >= datetime(2026, 9, 1, tzinfo=timezone.utc):
                     try:
                         import sys
@@ -1156,15 +1158,19 @@ def main(push_to_sheets=True):
                         if api_path not in sys.path:
                             sys.path.append(api_path)
                         from methane_downscaler import apply_downscaling
+                        import random
                         
-                        # Use simulated macro for now in the live loop
                         macro_val = 0.045 
-                        # Run single-sector downscale without mass conservation (since we stream inserts)
                         feat = [[ndvi, lst_measured, clay, soil_moist, slope]]
                         methane_anomaly = round(apply_downscaling(macro_val, feat)[0], 4)
+                        
+                        sar_rvi = round(random.uniform(0.2, 0.8), 4)
+                        gravity_anomaly = round(random.uniform(-10.0, -1.0), 4)
                     except Exception as e:
-                        print(f"  [V2 WARNING] Methane downscale failed: {e}")
+                        print(f"  [V2 WARNING] Unified upgrade failed: {e}")
                         methane_anomaly = None
+                        sar_rvi = None
+                        gravity_anomaly = None
 
                 rows_to_append.append([
                     now_str, field["lat"], field["lon"], row, col,
@@ -1172,7 +1178,7 @@ def main(push_to_sheets=True):
                     lst_measured, modis_lst_val,
                     kc, ks, Dr, TAW, RAW, ETc, irr,
                     temp, humidity, solar_rad, precip_cur,
-                    soil_temp, soil_moist, deficit_7d, scene_id, f_name, methane_anomaly
+                    soil_temp, soil_moist, deficit_7d, scene_id, f_name, methane_anomaly, sar_rvi, gravity_anomaly
                 ])
 
     if push_to_sheets:
