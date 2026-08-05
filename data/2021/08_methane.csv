@@ -1,0 +1,2 @@
+timestamp,latitude,longitude,field_id,macro_methane_5km,downscaled_methane_10m,sar_radar_proxy,stac_item_id,source_cloud
+2021-08-05,38.5382,-121.7617,UC_DAVIS_PLOT_1,1849.45,36.41,-15.0,COPERNICUS/S5P/OFFL/L3_CH4/20210805T210909_20210807T141216,Google Earth Engine
