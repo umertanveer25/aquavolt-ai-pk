@@ -1,0 +1,2 @@
+year,month,month_name,status,reason,num_orbits,methane_ppb,confidence
+2020,1,January,SUCCESS,"312 orbits composited, 13 SAR passes, conf=1.0",312,1878.11,1.0
