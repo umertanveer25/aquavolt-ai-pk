@@ -1,0 +1,2 @@
+year,month,month_name,latitude,longitude,field_id,regional_methane_ppb,emission_proxy_kg_hr,sar_vh_db,sar_available,num_s5p_orbits,num_s1_passes,confidence_score,methane_band,methane_radius_km,methodology,source
+2022,4,April,38.5382,-121.7617,UC_DAVIS_PLOT_1,1889.83,29.25,-18.109,True,424,10,1.0,CH4_column_volume_mixing_ratio_dry_air_bias_corrected,25.0,monthly_composite_gold_standard,Sentinel-5P + Sentinel-1 via Google Earth Engine
