@@ -708,7 +708,7 @@ def archive_previous_month_to_git():
         # Run git commands in a subprocess
         subprocess.run(["git", "add", archive_path], check=True, cwd=repo_root)
         if verification_path and os.path.exists(verification_path):
-            subprocess.run(["git", "add", verification_path], check=True, cwd=repo_root)
+            subprocess.run(["git", "add", "-f", verification_path], check=True, cwd=repo_root)
         subprocess.run(["git", "commit", "-m", f"chore: Auto-archive telemetry and Copernicus QA report for {prev_month_str}"], check=True, cwd=repo_root)
         subprocess.run(["git", "push"], check=True, cwd=repo_root)
         print(f"[ARCHIVER] [OK] Successfully verified, archived, and pushed data for {prev_month_str} to GitHub!")

@@ -1440,7 +1440,7 @@ def run_baseline_validation_and_update_readme(csv_file):
     # Clean key names
     cleaned_records = []
     for r in records:
-        cleaned_r = {k.strip().lower().replace(' ', '_'): v for k, v in r.items()}
+        cleaned_r = {k.strip().lower().replace(' ', '_'): v for k, v in r.items() if k is not None}
         cleaned_records.append(cleaned_r)
 
     # 1. Group by timestamp to extract unique hourly entries (removing 256x sector duplicates)
