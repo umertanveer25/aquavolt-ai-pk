@@ -1043,8 +1043,10 @@ def main(push_to_sheets=True):
     # TIER 2 — VIIRS LST Fusion
     modis_lst_val = fetch_modis_lst(LAT, LON)
     viirs_lst_val = fetch_viirs_lst(LAT, LON)
-    if viirs_lst_val is not None:
+    if modis_lst_val is not None and viirs_lst_val is not None:
         modis_lst_val = round((modis_lst_val + viirs_lst_val) / 2.0, 1)
+    elif viirs_lst_val is not None:
+        modis_lst_val = round(viirs_lst_val, 1)
 
     deficit_7d    = fetch_open_meteo_forecast(LAT, LON)
 
