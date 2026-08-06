@@ -18,7 +18,7 @@ jobs:
       - name: Install Graphify
         run: pip install graphifyy
       - name: Generate Graph
-        run: python -m graphify .
+        run: python -m graphify . --code-only
       - name: Commit and Push Graph
         run: |
           git config --global user.name 'github-actions[bot]'
