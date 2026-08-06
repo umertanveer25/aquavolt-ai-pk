@@ -1,6 +1,7 @@
 import json
 import os
 import numpy as np
+import pandas as pd
 import math
 from datetime import datetime
 import aquavolt_gsheet_logger
@@ -14,6 +15,33 @@ def relu(x):
     return np.maximum(0, x)
 
 def load_weights():
+    if not os.path.exists(WEIGHTS_PATH):
+        print("[TRAINING] Weights file not found. Initializing with default Xavier weights...")
+        np.random.seed(42)
+        W1 = np.random.normal(0.0, np.sqrt(2.0 / 4), (4, 16)).tolist()
+        b1 = np.zeros(16).tolist()
+        W2 = np.random.normal(0.0, np.sqrt(2.0 / 16), (16, 8)).tolist()
+        b2 = np.zeros(8).tolist()
+        W3 = np.random.normal(0.0, np.sqrt(2.0 / 8), (8, 1)).tolist()
+        b3 = np.zeros(1).tolist()
+        feat_mean = [0.5, 0.0, 0.5, 0.5]
+        feat_std = [0.2, 0.2, 0.2, 0.2]
+        
+        default_weights = {
+            "W1": W1, "b1": b1,
+            "W2": W2, "b2": b2,
+            "W3": W3, "b3": b3,
+            "feat_mean": feat_mean,
+            "feat_std": feat_std,
+            "trained_on": datetime.utcnow().isoformat(),
+            "n_features": 4,
+            "features": ["ndvi", "ndwi", "savi", "Dr"],
+            "outputs": ["kc_residual"],
+            "envelope": 0.30
+        }
+        with open(WEIGHTS_PATH, "w") as f:
+            json.dump(default_weights, f, indent=2)
+        return default_weights
     with open(WEIGHTS_PATH, "r") as f:
         return json.load(f)
 

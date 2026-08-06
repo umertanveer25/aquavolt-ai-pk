@@ -18,6 +18,7 @@ build/
 service_account.json
 *.json
 !CITATION.cff
+!ai_weights_mlp.json
 
 # IDE
 .vscode/
