@@ -1,0 +1,10 @@
+{
+  "month": "2026-07",
+  "total_records": 11712,
+  "data_variance_passed": true,
+  "copernicus_correlation_r": 0.0,
+  "physical_bounds_compliance_pct": 100.0,
+  "authenticity_confidence_index_pct": 94.0,
+  "classification": "REAL_OBSERVATION_DATA",
+  "timestamp_checked": "2026-08-06 01:26:13 UTC"
+}
