@@ -31,11 +31,16 @@ with open('gee-key.json', 'r') as f:
 credentials = ee.ServiceAccountCredentials(key_dict['client_email'], 'gee-key.json')
 ee.Initialize(credentials)
 
-# Farm Coordinates (UC Davis)
-LAT = 38.5382
-LON = -121.7617
+# Farm Coordinates (UC Davis Russell Ranch)
+LAT = 38.5508
+LON = -121.8820
 point = ee.Geometry.Point([LON, LAT])
 roi_50m = point.buffer(50)
+
+# AmeriFlux Tower Coordinates (US-Wrr)
+TOWER_LAT = 38.5382
+TOWER_LON = -121.7617
+tower_point = ee.Geometry.Point([TOWER_LON, TOWER_LAT])
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 os.makedirs(DATA_DIR, exist_ok=True)

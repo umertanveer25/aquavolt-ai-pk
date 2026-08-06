@@ -31,8 +31,8 @@ credentials = ee.ServiceAccountCredentials(key_dict['client_email'], 'gee-key.js
 ee.Initialize(credentials)
 
 # Farm coordinates
-LAT = 38.5382
-LON = -121.7617
+LAT = 38.5508  # UC Davis Russell Ranch Center
+LON = -121.8820
 point = ee.Geometry.Point([LON, LAT])
 
 # Sub-field grid: 5x5 grid of 10m cells = 50m x 50m farm

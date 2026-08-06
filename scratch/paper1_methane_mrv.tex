@@ -64,7 +64,7 @@ EMIT/NASA (2022) & Hyperspectral & 60 m & Opportunistic & Point sources & Ground
 %% ------------------------------------------------------------------
 \section{Materials and Methods}\label{sec:methods}
 %% ------------------------------------------------------------------
-The study area is focused on the Russell Ranch Agricultural Facility, UC Davis, California ($38.5382^\circ$ N, $-121.7617^\circ$ W). The pipeline extracts Sentinel-5P bias-corrected column values and composites them monthly using a mean reducer to eliminate cloud occlusion gaps. 
+The study area is focused on the Russell Ranch Agricultural Facility, UC Davis, California ($38.551^\circ$ N, $-121.882^\circ$ W). The pipeline extracts Sentinel-5P bias-corrected column values and composites them monthly using a mean reducer to eliminate cloud occlusion gaps. 
 
 For farm-level downscaling, Sentinel-1 SAR VH backscatter (dB) is processed at 10m resolution. The farm footprint is divided into a $5\times5$ grid (25 sub-fields, each $10\text{m} \times 10\text{m}$). Sub-fields are classified into moisture zones determining their emission factor: High ($1.3$), Medium ($1.0$), Low ($0.7$), and Minimal ($0.4$).
 
@@ -114,7 +114,7 @@ Pearson Correlation (SAR vs CH4) & r = 0.5449 & <0.001 & *** \\
 \end{table}
 
 \subsection{Multi-Source Cross Validation}
-We validate our downscaled estimates against NASA EMIT, MethaneSAT L4 assets, and the AmeriFlux ground tower.
+We validate our downscaled estimates against NASA EMIT, MethaneSAT L4 assets, and the AmeriFlux US-Wrr ground covariance tower ($38.5382^\circ$ N, $-121.7617^\circ$ W).
 
 \begin{table}[h]
 \begin{center}
