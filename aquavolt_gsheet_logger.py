@@ -907,7 +907,7 @@ def get_csv_filename():
         return "telemetry_log_2026_06_to_08.csv"
     return f"telemetry_log_{now_utc.strftime('%Y_%m')}.csv"
 
-def main(push_to_sheets=True):
+def main(push_to_sheets=True, override_time=None):
     print("=" * 70)
     print("  AquaVolt-AI Sheets Sync  [Tier 1: Multi-Field Upgrade]")
     print(f"  Farm: {FARM_NAME}  |  Coords: {LAT}N, {LON}W")
@@ -939,7 +939,7 @@ def main(push_to_sheets=True):
     ]
 
     # Dynamically find or create a worksheet tab for the current Month & Year (e.g., "Telemetry Log - July 2026")
-    now_utc = datetime.now(timezone.utc)
+    now_utc = override_time if override_time else datetime.now(timezone.utc)
     month_year_str = now_utc.strftime("%B %Y")  # e.g., "July 2026", "August 2026"
     subsheet_name = f"{sheet_name} - {month_year_str}"
 
@@ -972,7 +972,7 @@ def main(push_to_sheets=True):
 
     # Duplicate-hour guard
     if push_to_sheets:
-        now_utc = datetime.now(timezone.utc)
+        now_utc = override_time if override_time else datetime.now(timezone.utc)
         current_hour_str = now_utc.strftime("%Y-%m-%d %H:")
         
         # Check CSV first
@@ -1065,7 +1065,8 @@ def main(push_to_sheets=True):
     weights_path = os.path.join(SCRIPT_DIR, "ai_weights_mlp.json")
     piml_engine = PIMLEngine(weights_path)
 
-    now_str = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:00:00")
+    ref_time = override_time if override_time else datetime.now(timezone.utc)
+    now_str = ref_time.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:00:00")
     rows_to_append = []
 
     # Loop through each field and generate 64 rows of data per field (total 256 rows)
