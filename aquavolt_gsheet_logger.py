@@ -946,23 +946,28 @@ def main(push_to_sheets=True):
     worksheet = None
     if sh:
         try:
-            worksheet = sh.worksheet(subsheet_name)
-            print(f"[SHEET] Using monthly worksheet partition: '{subsheet_name}'")
-        except gspread.exceptions.WorksheetNotFound:
-            print(f"[SHEET] New month detected! Creating partition tab: '{subsheet_name}'...")
-            # Create sheet with 1000 default rows and 30 columns. gspread auto-expands as needed.
-            print(f"[GOOGLE SHEETS] Tab '{subsheet_name}' not found. Creating it...")
-            worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=32)
-            worksheet.append_row(headers)
-
-        try:
-            existing = worksheet.row_values(1)
-            if not existing or existing != headers:
-                print("[HEADER] Updating sheet headers...")
-                worksheet.clear()
+            try:
+                worksheet = sh.worksheet(subsheet_name)
+                print(f"[SHEET] Using monthly worksheet partition: '{subsheet_name}'")
+            except gspread.exceptions.WorksheetNotFound:
+                print(f"[SHEET] New month detected! Creating partition tab: '{subsheet_name}'...")
+                # Create sheet with 1000 default rows and 32 columns.
+                print(f"[GOOGLE SHEETS] Tab '{subsheet_name}' not found. Creating it...")
+                worksheet = sh.add_worksheet(title=subsheet_name, rows=1000, cols=32)
                 worksheet.append_row(headers)
+
+            if worksheet:
+                try:
+                    existing = worksheet.row_values(1)
+                    if not existing or existing != headers:
+                        print("[HEADER] Updating sheet headers...")
+                        worksheet.clear()
+                        worksheet.append_row(headers)
+                except Exception as e:
+                    print(f"[HEADER ERROR] {e}")
         except Exception as e:
-            print(f"[HEADER ERROR] {e}")
+            print(f"[GOOGLE SHEETS ERROR] Failed to access or initialize worksheet '{subsheet_name}': {e}. Falling back to LOCAL CSV storage only.")
+            worksheet = None
 
 
     # Duplicate-hour guard
