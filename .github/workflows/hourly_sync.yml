@@ -46,7 +46,7 @@ jobs:
     name: Hourly Satellite Data Sync
     runs-on: ubuntu-latest
     # Only sync on schedule or manual dispatch — not on every push
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch' || github.event_name == 'push'
     permissions:
       contents: write
 
