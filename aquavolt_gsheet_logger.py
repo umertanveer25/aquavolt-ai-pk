@@ -138,8 +138,7 @@ def get_gspread_client():
             creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scopes)
             return gspread.authorize(creds)
         except Exception as e:
-            print(f"[ERROR] GCP secret error: {e}")
-            sys.exit(1)
+            raise ValueError(f"GCP secret parse/auth error: {e}")
 
     local_creds_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "service_account.json")
     if not os.path.exists(local_creds_path):
@@ -153,11 +152,9 @@ def get_gspread_client():
             creds = ServiceAccountCredentials.from_json_keyfile_name(local_creds_path, scopes)
             return gspread.authorize(creds)
         except Exception as e:
-            print(f"[ERROR] Local creds error: {e}")
-            sys.exit(1)
+            raise ValueError(f"Local creds auth error: {e}")
 
-    print("[ERROR] No Google credentials found.")
-    sys.exit(1)
+    raise ValueError("No credentials found in environment or local path.")
 
 
 # ---------------------------------------------------------
@@ -1510,8 +1507,6 @@ def run_baseline_validation_and_update_readme(csv_file):
     end_date = dates[-1]
 
     # Fetch CIMIS
-    import sys
-    import os
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__))))
     from plugins.sensors import cimis_api
     

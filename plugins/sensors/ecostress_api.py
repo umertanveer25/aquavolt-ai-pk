@@ -211,3 +211,13 @@ def fetch_area(bbox, start_date, end_date):
 
     except Exception as e:
         return {"status": "error", "msg": str(e)}
+
+def fetch(lat, lon, start_date, end_date):
+    """
+    Point sample fetch stub for AppEEARS.
+    """
+    user = os.getenv("EARTHDATA_USER")
+    pwd  = os.getenv("EARTHDATA_PASS")
+    if not user or not pwd:
+        return {"status": "error", "msg": "EARTHDATA_USER and EARTHDATA_PASS environment variables not set."}
+    return {"status": "error", "msg": "Point task not implemented (AppEEARS credentials missing)"}
