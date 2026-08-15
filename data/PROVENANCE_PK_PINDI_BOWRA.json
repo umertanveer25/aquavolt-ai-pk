@@ -1,0 +1,22 @@
+{
+  "site_id": "pk_hafizabad_pindi_bowra",
+  "facility": "NRSP-UAF Basmati Rice Trial Parcel (Pindi Bowra)",
+  "country": "Pakistan",
+  "crop": "Super Basmati Rice (Paddy)",
+  "coordinates": {
+    "latitude": 32.0886,
+    "longitude": 73.5914
+  },
+  "bounding_box": [
+    73.590725,
+    32.088026,
+    73.592075,
+    32.089174
+  ],
+  "dataset_file": "telemetry_log_pk_pindi_bowra.csv",
+  "total_records": 51840,
+  "sectors_per_hour": 144,
+  "sha256": "1ae220274455b149ecedee7c1571b420a78e21313415b0218ecece06fc39f1e1",
+  "last_updated": "2026-08-15T14:49:31.247562+00:00",
+  "provenance_status": "CRYPTOGRAPHICALLY_VERIFIED"
+}
