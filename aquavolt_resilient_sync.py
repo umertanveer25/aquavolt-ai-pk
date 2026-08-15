@@ -89,7 +89,11 @@ except Exception as ve:
 print("\n[PAKISTAN] Ingesting real-time observations for Pindi Bowra Rice Hub...")
 try:
     import aquavolt_pk_pindi_bowra
-    aquavolt_pk_pindi_bowra.sync_pakistan_hourly()
+    import v2_advanced_streams_pk
+    n_new = aquavolt_pk_pindi_bowra.sync_pakistan_hourly()
+    if n_new and n_new > 0:
+        # Append to isolated Pakistan V2 dataset
+        v2_advanced_streams_pk.process_and_backfill_pakistan_v2(max_rows=n_new)
 except Exception as pke:
     print(f"[PAKISTAN WARNING] Pindi Bowra sync step: {pke}")
 
