@@ -1,0 +1,4 @@
+station_id,station_name,wmo_id,distance_km,synchronous_hours,temp_pearson_r,temp_r2,temp_rmse_c,solar_pearson_r,solar_r2,solar_rmse_wm2,rh_pearson_r,rh_r2,rh_rmse_pct,et_pearson_r,et_r2
+pmd_faisalabad_41598,PMD Faisalabad Agromet Observatory,41598,87.5,1824,0.9266,0.8587,1.99,0.9818,0.9639,57.86,0.8802,0.7747,10.42,0.9224,0.8508
+rri_kala_shah_kaku,Rice Research Institute (RRI) Agromet Tower,RRI-KSK-01,74.2,1824,0.9602,0.9219,1.038,0.9784,0.9572,61.53,0.9514,0.9052,5.89,0.9064,0.8215
+pmd_gujranwala_41575,PMD Gujranwala Synoptic Station,41575,56.4,1824,0.9473,0.8974,1.267,0.9797,0.9599,59.89,0.9443,0.8917,7.15,0.8958,0.8025

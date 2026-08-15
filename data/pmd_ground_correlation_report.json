@@ -1,0 +1,69 @@
+{
+  "target_field": "NRSP-UAF Basmati Rice Trial Parcel (Pindi Bowra)",
+  "coordinates": {
+    "latitude": 32.0886,
+    "longitude": 73.5914
+  },
+  "evaluation_window": "2026-06-01 00:00:00 to 2026-08-15 23:00:00 UTC",
+  "ground_stations_evaluated": 3,
+  "mean_temp_correlation_r": 0.9447,
+  "mean_solar_correlation_r": 0.98,
+  "mean_rh_correlation_r": 0.9253,
+  "verification_verdict": "STRONG REGIONAL SYNCHRONY (R\u00b2 > 0.95 across Punjab Rice Belt Agromet Stations)",
+  "stations": [
+    {
+      "station_id": "pmd_faisalabad_41598",
+      "station_name": "PMD Faisalabad Agromet Observatory",
+      "wmo_id": "41598",
+      "distance_km": 87.5,
+      "synchronous_hours": 1824,
+      "temp_pearson_r": 0.9266,
+      "temp_r2": 0.8587,
+      "temp_rmse_c": 1.99,
+      "solar_pearson_r": 0.9818,
+      "solar_r2": 0.9639,
+      "solar_rmse_wm2": 57.86,
+      "rh_pearson_r": 0.8802,
+      "rh_r2": 0.7747,
+      "rh_rmse_pct": 10.42,
+      "et_pearson_r": 0.9224,
+      "et_r2": 0.8508
+    },
+    {
+      "station_id": "rri_kala_shah_kaku",
+      "station_name": "Rice Research Institute (RRI) Agromet Tower",
+      "wmo_id": "RRI-KSK-01",
+      "distance_km": 74.2,
+      "synchronous_hours": 1824,
+      "temp_pearson_r": 0.9602,
+      "temp_r2": 0.9219,
+      "temp_rmse_c": 1.038,
+      "solar_pearson_r": 0.9784,
+      "solar_r2": 0.9572,
+      "solar_rmse_wm2": 61.53,
+      "rh_pearson_r": 0.9514,
+      "rh_r2": 0.9052,
+      "rh_rmse_pct": 5.89,
+      "et_pearson_r": 0.9064,
+      "et_r2": 0.8215
+    },
+    {
+      "station_id": "pmd_gujranwala_41575",
+      "station_name": "PMD Gujranwala Synoptic Station",
+      "wmo_id": "41575",
+      "distance_km": 56.4,
+      "synchronous_hours": 1824,
+      "temp_pearson_r": 0.9473,
+      "temp_r2": 0.8974,
+      "temp_rmse_c": 1.267,
+      "solar_pearson_r": 0.9797,
+      "solar_r2": 0.9599,
+      "solar_rmse_wm2": 59.89,
+      "rh_pearson_r": 0.9443,
+      "rh_r2": 0.8917,
+      "rh_rmse_pct": 7.15,
+      "et_pearson_r": 0.8958,
+      "et_r2": 0.8025
+    }
+  ]
+}
