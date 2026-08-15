@@ -97,8 +97,17 @@ try:
 except Exception as pke:
     print(f"[PAKISTAN WARNING] Pindi Bowra sync step: {pke}")
 
-# 5. Save local backup and push to GitHub
-print("\n[BACKUP] Syncing telemetry, drone ledger, Pakistan hub, and provenance to GitHub...")
+# 5. Live Dual-Continent Correlation & Online PIML Self-Calibration
+print("\n[LIVE PIML & CORRELATION] Executing online physics-informed self-updating loop...")
+try:
+    import dual_continent_validation_engine
+    dual_continent_validation_engine.run_dual_continent_validation()
+    print("[LIVE PIML] AI model weights and empirical matrices successfully recalibrated.")
+except Exception as dce:
+    print(f"[CORRELATION WARNING] Online calibration step: {dce}")
+
+# 6. Save local backup and push to GitHub
+print("\n[BACKUP] Syncing telemetry, live correlation matrix, and provenance to GitHub...")
 try:
     current_utc = datetime.now(timezone.utc)
     now_str = current_utc.strftime('%Y-%m-%d %H:00 UTC')
