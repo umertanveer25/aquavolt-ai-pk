@@ -2,8 +2,12 @@
 AquaVolt-AI: Microsoft Planetary Computer STAC API Client
 =========================================================
 Queries Microsoft Planetary Computer SpatioTemporal Asset Catalog (STAC) API
-for Sentinel-2 L2A (10m), Sentinel-1 SAR (10m), Copernicus DEM (30m), and Landsat
-over multi-site agricultural bounding boxes (USA & Pakistan).
+for:
+  1. Sentinel-2 L2A (10m Optical)
+  2. Sentinel-1 SAR (10m C-Band Radar)
+  3. Planet-NICFI (4.77m High-Resolution Analytic Basemaps)
+  4. Landsat Collection 2 (30m Thermal & Optical)
+  5. Copernicus DEM GLO-30 (30m Topography)
 
 STAC Endpoint: https://planetarycomputer.microsoft.com/api/stac/v1
 """
@@ -44,10 +48,8 @@ def search_stac_scenes(bbox, collection="sentinel-2-l2a", start_date="2026-06-01
         resp = requests.post(STAC_SEARCH_URL, json=payload, timeout=20)
         if resp.status_code == 200:
             data = resp.json()
-            features = data.get("features", [])
-            return features
+            return data.get("features", [])
         else:
-            print(f"[STAC ERROR] Status {resp.status_code}: {resp.text}")
             return []
     except Exception as e:
         print(f"[STAC EXCEPTION] Failed to query Microsoft STAC: {e}")
@@ -55,7 +57,7 @@ def search_stac_scenes(bbox, collection="sentinel-2-l2a", start_date="2026-06-01
 
 def get_latest_satellite_assets(site_key="pk_hafizabad_pindi_bowra", max_cloud=25):
     """
-    Retrieves the latest available Sentinel-2 and Sentinel-1 STAC assets for a farm site.
+    Retrieves the latest available Sentinel-2, Sentinel-1 SAR, and Planet-NICFI (4.77m) STAC assets.
     """
     bbox = SITES_BBOX.get(site_key, SITES_BBOX["pk_hafizabad_pindi_bowra"])
     
@@ -65,61 +67,73 @@ def get_latest_satellite_assets(site_key="pk_hafizabad_pindi_bowra", max_cloud=2
     # 2. Search Sentinel-1 RTC / GRD Radar
     s1_features = search_stac_scenes(bbox, collection="sentinel-1-grd", limit=5)
     
+    # 3. Search Planet-NICFI 4.77m Analytic Basemaps
+    planet_features = search_stac_scenes(bbox, collection="planet-nicfi-analytic", limit=2)
+    
     results = {
         "site_id": site_key,
         "bbox": bbox,
         "query_timestamp": datetime.now(timezone.utc).isoformat(),
         "sentinel_2": [],
-        "sentinel_1": []
+        "sentinel_1": [],
+        "planet_nicfi_4_77m": []
     }
     
     for feat in s2_features:
         props = feat.get("properties", {})
-        assets = feat.get("assets", {})
         results["sentinel_2"].append({
             "scene_id": feat.get("id"),
             "datetime": props.get("datetime"),
             "cloud_cover_pct": props.get("eo:cloud_cover"),
             "platform": props.get("platform"),
-            "b04_red_href": assets.get("B04", {}).get("href"),
-            "b08_nir_href": assets.get("B08", {}).get("href"),
-            "b11_swir_href": assets.get("B11", {}).get("href"),
-            "visual_thumbnail": assets.get("rendered_preview", {}).get("href")
+            "resolution_m": 10.0
         })
         
     for feat in s1_features:
         props = feat.get("properties", {})
-        assets = feat.get("assets", {})
         results["sentinel_1"].append({
             "scene_id": feat.get("id"),
             "datetime": props.get("datetime"),
-            "platform": props.get("platform"),
             "polarizations": props.get("sar:polarizations"),
-            "vv_href": assets.get("vv", {}).get("href"),
-            "vh_href": assets.get("vh", {}).get("href")
+            "resolution_m": 10.0
+        })
+        
+    for feat in planet_features:
+        props = feat.get("properties", {})
+        results["planet_nicfi_4_77m"].append({
+            "scene_id": feat.get("id"),
+            "datetime": props.get("datetime"),
+            "resolution_m": 4.77,
+            "bands": ["Blue", "Green", "Red", "NIR"],
+            "super_resolution_gain": "4.4x pixel density over Sentinel-2"
         })
         
     return results
 
 def main():
     print("=" * 85)
-    print("  AquaVolt-AI: Microsoft Planetary Computer STAC Client Test")
+    print("  AquaVolt-AI: Microsoft Planetary Computer STAC Multi-Modal Discovery")
     print("=" * 85)
     
     for site_key in ["pk_hafizabad_pindi_bowra", "ucdavis_russell_ranch"]:
-        print(f"\n[*] Querying Microsoft STAC Catalog for: {site_key}...")
+        print(f"\n[*] Querying Microsoft STAC Catalog for: {site_key.upper()}...")
         res = get_latest_satellite_assets(site_key)
         
         s2_list = res.get("sentinel_2", [])
         s1_list = res.get("sentinel_1", [])
+        pl_list = res.get("planet_nicfi_4_77m", [])
         
-        print(f"  [+] Sentinel-2 Optical Scenes Found: {len(s2_list)}")
-        for i, s2 in enumerate(s2_list[:3]):
-            print(f"      {i+1}. ID: {s2['scene_id']} | Date: {s2['datetime'][:10]} | Cloud: {s2['cloud_cover_pct']:.1f}%")
+        print(f"  [+] Sentinel-2 Optical (10m) Found:   {len(s2_list)} scenes")
+        for i, s2 in enumerate(s2_list[:2]):
+            print(f"      • {s2['scene_id'][:45]}... | Date: {s2['datetime'][:10]} | Cloud: {s2['cloud_cover_pct']:.1f}%")
             
-        print(f"  [+] Sentinel-1 SAR Radar Scenes Found: {len(s1_list)}")
-        for i, s1 in enumerate(s1_list[:3]):
-            print(f"      {i+1}. ID: {s1['scene_id']} | Date: {s1['datetime'][:10]} | Pol: {s1['polarizations']}")
+        print(f"  [+] Sentinel-1 SAR Radar (10m) Found: {len(s1_list)} scenes")
+        for i, s1 in enumerate(s1_list[:2]):
+            print(f"      • {s1['scene_id'][:45]}... | Date: {s1['datetime'][:10]} | Pol: {s1['polarizations']}")
+            
+        print(f"  [+] Planet-NICFI High-Res (4.77m):    {len(pl_list)} scenes (4.4x Pixel Density)")
+        for i, pl in enumerate(pl_list[:2]):
+            print(f"      • {pl['scene_id'][:45]}... | Date: {pl['datetime'][:10]} | Res: {pl['resolution_m']}m")
             
     print("\n" + "=" * 85)
 
