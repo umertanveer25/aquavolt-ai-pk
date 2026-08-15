@@ -1,0 +1,8 @@
+Date,Day,Irrigation Decision,Pumping Window,Duration (Hours),Water Applied (mm),Soil Moisture (θ),Root Depletion (Dr mm),Estimated Cost (PKR),Agronomic Rationale
+2026-08-16,Sunday,KEEP OFF (SAVE WATER),NO PUMPING NEEDED,0.0,0.0,0.3,5.6,0,Soil moisture adequate (θ = 0.300). 83h buffer remaining.
+2026-08-17,Monday,KEEP OFF (SAVE WATER),NO PUMPING NEEDED,0.0,0.0,0.259,11.4,0,Soil moisture adequate (θ = 0.259). 56h buffer remaining.
+2026-08-18,Tuesday,KEEP OFF (SAVE WATER),NO PUMPING NEEDED,0.0,0.0,0.219,16.9,0,Soil moisture adequate (θ = 0.219). 35h buffer remaining.
+2026-08-19,Wednesday,KEEP OFF (SAVE WATER),NO PUMPING NEEDED,0.0,0.0,0.2,22.6,0,Soil moisture adequate (θ = 0.200). 10h buffer remaining.
+2026-08-20,Thursday,KEEP OFF (SAVE WATER),NO PUMPING NEEDED,0.0,0.0,0.2,23.5,0,Soil moisture adequate (θ = 0.200). 6h buffer remaining.
+2026-08-21,Friday,RUN TUBEWELL (ON),05:30 AM - 08:30 AM PKT,3.4,29.1,0.34,0.0,3740,AWD Threshold reached (Dr = 29.1 mm). Refill root zone.
+2026-08-22,Saturday,KEEP OFF (SAVE WATER),NO PUMPING NEEDED,0.0,0.0,0.301,5.5,0,Soil moisture adequate (θ = 0.301). 85h buffer remaining.
