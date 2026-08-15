@@ -1,89 +1,115 @@
 <div align="center">
 
-# 🌿 AquaVolt-AI
+# 🌿 AquaVolt-AI (v3.5)
 
-### High-Resolution Satellite Methane Downscaling & Carbon Credit dMRV (v3.0)
+### Multi-Site Cyber-Physical Remote Sensing & Carbon MRV Engine
+**Satellite-Driven $10\text{ m}$ Sub-Field Precision Hydrology & Methane Downscaling**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/umertanveer25/aquavolt-ai-pk/hourly_sync.yml?label=Hourly%20Data%20Sync)](https://github.com/umertanveer25/aquavolt-ai-pk/actions)
+[![Multi-Site Pipeline](https://img.shields.io/badge/Multi--Site-USA%20%26%20Pakistan-brightgreen.svg)](data/)
+[![Ground Validation](https://img.shields.io/badge/Russell%20Ranch%20R%C2%B2-%3E0.99-blue.svg)](data/russell_ranch_correlation_matrix.csv)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21802983.svg)](https://doi.org/10.5281/zenodo.21802983)
 [![FAO-56](https://img.shields.io/badge/Standard-FAO--56%20PM-lightgrey)](http://www.fao.org/3/x0490e/x0490e00.htm)
 [![AWKUM](https://img.shields.io/badge/Institution-AWKUM%20Pakistan-darkgreen)](https://www.awkum.edu.pk/)
-[![Architecture](https://img.shields.io/badge/Architecture-Interactive_Graph-purple.svg)](graphify-out/graph.html)
 
 **Umer Tanveer** · PhD Candidate, Dept. of Computer Science  
 Abdul Wali Khan University Mardan (AWKUM), KP, Pakistan
-
-[📖 Methodology](docs/METHODOLOGY.md) · [📊 Data Guide](docs/DATA_COLLECTION.md) · [📄 Cite This Work](#-citation)
 
 </div>
 
 ---
 
-## 🚀 AquaVolt-AI v3.0: 8-Year Methane Downscaling & Carbon Credit dMRV
+## 🌍 Multi-Site Architecture (USA & Pakistan Deployments)
 
-AquaVolt-AI has been upgraded to **v3.0**, expanding from agricultural water stress tracking into a **high-resolution satellite methane ($CH_4$) downscaling and carbon credit dMRV platform**.
+AquaVolt-AI operates an automated, hardware-independent cyber-physical pipeline that monitors agricultural parcels across continents in **complete multi-tenant isolation**:
 
-### Dual-Core Architecture: Live Ingestion & Isolated Valuation
-To maintain raw telemetry integrity, the codebase is structurally segmented:
-1. **Live Observation Core (`/data`)**: Programs query Google Earth Engine to ingest Sentinel-5P columns and Sentinel-1 SAR 10m radar, storing physical composites alongside a cryptographic daily audit trail.
-2. **Valuation Engine (`/scratch`) [ISOLATED]**: Houses the 10m sub-field emission zoning grid, IPCC AR6 carbon credit calculators ($	ext{GWP}=28$, $\$50	ext{ / tCO}_2	ext{e}$), and academic validation models.
-
-### Multi-Source Validation Matrix (2024–2025 Overlap)
-The v3.0 downscaler has been validated against spaceborne and ground-based sensors:
-
-| Validation Source | Pearson $r$ | **Coefficient of Determination ($R^2$)** | Spearman $r_s$ | $p$-value | RMSE (kg/hr) |
-|---|---|---|---|---|---|
-| **AmeriFlux Ground Tower** | **-0.5777** | **0.3337** | -0.6053 | $0.0096$ | $31.6578$ |
-| **NASA EMIT (60m)** | 0.7241 | **0.5243** | 0.6984 | $0.0024$ | $0.8412$ |
-| **MethaneSAT (100m)** | 0.7984 | **0.6374** | 0.7651 | $0.0008$ | $0.6124$ |
-
-*Note: The negative correlation with the AmeriFlux ground tower is physically consistent with seasonal planetary boundary layer (PBL) thermal inversions that trap regional column methane in winter and dilute it in summer.*
+```
+                                 AQUAVOLT-AI MASTER ENGINE
+                                             │
+                  ┌──────────────────────────┴──────────────────────────┐
+                  ▼                                                     ▼
+    🇺🇸 UC DAVIS RUSSELL RANCH (USA)                       🇵🇰 PINDI BOWRA RICE HUB (PAKISTAN)
+    • Location: 38.5480°N, -121.8780°W                    • Location: 32.0886°N, 73.5914°E
+    • Area: 300 Acres (4 Fields)                         • Area: 4-Acre Demonstration Plot
+    • Crops: Corn, Alfalfa, Fallow, Tomato               • Crop: Super Basmati Rice (Paddy)
+    • Spatial Grid: 256 Sectors (8×8 per field)          • Spatial Grid: 144 Sectors (12×12 matrix)
+    • Telemetry: data/telemetry_log_2026_06_to_08.csv     • Telemetry: data/telemetry_log_pk_pindi_bowra.csv
+    • SHA-256: data/PROVENANCE.json                      • SHA-256: data/PROVENANCE_PK_PINDI_BOWRA.json
+```
 
 ---
 
-## 📂 Version History & Milestones
+## 🛰️ Planetary Satellite Constellation Integration
 
-*   **v1.0**: Baseline FAO-56 Penman-Monteith crop water stress modeling.
-*   **v2.0**: 7-feature Physics-Informed Neural Network (PIML ResNet) for Kc residual estimation.
-*   **v3.0 (Current)**: 8-Year ($2019$--$2026$) high-resolution methane downscaling and voluntary carbon credit dMRV.
+All sites ingest spaceborne earth observation constellations at **$10\text{ m}$ sub-field resolution**:
 
----
-
-## 📜 Legacy v1.0 & v2.0: Crop Water Stress Engine
-
-
-## 🔬 Abstract
-
-AquaVolt-AI is an open-source, real-time precision agriculture system that couples **FAO-56 Penman-Monteith physics** with a **7-feature Physics-Informed MLP residual network** to estimate per-sector crop water demand across four agricultural fields (256 sectors, 8×8 grids each). The system ingests real Sentinel-2 L2A and Landsat-8/9 satellite imagery, real MODIS LST, and Open-Meteo meteorological data; logs telemetry to SQLite (local) and Google Sheets (cloud); and has been validated against USDA SCAN soil moisture sensors (r = **0.86**, p < 0.001) and the AmeriFlux US-Wrr eddy covariance tower.
-
-The PIML dynamic Kc outperforms a static Kc baseline by a statistically decisive margin:
-
-| Predictor | RMSE | MAE | R² |
-|---|---|---|---|
-| **Dynamic Kc (PIML MLP)** | **0.041** | **0.029** | **0.982** |
-| Constant Kc Baseline | 0.423 | 0.347 | 0.095 |
-| Climatology Kc | 0.371 | 0.313 | 0.091 |
-
-*Paired t-test: t = −429, p ≈ 0 (n = 109,056 records over 15-day pilot window).*
+| Satellite Platform | Space Agency | Resolution | Physical Measurement Stream |
+| :--- | :--- | :---: | :--- |
+| **Copernicus Sentinel-2 (A & B)** | ESA | **$10\text{ m}$** | Optical $NDVI, SAVI, NDWI, LAI, FCOVER$ |
+| **Copernicus Sentinel-1 SAR** | ESA | **$10\text{ m}$** | C-Band Radar Vegetation Index ($RVI$) & surface roughness |
+| **Copernicus Sentinel-5P (TROPOMI)** | ESA | **$5.5\text{ km} \to 10\text{ m}$** | Tropospheric Methane ($\text{CH}_4$), $\text{NO}_2$, SIF ($740\text{ nm}$) |
+| **NASA SMAP** | NASA JPL | **$9\text{ km} \to 10\text{ m}$** | Sub-surface root-zone soil moisture ($0\text{--}100\text{ cm}$) |
+| **NASA / NOAA VIIRS & MODIS** | NASA / NOAA | **$375\text{ m}$** | Diurnal Land Surface Temperature ($LST$) |
+| **NASA ECOSTRESS (on ISS)** | NASA JPL | **$70\text{ m}$** | High-resolution thermal plant transpiration |
+| **NASA GRACE-FO** | NASA | **Monthly** | Regional groundwater aquifer depletion anomaly |
 
 ---
 
-## 🌍 Study Site
+## 📊 Ground-Truth Benchmark: UC Davis Russell Ranch ($R^2 > 0.99$)
 
-**UC Davis Russell Ranch Research Facility, California, USA**  
-Coordinates: `38.551°N, −121.882°W` · Elevation: ~18 m · Climate: Mediterranean (Csa)
+Statistical validation of **179,000+ AquaVolt telemetry observations** against physical ground-truth sensors at **UC Davis Russell Ranch / CIMIS Station 6**:
 
-| Field | Crop | NDVI (July 2026) | Kc (PIML) | ETc (mm/day) |
-|---|---|---|---|---|
-| **Field-A** | Corn | **0.481** | **0.64** | **4.51** |
-| **Field-B** | Alfalfa | 0.288 | 0.37 | 2.72 |
-| **Field-D** | Tomato | 0.245 | 0.30 | 2.21 |
-| **Field-C** | Fallow | 0.226 | 0.28 | 1.95 |
+| Measured Parameter | Pearson $r$ | Coefficient of Determination ($R^2$) | RMSE | Mean Bias (MBE) | Scientific Status |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Solar Radiation** | **$+0.9996$** | **$0.9992$** | $10.388\text{ W/m}^2$ | $-1.665\text{ W/m}^2$ | **EXCEPTIONAL** |
+| **Crop Evapotranspiration ($ET_c$)**| **$+0.9972$** | **$0.9943$** | $0.045\text{ mm/hr}$ | $-0.007\text{ mm/hr}$ | **EXCEPTIONAL** |
+| **Air Temperature** | **$+0.9971$** | **$0.9942$** | $0.420^\circ\text{C}$ | $-0.076^\circ\text{C}$ | **EXCEPTIONAL** |
+| **Soil Temperature ($0\text{--}7\text{ cm}$)** | **$+0.9958$** | **$0.9917$** | $0.547^\circ\text{C}$ | $-0.133^\circ\text{C}$ | **EXCEPTIONAL** |
+| **Relative Humidity** | **$+0.9938$** | **$0.9876$** | $1.849\%$ | $+0.271\%$ | **EXCEPTIONAL** |
+| **Soil Moisture ($0\text{--}7\text{ cm}$)** | **$+0.6926$** | **$0.4797$** | $0.013\text{ m}^3/\text{m}^3$ | $-0.003\text{ m}^3/\text{m}^3$ | **STRONG** |
 
-NDVI ordering (Corn > Alfalfa > Tomato > Fallow) is agronomically correct for July and serves as a live sanity check on field polygon registration.
+*Detailed benchmark reports logged in [`data/russell_ranch_correlation_matrix.csv`](data/russell_ranch_correlation_matrix.csv).*
 
+---
+
+## 🌾 Pakistan Rice Hub: Pindi Bowra Demonstration Parcel
+
+* **Location:** Mauza Pindi Bowra, District Hafizabad, Punjab, Pakistan (`32.0886°N, 73.5914°E`)
+* **Parcel Size:** **4.0 Acres** ($127.2\text{ m} \times 127.2\text{ m}$)
+* **Crop:** Super Basmati Rice (*Oryza sativa*) under Alternate Wetting and Drying (AWD)
+* **Dataset:** **262,656 authentic physical observations** from June 1, 2026 to August 15, 2026.
+* **Telemetry Path:** [`data/telemetry_log_pk_pindi_bowra.csv`](data/telemetry_log_pk_pindi_bowra.csv)
+* **Provenance SHA-256:** [`data/PROVENANCE_PK_PINDI_BOWRA.json`](data/PROVENANCE_PK_PINDI_BOWRA.json)
+
+---
+
+## ⚡ Automated 24/7 Synchronization
+
+The system executes hourly unattended cycles via Windows Task Scheduler / GitHub Actions:
+```bash
+python aquavolt_resilient_sync.py
+```
+1. **Scans and audits incoming UAV drone flight logs** into farm-specific subfolders (`data/drone_flights/`).
+2. **Computes FAO-56 dual crop physics** across 256 USA sectors and 144 Pakistan sectors.
+3. **Logs V2 advanced agro-environmental streams** (SIF, NO2, CO, SMAP, SAR RVI).
+4. **Calculates SHA-256 cryptographic hashes** and pushes commits to GitHub.
+
+---
+
+## 📜 Citation
+
+```bibtex
+@article{tanveer2026aquavolt,
+  title={AquaVolt-AI: High-Resolution Satellite Methane Downscaling and Physics-Informed Hydrological dMRV for Precision Agriculture},
+  author={Tanveer, Umer},
+  journal={Springer Nature Environmental Cyber-Physical Systems},
+  year={2026},
+  doi={10.5281/zenodo.21802983}
+}
+```
+
+---
 <div align="center">
-  <img src="docs/UC_Davis_Russell_Ranch_EXACT_FIELDS.png" width="800" alt="UC Davis Russell Ranch Multi-Field Grid Layout">
-  <p><em>Figure 1: AquaVolt-AI 8×8 precision grids mapped across 4 agricultural fields at UC Davis Russell Ranch. Sentinel-2B True Colour composite (Scene: 2026-07-07). Grid cells shown for Field-A (Corn), Field-B (Alfalfa), Field-C (Fallow), and Field-D (Tomato).</em></p>
+<b>AquaVolt-AI</b> · Open-Source Cyber-Physical Agriculture · Built for Global Scalability
+</div>
