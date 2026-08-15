@@ -4,146 +4,327 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \Newlabel{1}{1}
+\Newlabel{2}{2}
 \citation{MunozSabater2021,Friedlingstein2023}
-\citation{Jiao2021,Allen1998}
-\citation{Kool2014}
-\citation{Vasisht2017}
-\citation{Kamilaris2018}
-\citation{Benos2021}
+\citation{Jiao2021,Hassani2021}
+\citation{Allen1998,Penman1948,Monteith1965}
+\citation{Gowda2008}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{2}{Introduction}{section.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Architectural Limitations of Hardware-Dependent Digital Twins}{2}{subsection.1.1}\protected@file@percent }
-\newlabel{sec:digital_twins}{{1.1}{2}{Architectural Limitations of Hardware-Dependent Digital Twins}{subsection.1.1}{}}
-\citation{Karniadakis2021,Reichstein2019}
-\citation{Allen1998,Penman1948,Monteith1965}
-\citation{Allen2007}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Motivation and Global Water Scarcity}{2}{subsection.1.1}\protected@file@percent }
+\newlabel{sec:intro_motivation}{{1.1}{2}{Motivation and Global Water Scarcity}{subsection.1.1}{}}
+\citation{Anderson2012,Fisher2017}
+\citation{Gorelick2017}
+\citation{Hassani2021,Belder2004}
+\citation{Benos2021,Kamilaris2018}
+\citation{Linquist2012,IPCC2019,Reba2019}
+\citation{Richards1931,vanGenuchten1980}
+\citation{Lampayan2015,Bouman2007,Carrijo2017}
+\citation{Carrijo2017,Belder2004}
+\citation{Jacob2022,Veefkind2012,Friedlingstein2023}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Regional Agronomic Regimes: California Sacramento Valley vs. Pakistan Indus Basin}{3}{subsection.1.2}\protected@file@percent }
+\newlabel{sec:intro_regional}{{1.2}{3}{Regional Agronomic Regimes: California Sacramento Valley vs. Pakistan Indus Basin}{subsection.1.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}The Methane-Water Nexus and Alternate Wetting and Drying (AWD)}{3}{subsection.1.3}\protected@file@percent }
+\newlabel{sec:intro_awd_nexus}{{1.3}{3}{The Methane-Water Nexus and Alternate Wetting and Drying (AWD)}{subsection.1.3}{}}
+\citation{Drusch2012,Roy2014}
+\citation{Fisher2017,Li2022,Mu2011}
+\citation{Read2019,Willard2022,Karniadakis2021}
+\citation{Vasisht2017,Kamilaris2018}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Operational Telemetry Blackouts and Edge Failure Modes}{4}{subsection.1.4}\protected@file@percent }
+\newlabel{sec:intro_blackouts}{{1.4}{4}{Operational Telemetry Blackouts and Edge Failure Modes}{subsection.1.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}Key Scientific Contributions}{4}{subsection.1.5}\protected@file@percent }
+\newlabel{sec:intro_contributions}{{1.5}{4}{Key Scientific Contributions}{subsection.1.5}{}}
+\citation{Bastiaanssen1998,Allen2007,Cleugh2007,Mu2011,Zhang2016}
 \citation{Bastiaanssen1998}
-\citation{Li2022,Anderson2012,Fisher2017}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Research Objectives and the Serverless PIML Paradigm}{3}{subsection.1.2}\protected@file@percent }
-\newlabel{sec:objectives}{{1.2}{3}{Research Objectives and the Serverless PIML Paradigm}{subsection.1.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Theoretical Context}{3}{section.2}\protected@file@percent }
-\newlabel{sec:related_work}{{2}{3}{Related Work and Theoretical Context}{section.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Satellite Remote Sensing and Energy Balance Formulations}{3}{subsection.2.1}\protected@file@percent }
-\newlabel{sec:related_energy_balance}{{2.1}{3}{Satellite Remote Sensing and Energy Balance Formulations}{subsection.2.1}{}}
-\citation{Drusch2012}
-\citation{Vasisht2017}
-\citation{Kamilaris2018}
-\citation{Sarker2021,Li2021CNN,Alzubaidi2021}
-\citation{Read2019}
-\citation{Karniadakis2021,Reichstein2019,Shen2021}
-\citation{Zhao2019}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}IoT Edge Networks vs. Serverless MLOps}{4}{subsection.2.2}\protected@file@percent }
-\newlabel{sec:related_mlops}{{2.2}{4}{IoT Edge Networks vs. Serverless MLOps}{subsection.2.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Physics-Informed Machine Learning (PIML) in Hydrology}{4}{subsection.2.3}\protected@file@percent }
-\newlabel{sec:related_piml}{{2.3}{4}{Physics-Informed Machine Learning (PIML) in Hydrology}{subsection.2.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}System Architecture: Serverless Cloud-Native Pipeline}{4}{section.3}\protected@file@percent }
-\newlabel{sec:architecture}{{3}{4}{System Architecture: Serverless Cloud-Native Pipeline}{section.3}{}}
-\citation{Drusch2012}
-\citation{Fisher2017}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces UC Davis Russell Ranch Study Area divided into a $16 \times 16$ virtual sensor matrix (256 spatial sectors at $10\text  {~m} \times 10\text  {~m}$ resolution).}}{5}{figure.1}\protected@file@percent }
-\newlabel{fig:map}{{1}{5}{UC Davis Russell Ranch Study Area divided into a $16 \times 16$ virtual sensor matrix (256 spatial sectors at $10\text {~m} \times 10\text {~m}$ resolution)}{figure.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Study Site and Spatial Discretization}{5}{subsection.3.1}\protected@file@percent }
-\newlabel{sec:study_site}{{3.1}{5}{Study Site and Spatial Discretization}{subsection.3.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Multi-Source Automated Telemetry Ingestion}{5}{subsection.3.2}\protected@file@percent }
-\newlabel{sec:telemetry}{{3.2}{5}{Multi-Source Automated Telemetry Ingestion}{subsection.3.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Serverless CI/CD Workflow Orchestration}{6}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:workflow}{{3.3}{6}{Serverless CI/CD Workflow Orchestration}{subsection.3.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces AquaVolt-AI Serverless MLOps Workflow: Illustrating multi-source API ingestion, automated state estimation, fault-tolerant database logging, and continuous weekly re-training.}}{6}{figure.2}\protected@file@percent }
-\newlabel{fig:workflow}{{2}{6}{AquaVolt-AI Serverless MLOps Workflow: Illustrating multi-source API ingestion, automated state estimation, fault-tolerant database logging, and continuous weekly re-training}{figure.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Fault-Tolerant State Estimation and Cloud Persistence}{6}{subsection.3.4}\protected@file@percent }
-\newlabel{sec:persistence}{{3.4}{6}{Fault-Tolerant State Estimation and Cloud Persistence}{subsection.3.4}{}}
-\citation{Allen1998,Penman1948,Monteith1965}
-\citation{Allen1998,Kool2014}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Mathematical Methodology: Physics-Informed Crop Modeling}{7}{section.4}\protected@file@percent }
-\newlabel{sec:math_method}{{4}{7}{Mathematical Methodology: Physics-Informed Crop Modeling}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Governing Hydrological Equations (FAO-56 Dual Crop Model)}{7}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:fao56}{{4.1}{7}{Governing Hydrological Equations (FAO-56 Dual Crop Model)}{subsection.4.1}{}}
-\newlabel{eq:fao56_daily}{{1}{7}{Governing Hydrological Equations (FAO-56 Dual Crop Model)}{equation.1}{}}
-\newlabel{eq:fao56_hourly}{{2}{7}{Governing Hydrological Equations (FAO-56 Dual Crop Model)}{equation.2}{}}
-\newlabel{eq:dual_kc}{{3}{7}{Governing Hydrological Equations (FAO-56 Dual Crop Model)}{equation.3}{}}
-\newlabel{eq:ks_depletion}{{4}{7}{Governing Hydrological Equations (FAO-56 Dual Crop Model)}{equation.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Remote Sensing Derivation of Canopy Parameters}{7}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:sat_derivation}{{4.2}{7}{Remote Sensing Derivation of Canopy Parameters}{subsection.4.2}{}}
-\newlabel{eq:kc_sigmoid}{{7}{8}{Remote Sensing Derivation of Canopy Parameters}{equation.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Physics-Informed Neural Network (PINN) Formulation}{8}{subsection.4.3}\protected@file@percent }
-\newlabel{sec:pinn_formulation}{{4.3}{8}{Physics-Informed Neural Network (PINN) Formulation}{subsection.4.3}{}}
-\newlabel{eq:piml_etc_pred}{{9}{8}{Physics-Informed Neural Network (PINN) Formulation}{equation.9}{}}
-\newlabel{eq:piml_loss_total}{{10}{8}{Physics-Informed Neural Network (PINN) Formulation}{equation.10}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Results and Empirical Validation}{9}{section.5}\protected@file@percent }
-\newlabel{sec:results}{{5}{9}{Results and Empirical Validation}{section.5}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Regression Scatter Analysis: Serverless PIML predicted $\mathrm  {ET}_c$ vs. physical ground station $\mathrm  {ET}_c$ measurements ($N=36$ daily observations).}}{9}{figure.3}\protected@file@percent }
-\newlabel{fig:scatter}{{3}{9}{Regression Scatter Analysis: Serverless PIML predicted $\mathrm {ET}_c$ vs. physical ground station $\mathrm {ET}_c$ measurements ($N=36$ daily observations)}{figure.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Regression Analysis}{9}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:regression}{{5.1}{9}{Regression Analysis}{subsection.5.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Comprehensive Statistical Metrics}{9}{subsection.5.2}\protected@file@percent }
-\newlabel{sec:stat_metrics_def}{{5.2}{9}{Comprehensive Statistical Metrics}{subsection.5.2}{}}
-\newlabel{eq:nse_def}{{18}{10}{Comprehensive Statistical Metrics}{equation.18}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Statistical Evaluation of AquaVolt-AI Against Ground Station Observations}}{10}{table.1}\protected@file@percent }
-\newlabel{tab:stats_deep}{{1}{10}{Statistical Evaluation of AquaVolt-AI Against Ground Station Observations}{table.1}{}}
-\citation{Li2022,Allen2007}
-\citation{Chicco2021,Willmott1981,Nash1970}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Rigorous Analysis of Evaluation Metrics \& Mathematical Defense of NSE}{11}{subsection.5.3}\protected@file@percent }
-\newlabel{sec:nse_defense}{{5.3}{11}{Rigorous Analysis of Evaluation Metrics \& Mathematical Defense of NSE}{subsection.5.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Temporal Stability}{11}{subsection.5.4}\protected@file@percent }
-\newlabel{sec:temporal_stability}{{5.4}{11}{Temporal Stability}{subsection.5.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion: Fault Tolerance and Comparative Performance}{11}{section.6}\protected@file@percent }
-\newlabel{sec:discussion}{{6}{11}{Discussion: Fault Tolerance and Comparative Performance}{section.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Resilience to Satellite Telemetry Outages}{11}{subsection.6.1}\protected@file@percent }
-\newlabel{sec:outage_resilience}{{6.1}{11}{Resilience to Satellite Telemetry Outages}{subsection.6.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces 36-Day Time-Series Validation: AquaVolt-AI predictions tracking physical ground station observations across the evaluation window.}}{12}{figure.4}\protected@file@percent }
-\newlabel{fig:timeseries}{{4}{12}{36-Day Time-Series Validation: AquaVolt-AI predictions tracking physical ground station observations across the evaluation window}{figure.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces System Resilience Analysis: PIML state estimation maintaining stable $\mathrm  {ET}_c$ interpolation during a 9-day consecutive satellite telemetry blackout.}}{12}{figure.5}\protected@file@percent }
-\newlabel{fig:gap}{{5}{12}{System Resilience Analysis: PIML state estimation maintaining stable $\mathrm {ET}_c$ interpolation during a 9-day consecutive satellite telemetry blackout}{figure.5}{}}
-\newlabel{eq:kcb_impute}{{21}{12}{Resilience to Satellite Telemetry Outages}{equation.21}{}}
-\citation{MunozSabater2021}
-\citation{Zhao2019}
-\citation{Read2019}
 \citation{Allen2007}
-\newlabel{eq:ke_impute}{{22}{13}{Resilience to Satellite Telemetry Outages}{equation.22}{}}
-\newlabel{eq:imputed_etc}{{23}{13}{Resilience to Satellite Telemetry Outages}{equation.23}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Architectural and Performance Comparison with Representative Systems}}{13}{table.2}\protected@file@percent }
-\newlabel{tab:sota_compare}{{2}{13}{Architectural and Performance Comparison with Representative Systems}{table.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Architectural Trade-Off Analysis}{13}{subsection.6.2}\protected@file@percent }
-\newlabel{sec:architectural_tradeoffs}{{6.2}{13}{Architectural Trade-Off Analysis}{subsection.6.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Comparative SOTA Analysis}{13}{subsection.6.3}\protected@file@percent }
-\newlabel{sec:sota_analysis}{{6.3}{13}{Comparative SOTA Analysis}{subsection.6.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces State-of-the-Art Academic Literature Comparison}}{14}{table.3}\protected@file@percent }
-\newlabel{tab:academic_sota_compare}{{3}{14}{State-of-the-Art Academic Literature Comparison}{table.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{14}{section.7}\protected@file@percent }
-\newlabel{sec:conclusion}{{7}{14}{Conclusion}{section.7}{}}
-\newlabel{sec:code_availability}{{7}{14}{Code Availability}{section*.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Pipeline Implementation Code}{14}{appendix.1.A}\protected@file@percent }
-\newlabel{sec:appendix_code}{{A}{14}{Pipeline Implementation Code}{appendix.1.A}{}}
+\citation{Li2022,Anderson2012,Fisher2017}
+\citation{Allen2007}
+\citation{Fisher2017}
+\citation{Drusch2012,Roy2014}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Theoretical Foundations}{5}{section.2}\protected@file@percent }
+\newlabel{sec:related_work}{{2}{5}{Related Work and Theoretical Foundations}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Optical, SAR, and Thermal Remote Sensing for Evapotranspiration}{5}{subsection.2.1}\protected@file@percent }
+\newlabel{sec:related_et_rs}{{2.1}{5}{Optical, SAR, and Thermal Remote Sensing for Evapotranspiration}{subsection.2.1}{}}
+\citation{Torres2012,Dubois1995,Zribi2005,Attema1978,Ulaby1984}
+\citation{Gorelick2017}
+\citation{Sarker2021,Alzubaidi2021,Benos2021,Kamilaris2018}
+\citation{Li2021CNN,Hassija2023}
+\citation{Read2019,Reichstein2019}
+\citation{Karniadakis2021,Raissi2019,Lu2021,Willard2022}
+\citation{Read2019,Jia2019,Daw2020}
+\citation{Zhao2019}
+\citation{Shen2021,Kashinath2021}
+\citation{Allen1998}
+\citation{Richards1931,vanGenuchten1980}
+\citation{Richards1931,vanGenuchten1980,Kool2014,Linquist2012}
+\citation{Lampayan2015,Bouman2007}
+\citation{Carrijo2017,Belder2004}
+\citation{Reba2019,Gowda2008}
+\citation{Linquist2012,IPCC2019}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Physics-Informed Machine Learning (PIML) in Hydrology}{6}{subsection.2.2}\protected@file@percent }
+\newlabel{sec:related_piml}{{2.2}{6}{Physics-Informed Machine Learning (PIML) in Hydrology}{subsection.2.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Alternate Wetting and Drying Agronomy \& Biogeochemical Dynamics}{6}{subsection.2.3}\protected@file@percent }
+\newlabel{sec:related_awd_biogeochem}{{2.3}{6}{Alternate Wetting and Drying Agronomy \& Biogeochemical Dynamics}{subsection.2.3}{}}
+\citation{Jacob2022,Veefkind2012}
+\citation{Veefkind2012}
+\citation{Schuit2022,Falk2023,Varon2024,Wang2026}
+\citation{IPCC2019}
+\citation{Friedlingstein2023}
+\citation{Baldocchi2001}
+\citation{Vasisht2017}
+\citation{Benos2021,Alzubaidi2021,Taherizadeh2018}
+\citation{Kamilaris2018,Taherizadeh2018}
+\citation{Jonas2019,Castro2019}
+\citation{Balla2021,Kreuzberger2023}
+\citation{Alzubaidi2021}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}High-Resolution Spaceborne Methane Remote Sensing \& Digital MRV}{7}{subsection.2.4}\protected@file@percent }
+\newlabel{sec:related_methane_mrv}{{2.4}{7}{High-Resolution Spaceborne Methane Remote Sensing \& Digital MRV}{subsection.2.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Edge AI, TinyML, and Serverless Cloud-Native MLOps}{7}{subsection.2.5}\protected@file@percent }
+\newlabel{sec:related_edge_serverless}{{2.5}{7}{Edge AI, TinyML, and Serverless Cloud-Native MLOps}{subsection.2.5}{}}
+\citation{Zhang2016}
+\citation{Chicco2021,Willmott1981,Nash1970,Zargar2011,VicenteSerrano2010}
+\citation{Ronneberger2015}
+\citation{Badrinarayanan2017}
+\citation{Oktay2018}
+\citation{Chen2018Encoder}
+\citation{Isola2017}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Satellite Gap-Filling, Missingness Imputation, and Telemetry Autoregression}{8}{subsection.2.6}\protected@file@percent }
+\newlabel{sec:related_gap_filling}{{2.6}{8}{Satellite Gap-Filling, Missingness Imputation, and Telemetry Autoregression}{subsection.2.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Materials and Methods}{8}{section.3}\protected@file@percent }
+\newlabel{sec:methods}{{3}{8}{Materials and Methods}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Study Site and Capay Clay Pedological Testbed}{8}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:methods_site}{{3.1}{8}{Study Site and Capay Clay Pedological Testbed}{subsection.3.1}{}}
+\citation{Poggio2021,Hengl2017}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Geographic localization, spatial discretization, and crop regime allocation at the UC Davis Russell Ranch Sustainable Agriculture Facility ($38.548^\circ \text  {N}, 121.878^\circ \text  {W}$). (a) Regional satellite context within the California Sacramento Valley agricultural basin; (b) The $16 \times 16$ virtual sensing matrix comprising 256 autonomous spatial sectors at $10\text  { m} \times 10\text  { m}$ spatial resolution; (c) Managed multi-crop field distribution: Field A (Maize/Corn, flood irrigated), Field B (Alfalfa, multi-cut forage), Field C (Fallow baseline), and Field D (Processing Tomato / Rice); (d) Co-located validation instrumentation including California Irrigation Management Information System (CIMIS Station \#6) and AmeriFlux Eddy Covariance Tower US-Tw3.}}{9}{figure.1}\protected@file@percent }
+\newlabel{fig:study_area}{{1}{9}{Geographic localization, spatial discretization, and crop regime allocation at the UC Davis Russell Ranch Sustainable Agriculture Facility ($38.548^\circ \text {N}, 121.878^\circ \text {W}$). (a) Regional satellite context within the California Sacramento Valley agricultural basin; (b) The $16 \times 16$ virtual sensing matrix comprising 256 autonomous spatial sectors at $10\text { m} \times 10\text { m}$ spatial resolution; (c) Managed multi-crop field distribution: Field A (Maize/Corn, flood irrigated), Field B (Alfalfa, multi-cut forage), Field C (Fallow baseline), and Field D (Processing Tomato / Rice); (d) Co-located validation instrumentation including California Irrigation Management Information System (CIMIS Station \#6) and AmeriFlux Eddy Covariance Tower US-Tw3}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Multi-Tier Sensor Ingestion Cascade (25-Sensor Matrix)}{9}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:methods_telemetry_cascade}{{3.2}{9}{Multi-Tier Sensor Ingestion Cascade (25-Sensor Matrix)}{subsection.3.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comprehensive Remote Sensing, Spaceborne Thermal Radiometry, and Ground-Truth Sensor Specifications (25-Sensor Matrix)}}{10}{table.1}\protected@file@percent }
+\newlabel{tab:dataset_metadata}{{1}{10}{Comprehensive Remote Sensing, Spaceborne Thermal Radiometry, and Ground-Truth Sensor Specifications (25-Sensor Matrix)}{table.1}{}}
+\citation{Allen1998}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces AquaVolt-AI end-to-end serverless MLOps architecture and multi-modal PIML pipeline. Containerized GitHub Actions virtual runners execute hourly via POSIX cron schedules (`0 * * * *`), querying multi-source satellite streams (Sentinel-2, ECOSTRESS, Sentinel-1), reanalysis meteorology (Open-Meteo), and greenhouse gas spectrometry (Sentinel-5P). Ingested telemetry feeds the feature extraction engine, passes through the Shallow U-Net and Residual Crop Coefficient MLP, persists into dual-tier cloud storage (compressed Parquet + Google Sheets ledger), and triggers automated weekly gradient descent re-training at zero hardware infrastructure cost (\$0 CAPEX).}}{11}{figure.2}\protected@file@percent }
+\newlabel{fig:system_arch}{{2}{11}{AquaVolt-AI end-to-end serverless MLOps architecture and multi-modal PIML pipeline. Containerized GitHub Actions virtual runners execute hourly via POSIX cron schedules (`0 * * * *`), querying multi-source satellite streams (Sentinel-2, ECOSTRESS, Sentinel-1), reanalysis meteorology (Open-Meteo), and greenhouse gas spectrometry (Sentinel-5P). Ingested telemetry feeds the feature extraction engine, passes through the Shallow U-Net and Residual Crop Coefficient MLP, persists into dual-tier cloud storage (compressed Parquet + Google Sheets ledger), and triggers automated weekly gradient descent re-training at zero hardware infrastructure cost (\$0 CAPEX)}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{11}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:methods_fao56}{{3.3}{11}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{subsection.3.3}{}}
+\newlabel{eq:et0_daily}{{1}{11}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.1}{}}
+\newlabel{eq:et0_hourly}{{2}{11}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.2}{}}
+\citation{Richards1931}
+\citation{vanGenuchten1980,Kool2014}
+\newlabel{eq:pressure}{{3}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.3}{}}
+\newlabel{eq:gamma}{{4}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.4}{}}
+\newlabel{eq:sat_vp}{{5}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.5}{}}
+\newlabel{eq:delta}{{6}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.6}{}}
+\newlabel{eq:act_vp}{{7}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.7}{}}
+\newlabel{eq:etc_dual}{{8}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.8}{}}
+\newlabel{eq:ks_formulation}{{9}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.9}{}}
+\newlabel{eq:taw_raw}{{10}{12}{Thermodynamic Formulations: FAO-56 Penman-Monteith Governing Equations}{equation.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Vadose Zone Hydrodynamics: 1D Richards PDE and van Genuchten SWRC}{12}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:methods_richards}{{3.4}{12}{Vadose Zone Hydrodynamics: 1D Richards PDE and van Genuchten SWRC}{subsection.3.4}{}}
+\newlabel{eq:richards}{{11}{12}{Vadose Zone Hydrodynamics: 1D Richards PDE and van Genuchten SWRC}{equation.11}{}}
+\citation{vanGenuchten1980}
+\citation{Ronneberger2015,Badrinarayanan2017}
+\newlabel{eq:van_genuchten_theta}{{12}{13}{Vadose Zone Hydrodynamics: 1D Richards PDE and van Genuchten SWRC}{equation.12}{}}
+\newlabel{eq:van_genuchten_k}{{13}{13}{Vadose Zone Hydrodynamics: 1D Richards PDE and van Genuchten SWRC}{equation.13}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Shallow U-Net Semantic Hotspot Segmentation Architecture}{13}{subsection.3.5}\protected@file@percent }
+\newlabel{sec:methods_unet}{{3.5}{13}{Shallow U-Net Semantic Hotspot Segmentation Architecture}{subsection.3.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Physics-Informed Residual Crop Coefficient MLP}{14}{subsection.3.6}\protected@file@percent }
+\newlabel{sec:methods_piml_mlp}{{3.6}{14}{Physics-Informed Residual Crop Coefficient MLP}{subsection.3.6}{}}
+\newlabel{eq:piml_etc_residual}{{14}{14}{Physics-Informed Residual Crop Coefficient MLP}{equation.14}{}}
+\newlabel{eq:sigmoid_prior}{{15}{14}{Physics-Informed Residual Crop Coefficient MLP}{equation.15}{}}
+\newlabel{eq:mlp_residual}{{16}{14}{Physics-Informed Residual Crop Coefficient MLP}{equation.16}{}}
+\newlabel{eq:piml_loss_total}{{17}{14}{Physics-Informed Residual Crop Coefficient MLP}{equation.17}{}}
+\newlabel{eq:loss_data}{{18}{14}{Physics-Informed Residual Crop Coefficient MLP}{equation.18}{}}
+\newlabel{eq:loss_upper}{{19}{14}{Physics-Informed Residual Crop Coefficient MLP}{equation.19}{}}
+\citation{Karniadakis2021}
+\newlabel{eq:loss_lower}{{20}{15}{Physics-Informed Residual Crop Coefficient MLP}{equation.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Dynamic Loss Weighting via ReLoBRaLo}{15}{subsection.3.7}\protected@file@percent }
+\newlabel{sec:methods_relobralo}{{3.7}{15}{Dynamic Loss Weighting via ReLoBRaLo}{subsection.3.7}{}}
+\newlabel{eq:relobralo}{{21}{15}{Dynamic Loss Weighting via ReLoBRaLo}{equation.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.8}Spatial Methane Downscaler MLP with Mass Conservation Loss}{15}{subsection.3.8}\protected@file@percent }
+\newlabel{sec:methods_methane_downscaler}{{3.8}{15}{Spatial Methane Downscaler MLP with Mass Conservation Loss}{subsection.3.8}{}}
+\newlabel{eq:loss_mass_conservation}{{22}{15}{Spatial Methane Downscaler MLP with Mass Conservation Loss}{equation.22}{}}
+\newlabel{eq:mass_reprojection}{{23}{15}{Spatial Methane Downscaler MLP with Mass Conservation Loss}{equation.23}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.9}9-Day Satellite Blackout Autoregressive Rollout \& Diurnal Updating}{16}{subsection.3.9}\protected@file@percent }
+\newlabel{sec:methods_blackout_rollout}{{3.9}{16}{9-Day Satellite Blackout Autoregressive Rollout \& Diurnal Updating}{subsection.3.9}{}}
+\newlabel{eq:kcb_impute}{{24}{16}{9-Day Satellite Blackout Autoregressive Rollout \& Diurnal Updating}{equation.24}{}}
+\newlabel{eq:ke_impute}{{25}{16}{9-Day Satellite Blackout Autoregressive Rollout \& Diurnal Updating}{equation.25}{}}
+\newlabel{eq:imputed_etc}{{26}{16}{9-Day Satellite Blackout Autoregressive Rollout \& Diurnal Updating}{equation.26}{}}
+\newlabel{eq:diurnal_temp}{{27}{16}{9-Day Satellite Blackout Autoregressive Rollout \& Diurnal Updating}{equation.27}{}}
+\newlabel{eq:diurnal_rad}{{28}{16}{9-Day Satellite Blackout Autoregressive Rollout \& Diurnal Updating}{equation.28}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experimental Setup and Model Training}{16}{section.4}\protected@file@percent }
+\newlabel{sec:experiments}{{4}{16}{Experimental Setup and Model Training}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Training Protocols, Loss Formulations, and PyTorch AMP}{16}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:exp_training}{{4.1}{16}{Training Protocols, Loss Formulations, and PyTorch AMP}{subsection.4.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Ground-Truth Validation Instrumentation \& Temporal Block Splitting}{16}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:exp_ground_truth}{{4.2}{16}{Ground-Truth Validation Instrumentation \& Temporal Block Splitting}{subsection.4.2}{}}
+\citation{Baldocchi2001}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Physics-Informed Neural Network Architecture, Layer Dimensions, and Optimization Hyperparameters}}{17}{table.2}\protected@file@percent }
+\newlabel{tab:model_hyperparams}{{2}{17}{Physics-Informed Neural Network Architecture, Layer Dimensions, and Optimization Hyperparameters}{table.2}{}}
+\citation{Willmott1981,Nash1970,Chicco2021}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Statistical Evaluation Framework}{18}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:exp_stats_framework}{{4.3}{18}{Statistical Evaluation Framework}{subsection.4.3}{}}
+\newlabel{eq:rmse}{{29}{18}{Statistical Evaluation Framework}{equation.29}{}}
+\newlabel{eq:mae}{{30}{18}{Statistical Evaluation Framework}{equation.30}{}}
+\newlabel{eq:pearson_r}{{31}{18}{Statistical Evaluation Framework}{equation.31}{}}
+\newlabel{eq:willmott_d}{{32}{18}{Statistical Evaluation Framework}{equation.32}{}}
+\newlabel{eq:nse}{{33}{18}{Statistical Evaluation Framework}{equation.33}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Experimental Results and Empirical Validation}{18}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{5}{18}{Experimental Results and Empirical Validation}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Micro-Grid Semantic Hotspot Segmentation Performance}{18}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:results_hotspot}{{5.1}{18}{Micro-Grid Semantic Hotspot Segmentation Performance}{subsection.5.1}{}}
+\citation{Zhao2019}
+\citation{Read2019}
+\citation{Li2021CNN}
+\citation{Allen2007}
+\citation{Vasisht2017}
+\citation{Nash1970}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}PIML Dynamic Crop Coefficient vs. Baseline Models}{19}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:results_piml_eval}{{5.2}{19}{PIML Dynamic Crop Coefficient vs. Baseline Models}{subsection.5.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Comprehensive Performance Benchmarking: AquaVolt-AI vs. Classical, Remote Sensing, and Deep Learning Baselines}}{19}{table.3}\protected@file@percent }
+\newlabel{tab:baseline_comparison}{{3}{19}{Comprehensive Performance Benchmarking: AquaVolt-AI vs. Classical, Remote Sensing, and Deep Learning Baselines}{table.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Mathematical Proof and Defense of Peak-Summer Negative NSE}{19}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:results_nse_proof}{{5.3}{19}{Mathematical Proof and Defense of Peak-Summer Negative NSE}{subsection.5.3}{}}
+\newlabel{eq:nse_derivation}{{34}{19}{Mathematical Proof and Defense of Peak-Summer Negative NSE}{equation.34}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Empirical validation and residual regression scatter plot of AquaVolt-AI daily predicted crop evapotranspiration ($\setbox \z@ \hbox {\mathsurround \z@ $\textstyle \mathrm  {ET}$}\mathaccent "0362{\mathrm  {ET}}_c$) against physical CIMIS Station \#6 automated ground measurements over the 36-day campaign ($N = 36$). The solid black line denotes the $1:1$ line of perfect agreement ($y = x$), dashed lines delineate the $\pm 10\%$ error envelope, and markers are colored by canopy NDVI. Residual analysis demonstrates homoscedastic error dispersion ($\mathrm  {RMSE} = 0.3000\text  { mm/day}$, $\mathrm  {MAE} = 0.2688\text  { mm/day}$), confirming unbiased predictions across high evaporative demand regimes ($5.5\text  { to }7.5\text  { mm/day}$).}}{20}{figure.3}\protected@file@percent }
+\newlabel{fig:validation_scatter}{{3}{20}{Empirical validation and residual regression scatter plot of AquaVolt-AI daily predicted crop evapotranspiration ($\widehat {\mathrm {ET}}_c$) against physical CIMIS Station \#6 automated ground measurements over the 36-day campaign ($N = 36$). The solid black line denotes the $1:1$ line of perfect agreement ($y = x$), dashed lines delineate the $\pm 10\%$ error envelope, and markers are colored by canopy NDVI. Residual analysis demonstrates homoscedastic error dispersion ($\mathrm {RMSE} = 0.3000\text { mm/day}$, $\mathrm {MAE} = 0.2688\text { mm/day}$), confirming unbiased predictions across high evaporative demand regimes ($5.5\text { to }7.5\text { mm/day}$)}{figure.3}{}}
+\newlabel{eq:nse_numerical_proof}{{35}{20}{Mathematical Proof and Defense of Peak-Summer Negative NSE}{equation.35}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Multi-Source Methane Downscaling Validation}{21}{subsection.5.4}\protected@file@percent }
+\newlabel{sec:results_methane_downscaling}{{5.4}{21}{Multi-Source Methane Downscaling Validation}{subsection.5.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Longitudinal 36-day time-series trajectory and spatial methane downscaling resolution comparison. (a) Daily predicted $\mathrm  {ET}_c$ (blue line) tracking physical CIMIS Station \#6 observations (red markers) from June 28 to August 3, 2026; (b) Daily absolute error ($\Delta \mathrm  {ET}_c = |\setbox \z@ \hbox {\mathsurround \z@ $\textstyle \mathrm  {ET}$}\mathaccent "0362{\mathrm  {ET}}_c - \mathrm  {ET}_{c,\text  {obs}}|$) maintaining sub-$0.4\text  { mm/day}$ fidelity; (c) Comparison of spatial methane downscaling over an $8 \times 8$ sub-field grid, contrasting coarse Sentinel-5P TROPOMI columns ($5.5\text  { km}$), Bilinear interpolation ($10\text  { m}$), and the proposed Shallow U-Net / MLP downscaler ($10\text  { m}$, sharp row-crop delineation with exact mass conservation).}}{21}{figure.4}\protected@file@percent }
+\newlabel{fig:validation_timeseries}{{4}{21}{Longitudinal 36-day time-series trajectory and spatial methane downscaling resolution comparison. (a) Daily predicted $\mathrm {ET}_c$ (blue line) tracking physical CIMIS Station \#6 observations (red markers) from June 28 to August 3, 2026; (b) Daily absolute error ($\Delta \mathrm {ET}_c = |\widehat {\mathrm {ET}}_c - \mathrm {ET}_{c,\text {obs}}|$) maintaining sub-$0.4\text { mm/day}$ fidelity; (c) Comparison of spatial methane downscaling over an $8 \times 8$ sub-field grid, contrasting coarse Sentinel-5P TROPOMI columns ($5.5\text { km}$), Bilinear interpolation ($10\text { m}$), and the proposed Shallow U-Net / MLP downscaler ($10\text { m}$, sharp row-crop delineation with exact mass conservation)}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Planetary Boundary Layer Thermal Inversions \& Tower Correlation}{21}{subsection.5.5}\protected@file@percent }
+\newlabel{sec:results_pbl_inversion}{{5.5}{21}{Planetary Boundary Layer Thermal Inversions \& Tower Correlation}{subsection.5.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Multi-Source Cross-Validation Matrix for Satellite Methane Downscaling against Spaceborne Spectrometers and Ground Eddy Covariance Towers}}{22}{table.4}\protected@file@percent }
+\newlabel{tab:methane_comparison}{{4}{22}{Multi-Source Cross-Validation Matrix for Satellite Methane Downscaling against Spaceborne Spectrometers and Ground Eddy Covariance Towers}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}8-Year Longitudinal Methane Trend \& Carbon Abatement Accounting}{22}{subsection.5.6}\protected@file@percent }
+\newlabel{sec:results_8yr_trend}{{5.6}{22}{8-Year Longitudinal Methane Trend \& Carbon Abatement Accounting}{subsection.5.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}9-Day Satellite Blackout Resilience Analysis}{23}{subsection.5.7}\protected@file@percent }
+\newlabel{sec:results_blackout_resilience}{{5.7}{23}{9-Day Satellite Blackout Resilience Analysis}{subsection.5.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Operational resilience and fault-tolerant imputation during the 9-day consecutive satellite telemetry blackout (July 25 to August 3, 2026). (a) Satellite telemetry ingestion timeline showing uninterrupted optical acquisition (June 28--July 24), the 9-day Sentinel-2 API blackout, and automated re-synchronization on August 3; (b) Comparative trajectory showing catastrophic divergence in unconstrained neural networks (dashed red line) versus continuous, bounded state propagation in AquaVolt-AI (solid blue line); (c) Dynamic decay kinetics of basal crop transpiration persistence ($K_{cb}(t)$) and Stage-2 topsoil evaporation drying rate ($K_e(t)$) maintaining bounded evapotranspiration estimates ($\mathrm  {RMSE} \le 0.32\text  { mm/day}$).}}{23}{figure.5}\protected@file@percent }
+\newlabel{fig:imputation_gap}{{5}{23}{Operational resilience and fault-tolerant imputation during the 9-day consecutive satellite telemetry blackout (July 25 to August 3, 2026). (a) Satellite telemetry ingestion timeline showing uninterrupted optical acquisition (June 28--July 24), the 9-day Sentinel-2 API blackout, and automated re-synchronization on August 3; (b) Comparative trajectory showing catastrophic divergence in unconstrained neural networks (dashed red line) versus continuous, bounded state propagation in AquaVolt-AI (solid blue line); (c) Dynamic decay kinetics of basal crop transpiration persistence ($K_{cb}(t)$) and Stage-2 topsoil evaporation drying rate ($K_e(t)$) maintaining bounded evapotranspiration estimates ($\mathrm {RMSE} \le 0.32\text { mm/day}$)}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8}AWD Water Table, Redox Potential ($E_h$), and Methane Flux Dynamics}{24}{subsection.5.8}\protected@file@percent }
+\newlabel{sec:results_awd_dynamics}{{5.8}{24}{AWD Water Table, Redox Potential ($E_h$), and Methane Flux Dynamics}{subsection.5.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Biophysical coupling between perched water table fluctuations, soil redox potential ($E_h$), and methane flux dynamics during Alternate Wetting and Drying (AWD) management. (a) Water table depth showing three cyclic drying intervals down to the safe AWD threshold ($-15\text  { cm}$); (b) Soil redox potential ($E_h$, red curve) responding to aeration with a 1.5-day time lag, transitioning from methanogenic reduction ($<-150\text  { mV}$) to aerobic oxidation ($>+150\text  { mV}$); (c) Methane flux ($\mathrm  {CH}_4$, green curve) dropping to near-zero ($<0.1\text  { mg}\cdot \text  {m}^{-2}\cdot \text  {h}^{-1}$) whenever $E_h > -150\text  { mV}$, verifying the physical mechanism of AWD emission abatement.}}{24}{figure.6}\protected@file@percent }
+\newlabel{fig:awd_redox_flux}{{6}{24}{Biophysical coupling between perched water table fluctuations, soil redox potential ($E_h$), and methane flux dynamics during Alternate Wetting and Drying (AWD) management. (a) Water table depth showing three cyclic drying intervals down to the safe AWD threshold ($-15\text { cm}$); (b) Soil redox potential ($E_h$, red curve) responding to aeration with a 1.5-day time lag, transitioning from methanogenic reduction ($<-150\text { mV}$) to aerobic oxidation ($>+150\text { mV}$); (c) Methane flux ($\mathrm {CH}_4$, green curve) dropping to near-zero ($<0.1\text { mg}\cdot \text {m}^{-2}\cdot \text {h}^{-1}$) whenever $E_h > -150\text { mV}$, verifying the physical mechanism of AWD emission abatement}{figure.6}{}}
+\citation{Schuit2022}
+\citation{Falk2023}
+\citation{Varon2024}
+\citation{Wang2026}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.9}Comprehensive Statistical Significance \& Multi-Crop Ablation Matrix}{25}{subsection.5.9}\protected@file@percent }
+\newlabel{sec:results_ablation_stats}{{5.9}{25}{Comprehensive Statistical Significance \& Multi-Crop Ablation Matrix}{subsection.5.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Crop-Specific Generalization and Component Ablation Analysis on the Unseen August 2026 Testbed ($N=759$ Grids)}}{25}{table.5}\protected@file@percent }
+\newlabel{tab:ablation_study}{{5}{25}{Crop-Specific Generalization and Component Ablation Analysis on the Unseen August 2026 Testbed ($N=759$ Grids)}{table.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Hypothesis Testing and Statistical Significance of Performance Gains (AquaVolt-AI vs. Baselines Across 36 Paired Daily Epochs)}}{25}{table.6}\protected@file@percent }
+\newlabel{tab:statistical_significance}{{6}{25}{Hypothesis Testing and Statistical Significance of Performance Gains (AquaVolt-AI vs. Baselines Across 36 Paired Daily Epochs)}{table.6}{}}
+\citation{Read2019,Reichstein2019}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.10}Literature Comparison (2022--2026) and Biophysical Parameter Matrix}{26}{subsection.5.10}\protected@file@percent }
+\newlabel{sec:results_lit_comp}{{5.10}{26}{Literature Comparison (2022--2026) and Biophysical Parameter Matrix}{subsection.5.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Comparative Analysis with Recent State-of-the-Art Satellite Methane Downscaling Literature (2022--2026)}}{26}{table.7}\protected@file@percent }
+\newlabel{tab:lit_comparison}{{7}{26}{Comparative Analysis with Recent State-of-the-Art Satellite Methane Downscaling Literature (2022--2026)}{table.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Soil and Crop Biophysical Parameter Matrix for FAO-56 Dual Crop Modeling across Experimental Fields}}{26}{table.8}\protected@file@percent }
+\newlabel{tab:crop_params}{{8}{26}{Soil and Crop Biophysical Parameter Matrix for FAO-56 Dual Crop Modeling across Experimental Fields}{table.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion and Practical Implications}{26}{section.6}\protected@file@percent }
+\newlabel{sec:discussion}{{6}{26}{Discussion and Practical Implications}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Physical Interpretability and Hydrological Consistency}{26}{subsection.6.1}\protected@file@percent }
+\newlabel{sec:disc_physics}{{6.1}{26}{Physical Interpretability and Hydrological Consistency}{subsection.6.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Edge Hardware Scalability and TinyML MCU Profiling}{27}{subsection.6.2}\protected@file@percent }
+\newlabel{sec:disc_edge_tinyml}{{6.2}{27}{Edge Hardware Scalability and TinyML MCU Profiling}{subsection.6.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Edge Inference Latency, Memory Footprint, and Power Benchmarks for INT8 Quantized AquaVolt-AI PIML Model}}{27}{table.9}\protected@file@percent }
+\newlabel{tab:edge_benchmarks}{{9}{27}{Edge Inference Latency, Memory Footprint, and Power Benchmarks for INT8 Quantized AquaVolt-AI PIML Model}{table.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Automated Cryptographic MRV for Verra VM0033 / CDM ACM0022 Compliance}{27}{subsection.6.3}\protected@file@percent }
+\newlabel{sec:disc_mrv_provenance}{{6.3}{27}{Automated Cryptographic MRV for Verra VM0033 / CDM ACM0022 Compliance}{subsection.6.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Limitations and Edge Failure Modes}{28}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:disc_limitations}{{6.4}{28}{Limitations and Edge Failure Modes}{subsection.6.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Socio-Economic \& Agricultural Policy Implications}{28}{subsection.6.5}\protected@file@percent }
+\newlabel{sec:disc_policy}{{6.5}{28}{Socio-Economic \& Agricultural Policy Implications}{subsection.6.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion and Future Trajectories}{28}{section.7}\protected@file@percent }
+\newlabel{sec:conclusion}{{7}{28}{Conclusion and Future Trajectories}{section.7}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Data Availability}{28}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Code Availability}{29}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subparagraph}{Declarations}{29}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Proof of Negative Nash-Sutcliffe Efficiency ($\mathrm  {NSE}$) under Low Variance}{29}{appendix.1.A}\protected@file@percent }
+\newlabel{app:nse_proof}{{A}{29}{Proof of Negative Nash-Sutcliffe Efficiency ($\mathrm {NSE}$) under Low Variance}{appendix.1.A}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}LoRaWAN 154\,dB Link Budget and Energy Harvester Sizing}{29}{appendix.1.B}\protected@file@percent }
+\newlabel{app:lorawan_budget}{{B}{29}{LoRaWAN 154\,dB Link Budget and Energy Harvester Sizing}{appendix.1.B}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Complete 25-Sensor Plugin Specification \& Telemetry Schema}{30}{appendix.1.C}\protected@file@percent }
+\newlabel{app:sensor_catalog}{{C}{30}{Complete 25-Sensor Plugin Specification \& Telemetry Schema}{appendix.1.C}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Cryptographic SHA-256 Telemetry \& Digital MRV Audit Protocol}{30}{appendix.1.D}\protected@file@percent }
+\newlabel{app:crypto_mrv}{{D}{30}{Cryptographic SHA-256 Telemetry \& Digital MRV Audit Protocol}{appendix.1.D}{}}
 \bibdata{sn-bibliography}
 \bibcite{MunozSabater2021}{{1}{2021}{{Mu{\~n}oz-Sabater et~al.}}{{}}}
 \bibcite{Friedlingstein2023}{{2}{2023}{{Friedlingstein et~al.}}{{}}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}GitHub Actions Serverless Scheduler (hourly\_sync.yml)}{15}{subsection.1.A.1}\protected@file@percent }
-\newlabel{sec:appendix_yml}{{A.1}{15}{GitHub Actions Serverless Scheduler (hourly\_sync.yml)}{subsection.1.A.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Physics-Informed Loss Function Implementation}{15}{subsection.1.A.2}\protected@file@percent }
-\newlabel{sec:appendix_loss}{{A.2}{15}{Physics-Informed Loss Function Implementation}{subsection.1.A.2}{}}
 \bibcite{Jiao2021}{{3}{2021}{{Jiao et~al.}}{{}}}
-\bibcite{Allen1998}{{4}{1998}{{Allen et~al.}}{{}}}
-\bibcite{Kool2014}{{5}{2014}{{Kool et~al.}}{{}}}
-\bibcite{Vasisht2017}{{6}{2017}{{Vasisht et~al.}}{{}}}
-\bibcite{Kamilaris2018}{{7}{2018}{{Kamilaris and Prenafeta-Bold{\'u}}}{{}}}
-\bibcite{Benos2021}{{8}{2021}{{Benos et~al.}}{{}}}
-\bibcite{Karniadakis2021}{{9}{2021}{{Karniadakis et~al.}}{{}}}
-\bibcite{Reichstein2019}{{10}{2019}{{Reichstein et~al.}}{{}}}
-\bibcite{Penman1948}{{11}{1948}{{Penman}}{{}}}
-\bibcite{Monteith1965}{{12}{1965}{{Monteith}}{{}}}
-\bibcite{Allen2007}{{13}{2007}{{Allen et~al.}}{{}}}
-\bibcite{Bastiaanssen1998}{{14}{1998}{{Bastiaanssen et~al.}}{{}}}
-\bibcite{Li2022}{{15}{2022}{{Li et~al.}}{{}}}
-\bibcite{Anderson2012}{{16}{2012}{{Anderson et~al.}}{{}}}
-\bibcite{Fisher2017}{{17}{2017}{{Fisher et~al.}}{{}}}
-\bibcite{Drusch2012}{{18}{2012}{{Drusch et~al.}}{{}}}
-\bibcite{Sarker2021}{{19}{2021}{{Sarker}}{{}}}
-\bibcite{Li2021CNN}{{20}{2021}{{Li et~al.}}{{}}}
-\bibcite{Alzubaidi2021}{{21}{2021}{{Alzubaidi et~al.}}{{}}}
-\bibcite{Read2019}{{22}{2019}{{Read et~al.}}{{}}}
-\bibcite{Shen2021}{{23}{2021}{{Shen et~al.}}{{}}}
-\bibcite{Zhao2019}{{24}{2019}{{Zhao et~al.}}{{}}}
-\bibcite{Chicco2021}{{25}{2021}{{Chicco et~al.}}{{}}}
-\bibcite{Willmott1981}{{26}{1981}{{Willmott}}{{}}}
-\bibcite{Nash1970}{{27}{1970}{{Nash and Sutcliffe}}{{}}}
-\gdef \@abspage@last{18}
+\bibcite{Hassani2021}{{4}{2021}{{Hassani et~al.}}{{}}}
+\bibcite{Allen1998}{{5}{1998}{{Allen et~al.}}{{}}}
+\bibcite{Penman1948}{{6}{1948}{{Penman}}{{}}}
+\bibcite{Monteith1965}{{7}{1965}{{Monteith}}{{}}}
+\bibcite{Gowda2008}{{8}{2008}{{Gowda et~al.}}{{}}}
+\bibcite{Anderson2012}{{9}{2012}{{Anderson et~al.}}{{}}}
+\bibcite{Fisher2017}{{10}{2017}{{Fisher et~al.}}{{}}}
+\bibcite{Gorelick2017}{{11}{2017}{{Gorelick et~al.}}{{}}}
+\bibcite{Belder2004}{{12}{2004}{{Belder et~al.}}{{}}}
+\bibcite{Benos2021}{{13}{2021}{{Benos et~al.}}{{}}}
+\bibcite{Kamilaris2018}{{14}{2018}{{Kamilaris and Prenafeta-Bold{'u}}}{{}}}
+\bibcite{Linquist2012}{{15}{2012}{{Linquist et~al.}}{{}}}
+\bibcite{IPCC2019}{{16}{2019}{{{IPCC}}}{{}}}
+\bibcite{Reba2019}{{17}{2019}{{Reba et~al.}}{{}}}
+\bibcite{Richards1931}{{18}{1931}{{Richards}}{{}}}
+\bibcite{vanGenuchten1980}{{19}{1980}{{van Genuchten}}{{}}}
+\bibcite{Lampayan2015}{{20}{2015}{{Lampayan et~al.}}{{}}}
+\bibcite{Bouman2007}{{21}{2007}{{Bouman et~al.}}{{}}}
+\bibcite{Carrijo2017}{{22}{2017}{{Carrijo et~al.}}{{}}}
+\bibcite{Jacob2022}{{23}{2022}{{Jacob et~al.}}{{}}}
+\bibcite{Veefkind2012}{{24}{2012}{{Veefkind et~al.}}{{}}}
+\bibcite{Drusch2012}{{25}{2012}{{Drusch et~al.}}{{}}}
+\bibcite{Roy2014}{{26}{2014}{{Roy et~al.}}{{}}}
+\bibcite{Li2022}{{27}{2022}{{Li et~al.}}{{}}}
+\bibcite{Mu2011}{{28}{2011}{{Mu et~al.}}{{}}}
+\bibcite{Read2019}{{29}{2019}{{Read et~al.}}{{}}}
+\bibcite{Willard2022}{{30}{2022}{{Willard et~al.}}{{}}}
+\bibcite{Karniadakis2021}{{31}{2021}{{Karniadakis et~al.}}{{}}}
+\bibcite{Vasisht2017}{{32}{2017}{{Vasisht et~al.}}{{}}}
+\bibcite{Bastiaanssen1998}{{33}{1998}{{Bastiaanssen et~al.}}{{}}}
+\bibcite{Allen2007}{{34}{2007}{{Allen et~al.}}{{}}}
+\bibcite{Cleugh2007}{{35}{2007}{{Cleugh et~al.}}{{}}}
+\bibcite{Zhang2016}{{36}{2016}{{Zhang et~al.}}{{}}}
+\bibcite{Torres2012}{{37}{2012}{{Torres et~al.}}{{}}}
+\bibcite{Dubois1995}{{38}{1995}{{Dubois et~al.}}{{}}}
+\bibcite{Zribi2005}{{39}{2005}{{Zribi et~al.}}{{}}}
+\bibcite{Attema1978}{{40}{1978}{{Attema and Ulaby}}{{}}}
+\bibcite{Ulaby1984}{{41}{1984}{{Ulaby et~al.}}{{}}}
+\bibcite{Sarker2021}{{42}{2021}{{Sarker}}{{}}}
+\bibcite{Alzubaidi2021}{{43}{2021}{{Alzubaidi et~al.}}{{}}}
+\bibcite{Li2021CNN}{{44}{2021}{{Li et~al.}}{{}}}
+\bibcite{Hassija2023}{{45}{2023}{{Hassija et~al.}}{{}}}
+\bibcite{Reichstein2019}{{46}{2019}{{Reichstein et~al.}}{{}}}
+\bibcite{Raissi2019}{{47}{2019}{{Raissi et~al.}}{{}}}
+\bibcite{Lu2021}{{48}{2021}{{Lu et~al.}}{{}}}
+\bibcite{Jia2019}{{49}{2019}{{Jia et~al.}}{{}}}
+\bibcite{Daw2020}{{50}{2020}{{Daw et~al.}}{{}}}
+\bibcite{Zhao2019}{{51}{2019}{{Zhao et~al.}}{{}}}
+\bibcite{Shen2021}{{52}{2021}{{Shen et~al.}}{{}}}
+\bibcite{Kashinath2021}{{53}{2021}{{Kashinath et~al.}}{{}}}
+\bibcite{Kool2014}{{54}{2014}{{Kool et~al.}}{{}}}
+\bibcite{Schuit2022}{{55}{2022}{{Schuit et~al.}}{{}}}
+\bibcite{Falk2023}{{56}{2023}{{Falk et~al.}}{{}}}
+\bibcite{Varon2024}{{57}{2024}{{Varon et~al.}}{{}}}
+\bibcite{Wang2026}{{58}{2026}{{Wang et~al.}}{{}}}
+\bibcite{Baldocchi2001}{{59}{2001}{{Baldocchi et~al.}}{{}}}
+\bibcite{Taherizadeh2018}{{60}{2018}{{Taherizadeh et~al.}}{{}}}
+\bibcite{Jonas2019}{{61}{2019}{{Jonas et~al.}}{{}}}
+\bibcite{Castro2019}{{62}{2019}{{Castro et~al.}}{{}}}
+\bibcite{Balla2021}{{63}{2021}{{Balla and Kertesz}}{{}}}
+\bibcite{Kreuzberger2023}{{64}{2023}{{Kreuzberger et~al.}}{{}}}
+\bibcite{Chicco2021}{{65}{2021}{{Chicco et~al.}}{{}}}
+\bibcite{Willmott1981}{{66}{1981}{{Willmott}}{{}}}
+\bibcite{Nash1970}{{67}{1970}{{Nash and Sutcliffe}}{{}}}
+\bibcite{Zargar2011}{{68}{2011}{{Zargar et~al.}}{{}}}
+\bibcite{VicenteSerrano2010}{{69}{2010}{{Vicente-Serrano et~al.}}{{}}}
+\bibcite{Ronneberger2015}{{70}{2015}{{Ronneberger et~al.}}{{}}}
+\bibcite{Badrinarayanan2017}{{71}{2017}{{Badrinarayanan et~al.}}{{}}}
+\bibcite{Oktay2018}{{72}{2018}{{Oktay et~al.}}{{}}}
+\bibcite{Chen2018Encoder}{{73}{2018}{{Chen et~al.}}{{}}}
+\bibcite{Isola2017}{{74}{2017}{{Isola et~al.}}{{}}}
+\bibcite{Poggio2021}{{75}{2021}{{Poggio et~al.}}{{}}}
+\bibcite{Hengl2017}{{76}{2017}{{Hengl et~al.}}{{}}}
+\gdef \@abspage@last{38}

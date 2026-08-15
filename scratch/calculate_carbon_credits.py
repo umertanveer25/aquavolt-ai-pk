@@ -122,12 +122,19 @@ def calculate_subfield_emissions(regional_methane_ppb, subfields):
         # Base emission rate from regional atmospheric methane
         # Convert ppb atmospheric concentration to estimated surface flux
         # Using: flux ≈ (concentration - background) * transfer_coefficient
-        background_ppb = 1850.0  # Pre-industrial CH4 background
+        param_path = os.path.join(DATA_DIR, 'model_parameters.json')
+        background_ppb = 1850.0
+        transfer_coeff = 0.0001
+        if os.path.exists(param_path):
+            try:
+                with open(param_path, 'r') as f:
+                    cal_params = json.load(f)
+                    background_ppb = cal_params.get("background_ppb", 1850.0)
+                    transfer_coeff = cal_params.get("transfer_coeff", 0.0001)
+            except Exception:
+                pass
+                
         excess_ppb = max(0, regional_methane_ppb - background_ppb)
-
-        # Transfer coefficient: ppb excess → kg/hr/cell (empirical)
-        # Scaled for a 10m x 10m cell (100 m²)
-        transfer_coeff = 0.0001  # kg/hr per ppb excess per 100m²
         base_emission_kg_hr = excess_ppb * transfer_coeff * factor
 
         # Annual emission for this sub-field
