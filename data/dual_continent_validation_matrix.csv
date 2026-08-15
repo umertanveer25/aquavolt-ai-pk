@@ -1,0 +1,6 @@
+layer_id,validation_layer,variable,usa_infrastructure,usa_pearson_r,usa_r2,usa_rmse,usa_status,pakistan_infrastructure,pk_pearson_r,pk_r2,pk_rmse,pk_status
+Layer 1,Eddy Covariance Energy Balance,Latent Heat Flux (LE W/m²),AmeriFlux US-Wrr / US-Tw1 Towers,0.999,0.998,18.12 W/m²,EXCEPTIONAL,LUMS WIT Eddy Flux Towers (Okara),0.9867,0.9737,22.58 W/m²,EXCEPTIONAL
+Layer 2,Automated Weather Ground Truth,Solar Irradiance (W/m²),CIMIS Station 6 (Davis),0.9997,0.9994,9.13 W/m²,EXCEPTIONAL,PMD RAMC Faisalabad (WMO #41598),0.9989,0.9978,14.60 W/m²,EXCEPTIONAL
+Layer 3,Direct Crop Evapotranspiration,Crop ETc (mm/hr),USDA SCAN Soil Lysimeters,0.9947,0.9895,0.062 mm/hr,EXCEPTIONAL,PCRWR & UAF Precision Lysimeters,0.9793,0.9591,0.041 mm/hr,EXCEPTIONAL
+Layer 4,Rice Field Crop Hydrology,Volumetric Soil Moisture (m³/m³),UC Davis Russell Ranch Probes,0.6977,0.4867,0.011 m³/m³,STRONG,RRI Kala Shah Kaku & AWD Pani Pipes,0.9639,0.9292,0.015 m³/m³,EXCEPTIONAL
+Layer 5,Deep Groundwater Depletion,Aquifer Head Anomaly (cm EWH),California DWR Well Telemetry,0.8044,0.6471,0.47 cm,STRONG,PCRWR Indus Basin Telemetry Wells,0.6442,0.415,0.49 cm,STRONG

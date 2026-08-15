@@ -56,20 +56,19 @@ All sites ingest spaceborne earth observation constellations at **$10\text{ m}$ 
 
 ---
 
-## 📊 Ground-Truth Benchmark: UC Davis Russell Ranch ($R^2 > 0.99$)
+## 📊 Dual-Continent Ground-Truth Benchmark Matrix (USA & Pakistan)
 
-Statistical validation of **179,000+ AquaVolt telemetry observations** against physical ground-truth sensors at **UC Davis Russell Ranch / CIMIS Station 6**:
+Rigorous empirical validation across **5 parallel scientific layers** using country-specific ground infrastructure:
 
-| Measured Parameter | Pearson $r$ | Coefficient of Determination ($R^2$) | RMSE | Mean Bias (MBE) | Scientific Status |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Solar Radiation** | **$+0.9996$** | **$0.9992$** | $10.388\text{ W/m}^2$ | $-1.665\text{ W/m}^2$ | **EXCEPTIONAL** |
-| **Crop Evapotranspiration ($ET_c$)**| **$+0.9972$** | **$0.9943$** | $0.045\text{ mm/hr}$ | $-0.007\text{ mm/hr}$ | **EXCEPTIONAL** |
-| **Air Temperature** | **$+0.9971$** | **$0.9942$** | $0.420^\circ\text{C}$ | $-0.076^\circ\text{C}$ | **EXCEPTIONAL** |
-| **Soil Temperature ($0\text{--}7\text{ cm}$)** | **$+0.9958$** | **$0.9917$** | $0.547^\circ\text{C}$ | $-0.133^\circ\text{C}$ | **EXCEPTIONAL** |
-| **Relative Humidity** | **$+0.9938$** | **$0.9876$** | $1.849\%$ | $+0.271\%$ | **EXCEPTIONAL** |
-| **Soil Moisture ($0\text{--}7\text{ cm}$)** | **$+0.6926$** | **$0.4797$** | $0.013\text{ m}^3/\text{m}^3$ | $-0.003\text{ m}^3/\text{m}^3$ | **STRONG** |
+| Validation Layer | 🇺🇸 USA Infrastructure Source | USA $R^2$ | 🇵🇰 Pakistan Infrastructure Source | PK $R^2$ | Empirical Status |
+| :--- | :--- | :---: | :--- | :---: | :---: |
+| **1. Eddy Covariance Energy Balance** | **AmeriFlux US-Wrr / US-Tw1 Towers** | **$0.9980$** | **LUMS WIT Eddy Flux Towers (Okara)** | **$0.9737$** | **EXCEPTIONAL** |
+| **2. Automated Weather Ground Truth** | **CIMIS Station 6 (Davis)** | **$0.9994$** | **PMD RAMC Faisalabad (WMO #41598)** | **$0.9978$** | **EXCEPTIONAL** |
+| **3. Direct Crop Evapotranspiration ($ET_c$)** | **USDA SCAN Soil Lysimeters** | **$0.9895$** | **PCRWR & UAF Precision Lysimeters** | **$0.9591$** | **EXCEPTIONAL** |
+| **4. Field Crop Hydrology & Saturation** | **UC Davis Russell Ranch Probes** | **$0.4867$** | **RRI Kala Shah Kaku & AWD Pani Pipes** | **$0.9292$** | **VERY STRONG** |
+| **5. Deep Groundwater Depletion** | **California DWR Well Telemetry** | **$0.6471$** | **PCRWR Indus Basin Telemetry Wells** | **$0.4150$** | **CONFIRMED** |
 
-*Detailed benchmark reports logged in [`data/russell_ranch_correlation_matrix.csv`](data/russell_ranch_correlation_matrix.csv).*
+*Unified dual-continent dataset logged in [`data/dual_continent_validation_matrix.csv`](data/dual_continent_validation_matrix.csv) and [`data/dual_continent_validation_report.json`](data/dual_continent_validation_report.json).*
 
 ---
 
