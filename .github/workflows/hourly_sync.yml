@@ -66,31 +66,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run hourly Google Sheets logger
+      - name: Run Multi-Site Resilient Sync (USA & Pakistan)
         env:
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
           AQUAVOLT_PREMIUM_API_KEY: ${{ secrets.AQUAVOLT_PREMIUM_API_KEY }}
           AQUAVOLT_SHEET_ID: ${{ secrets.AQUAVOLT_SHEET_ID }}
           GSHEET_NAME: "AquaVolt-AI Telemetry Log"
-          AQUAVOLT_LAT: "38.5480"
-          AQUAVOLT_LON: "-121.8780"
-          AQUAVOLT_FARM: "UC Davis Russell Ranch"
           PYTHONIOENCODING: "utf-8"
         run: |
-          python aquavolt_gsheet_logger.py
+          python aquavolt_resilient_sync.py
 
-      - name: Generate live visualization plots
-        env:
-          PYTHONIOENCODING: "utf-8"
-        run: |
-          pip install matplotlib seaborn scipy
-          python generate_plots.py
-
-      - name: Commit and push live dashboard
+      - name: Commit and push multi-site telemetry & provenance
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add README.md docs/*.png data/*.csv data/PROVENANCE.json
-          git commit -m "chore: Update live telemetry dashboard and plots [skip ci]" || echo "No changes to commit"
+          git add README.md data/*.csv data/*.json data/drone_flights/
+          git commit -m "chore(cloud-sync): automated 24/7 multi-site telemetry (USA & Pakistan) [skip ci]" || echo "No changes to commit"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main 2>&1 || (echo 'Git push failed!' && exit 1)
 
