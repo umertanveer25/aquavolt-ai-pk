@@ -21,25 +21,34 @@ CACHE_DIR = r"C:\aquavolt_cache"
 if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
+repo_dir = os.path.dirname(os.path.abspath(__file__))
+
 print("======================================================================")
-print("  AquaVolt-AI Resilient Sync [Instant Push Mode]")
+print("  AquaVolt-AI Resilient Sync [Autonomous Telemetry & Drone Sync]")
 print("======================================================================")
 
-# 1. Download, process, AND push data IMMEDIATELY
-print("[START] Computing and pushing telemetry data...")
+# 1. Automated Drone Flight Ingestion & Provenance Audit
+print("\n[DRONE] Scanning and auditing incoming UAV drone flight logs...")
+try:
+    drone_script = os.path.join(repo_dir, "scratch", "verify_drone_provenance.py")
+    if os.path.exists(drone_script):
+        subprocess.run([sys.executable, drone_script], cwd=repo_dir, check=False)
+except Exception as de:
+    print(f"[DRONE WARNING] Drone audit step: {de}")
+
+# 2. Download, process, AND log hourly telemetry
+print("\n[START] Computing and pushing telemetry data...")
 try:
     worksheet, rows_to_append = aquavolt_gsheet_logger.main(push_to_sheets=True)
 except SystemExit:
     print("[EXIT] Telemetry engine signaled early exit (data already current).")
-    exit(0)
 except Exception as e:
     print(f"[WARNING] GSheet push encountered an issue (local CSV was updated): {e}")
     worksheet, rows_to_append = None, []
 
-# 2. Save local backup and push to GitHub
-print("[BACKUP] Syncing telemetry and provenance to GitHub...")
+# 3. Save local backup and push to GitHub
+print("\n[BACKUP] Syncing telemetry, drone ledger, and provenance to GitHub...")
 try:
-    repo_dir = os.path.dirname(os.path.abspath(__file__))
     current_utc = datetime.now(timezone.utc)
     now_str = current_utc.strftime('%Y-%m-%d %H:00 UTC')
     
@@ -59,15 +68,22 @@ try:
         except Exception:
             pass
 
-    # Push to GitHub
-    print("[GIT] Committing and pushing telemetry to GitHub...")
-    subprocess.run(["git", "add", "data/*.csv", "data/PROVENANCE.json", "README.md"], cwd=repo_dir, check=False)
-    subprocess.run(["git", "commit", "-m", f"chore: automated hourly telemetry log {now_str} [skip ci]"], cwd=repo_dir, check=False)
+    # Stage and push to GitHub
+    print("[GIT] Committing and pushing telemetry + drone logs to GitHub...")
+    subprocess.run([
+        "git", "add", 
+        "data/*.csv", 
+        "data/incoming_validation/*.csv", 
+        "data/drone_audit_ledger.csv", 
+        "data/PROVENANCE.json", 
+        "README.md"
+    ], cwd=repo_dir, check=False)
+    subprocess.run(["git", "commit", "-m", f"chore: automated hourly telemetry and drone sync {now_str} [skip ci]"], cwd=repo_dir, check=False)
     res = subprocess.run(["git", "push", "origin", "main"], cwd=repo_dir, capture_output=True, text=True)
     if res.returncode == 0:
-        print("[GIT] ✅ Pushed new telemetry to GitHub successfully.")
+        print("[GIT] ✅ Pushed new telemetry and drone records to GitHub successfully.")
     else:
-        print(f"[GIT] Push notice: {res.stderr.strip() or 'No changes or up to date'}")
+        print(f"[GIT] Push status: {res.stderr.strip() or 'Up to date'}")
 
 except Exception as e:
     print(f"[ERROR] Git sync step: {e}")
