@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-08-15 06:53",
+  "data_streams": [
+    {
+      "name": "CIMIS Station 6 (Davis)",
+      "url": "https://et.water.ca.gov/api/data",
+      "station_id": "6",
+      "start_date": "2026-06-28",
+      "end_date": "2026-08-15",
+      "record_count": 40,
+      "retrieval_timestamp": "2026-08-15 06:53"
+    }
+  ],
+  "verification_hash": "f39caf7abb5619b2b36d192d200f80fc6c36b39ef6334850b8d751a54316f340",
+  "record_count": 178687,
+  "last_real_timestamp": "2026-08-15 06:00:00",
+  "last_updated": "2026-08-15T06:54:28.928105+00:00"
+}
