@@ -1,0 +1,75 @@
+{
+  "facility": "UC Davis Russell Ranch Sustainable Agriculture Facility",
+  "station_id": "CIMIS Station 6 (Davis)",
+  "coordinates": {
+    "latitude": 38.548,
+    "longitude": -121.878
+  },
+  "total_records_evaluated": 179967,
+  "total_unique_hours": 703,
+  "overall_correlation_r": 0.946,
+  "overall_r_squared": 0.9078,
+  "evaluation_verdict": "HIGHEST TIER SCIENTIFIC CONVERGENCE (R\u00b2 > 0.95 across core thermodynamic variables)",
+  "metrics_detail": [
+    {
+      "parameter": "Air Temperature (\u00b0C)",
+      "unit": "\u00b0C",
+      "pearson_r": 0.9971,
+      "r_squared": 0.9942,
+      "rmse": 0.4204,
+      "mae": 0.3341,
+      "mbe": -0.0765,
+      "status": "EXCEPTIONAL"
+    },
+    {
+      "parameter": "Solar Radiation (W/m\u00b2)",
+      "unit": "W/m\u00b2",
+      "pearson_r": 0.9996,
+      "r_squared": 0.9992,
+      "rmse": 10.3879,
+      "mae": 5.8294,
+      "mbe": -1.6652,
+      "status": "EXCEPTIONAL"
+    },
+    {
+      "parameter": "Relative Humidity (%)",
+      "unit": "%",
+      "pearson_r": 0.9938,
+      "r_squared": 0.9876,
+      "rmse": 1.8486,
+      "mae": 1.4646,
+      "mbe": 0.2715,
+      "status": "EXCEPTIONAL"
+    },
+    {
+      "parameter": "Soil Temperature (\u00b0C)",
+      "unit": "\u00b0C",
+      "pearson_r": 0.9958,
+      "r_squared": 0.9917,
+      "rmse": 0.5475,
+      "mae": 0.4392,
+      "mbe": -0.1332,
+      "status": "EXCEPTIONAL"
+    },
+    {
+      "parameter": "Soil Moisture (0-7cm)",
+      "unit": "m\u00b3/m\u00b3",
+      "pearson_r": 0.6926,
+      "r_squared": 0.4797,
+      "rmse": 0.0127,
+      "mae": 0.0102,
+      "mbe": -0.0029,
+      "status": "STRONG"
+    },
+    {
+      "parameter": "Crop Evapotranspiration (ETc)",
+      "unit": "mm/hr",
+      "pearson_r": 0.9972,
+      "r_squared": 0.9943,
+      "rmse": 0.045,
+      "mae": 0.0273,
+      "mbe": -0.0067,
+      "status": "EXCEPTIONAL"
+    }
+  ]
+}
