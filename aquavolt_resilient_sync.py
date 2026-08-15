@@ -41,7 +41,18 @@ try:
 except Exception as de:
     print(f"[DRONE WARNING] Drone audit step: {de}")
 
-# 2. Download, process, AND log hourly telemetry
+# 2. Query Microsoft Planetary Computer STAC for latest satellite scenes (USA & Pakistan)
+print("\n[MICROSOFT STAC] Querying Microsoft Planetary Computer STAC Catalog...")
+try:
+    import microsoft_planetary_stac
+    stac_pk = microsoft_planetary_stac.get_latest_satellite_assets("pk_hafizabad_pindi_bowra")
+    stac_us = microsoft_planetary_stac.get_latest_satellite_assets("ucdavis_russell_ranch")
+    print(f"[STAC] Pakistan: {len(stac_pk.get('sentinel_2', []))} Sentinel-2 & {len(stac_pk.get('sentinel_1', []))} Sentinel-1 scenes available.")
+    print(f"[STAC] USA: {len(stac_us.get('sentinel_2', []))} Sentinel-2 & {len(stac_us.get('sentinel_1', []))} Sentinel-1 scenes available.")
+except Exception as stace:
+    print(f"[STAC WARNING] Microsoft STAC discovery step: {stace}")
+
+# 3. Download, process, AND log hourly telemetry
 print("\n[START] Computing and pushing primary telemetry data...")
 try:
     worksheet, rows_to_append = aquavolt_gsheet_logger.main(push_to_sheets=True)
