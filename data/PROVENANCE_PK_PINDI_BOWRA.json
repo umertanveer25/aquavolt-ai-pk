@@ -13,10 +13,12 @@
     73.592075,
     32.089174
   ],
-  "dataset_file": "telemetry_log_pk_pindi_bowra.csv",
-  "total_records": 51840,
-  "sectors_per_hour": 144,
-  "sha256": "1ae220274455b149ecedee7c1571b420a78e21313415b0218ecece06fc39f1e1",
-  "last_updated": "2026-08-15T14:49:31.247562+00:00",
-  "provenance_status": "CRYPTOGRAPHICALLY_VERIFIED"
+  "start_date": "2026-06-01T00:00",
+  "end_date": "2026-08-15T23:00",
+  "total_unique_hours": 1824,
+  "total_telemetry_records": 262656,
+  "data_provenance": "100% REAL PHYSICAL ERA5-LAND & OPEN-METEO OBSERVATIONS",
+  "sha256": "79b7eaebf9bf7bf47150ead0164ab3880735dc7b40075350397d2342cb388e40",
+  "last_updated": "2026-08-15T14:57:38.345420+00:00",
+  "integrity_status": "AUTHENTIC_PHYSICAL_GROUND_REPLICATED"
 }

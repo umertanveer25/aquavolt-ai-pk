@@ -74,8 +74,16 @@ try:
 except Exception as ve:
     print(f"[V2 WARNING] Advanced streams step: {ve}")
 
-# 4. Save local backup and push to GitHub
-print("\n[BACKUP] Syncing telemetry, drone ledger, and provenance to GitHub...")
+# 4. Ingest and Log Pakistan Pindi Bowra Basmati Rice Stream
+print("\n[PAKISTAN] Ingesting real-time observations for Pindi Bowra Rice Hub...")
+try:
+    import aquavolt_pk_pindi_bowra
+    aquavolt_pk_pindi_bowra.sync_pakistan_hourly()
+except Exception as pke:
+    print(f"[PAKISTAN WARNING] Pindi Bowra sync step: {pke}")
+
+# 5. Save local backup and push to GitHub
+print("\n[BACKUP] Syncing telemetry, drone ledger, Pakistan hub, and provenance to GitHub...")
 try:
     current_utc = datetime.now(timezone.utc)
     now_str = current_utc.strftime('%Y-%m-%d %H:00 UTC')
@@ -104,13 +112,15 @@ try:
         "data/incoming_validation/*.csv", 
         "data/drone_audit_ledger.csv", 
         "data/PROVENANCE.json", 
+        "data/PROVENANCE_PK_PINDI_BOWRA.json",
+        "aquavolt_pk_pindi_bowra.py",
         "api/*.py",
         "README.md"
     ], cwd=repo_dir, check=False)
-    subprocess.run(["git", "commit", "-m", f"chore: automated hourly sync (telemetry, drone, and v2 streams) {now_str} [skip ci]"], cwd=repo_dir, check=False)
+    subprocess.run(["git", "commit", "-m", f"chore: automated hourly multi-site sync (USA & Pakistan) {now_str} [skip ci]"], cwd=repo_dir, check=False)
     res = subprocess.run(["git", "push", "origin", "main"], cwd=repo_dir, capture_output=True, text=True)
     if res.returncode == 0:
-        print("[GIT] ✅ Pushed all streams to GitHub successfully.")
+        print("[GIT] ✅ Pushed all streams (USA & Pakistan) to GitHub successfully.")
     else:
         print(f"[GIT] Push status: {res.stderr.strip() or 'Up to date'}")
 
