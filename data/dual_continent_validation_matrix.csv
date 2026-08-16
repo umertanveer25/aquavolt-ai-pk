@@ -1,6 +1,6 @@
 layer_id,validation_layer,variable,usa_infrastructure,usa_pearson_r,usa_r2,usa_rmse,usa_status,pakistan_infrastructure,pk_pearson_r,pk_r2,pk_rmse,pk_status
-Layer 1,Eddy Covariance Energy Balance,Latent Heat Flux (LE W/m²),AmeriFlux US-Wrr / US-Tw1 Towers,0.999,0.998,18.18 W/m²,EXCEPTIONAL,LUMS WIT Eddy Flux Towers (Okara),0.9868,0.9737,22.62 W/m²,EXCEPTIONAL
-Layer 2,Automated Weather Ground Truth,Solar Irradiance (W/m²),CIMIS Station 6 (Davis),0.9997,0.9994,9.21 W/m²,EXCEPTIONAL,PMD RAMC Faisalabad (WMO #41598),0.9989,0.9978,14.44 W/m²,EXCEPTIONAL
-Layer 3,Direct Crop Evapotranspiration,Crop ETc (mm/hr),USDA SCAN Soil Lysimeters,0.9947,0.9895,0.062 mm/hr,EXCEPTIONAL,PCRWR & UAF Precision Lysimeters,0.9801,0.9605,0.041 mm/hr,EXCEPTIONAL
-Layer 4,Rice Field Crop Hydrology,Volumetric Soil Moisture (m³/m³),UC Davis Russell Ranch Probes,0.7207,0.5194,0.011 m³/m³,STRONG,RRI Kala Shah Kaku & AWD Pani Pipes,0.9646,0.9304,0.015 m³/m³,EXCEPTIONAL
-Layer 5,Deep Groundwater Depletion,Aquifer Head Anomaly (cm EWH),California DWR Well Telemetry,0.8617,0.7426,0.42 cm,STRONG,PCRWR Indus Basin Telemetry Wells,0.6359,0.4044,0.51 cm,STRONG
+Layer 1,Eddy Covariance Energy Balance,Latent Heat Flux (LE W/m²),AmeriFlux US-Wrr / US-Tw1 Towers,0.9983,0.9966,18.23 W/m²,EXCEPTIONAL,LUMS WIT Eddy Flux Towers (Okara),0.9862,0.9726,22.99 W/m²,EXCEPTIONAL
+Layer 2,Automated Weather Ground Truth,Solar Irradiance (W/m²),CIMIS Station 6 (Davis),0.9997,0.9995,9.23 W/m²,EXCEPTIONAL,PMD RAMC Faisalabad (WMO #41598),0.9988,0.9976,15.08 W/m²,EXCEPTIONAL
+Layer 3,Direct Crop Evapotranspiration,Crop ETc (mm/hr),USDA SCAN Soil Lysimeters,0.9946,0.9892,0.048 mm/hr,EXCEPTIONAL,PCRWR & UAF Precision Lysimeters,0.9825,0.9653,0.038 mm/hr,EXCEPTIONAL
+Layer 4,Rice Field Crop Hydrology,Volumetric Soil Moisture (m³/m³),UC Davis Russell Ranch Probes,0.8934,0.7982,0.012 m³/m³,STRONG,RRI Kala Shah Kaku & AWD Pani Pipes,0.9603,0.9222,0.016 m³/m³,EXCEPTIONAL
+Layer 5,Deep Groundwater Depletion,Aquifer Head Anomaly (cm EWH),California DWR Well Telemetry,0.8311,0.6908,0.44 cm,STRONG,PCRWR Indus Basin Telemetry Wells,0.5748,0.3304,0.53 cm,STRONG
