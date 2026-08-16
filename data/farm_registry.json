@@ -1,6 +1,6 @@
 {
-  "version": "2.3.0",
-  "last_updated": "2026-08-16T22:35:00Z",
+  "version": "2.4.0",
+  "last_updated": "2026-08-16T18:05:40Z",
   "active_farms": [
     {
       "id": "pk_pindi_bowra",
@@ -25,8 +25,8 @@
       "name": "USA Russell Ranch Research Hub (4 Sub-Fields)",
       "region": "UC Davis, California, USA",
       "country": "USA",
-      "centroid_lat": 38.5480,
-      "centroid_lon": -121.8790,
+      "centroid_lat": 38.548,
+      "centroid_lon": -121.879,
       "crop_type": "Corn, Alfalfa, Fallow, Tomatoes (4 Sub-Fields Combined)",
       "acreage": 300.0,
       "grid_rows": 16,
@@ -36,6 +36,44 @@
       "satellite_photo": "data/usa/images/russell_ranch_authentic_satellite_photo.png",
       "crop_mosaic": "data/usa/images/russell_ranch_4crop_satellite_mosaic.png",
       "timeseries_filmstrip": "data/usa/images/usa_corn_daily_growth_timeseries_july_aug.png",
+      "status": "Active (24/7 Cloud Sync)",
+      "start_date": "2026-06-01"
+    },
+    {
+      "id": "pk_rri_ksk",
+      "name": "Rice Research Institute (RRI) Kala Shah Kaku",
+      "institution": "Agriculture Department Punjab (AARI)",
+      "region": "Sheikhupura / Lahore Agrarian Corridor, Punjab, Pakistan",
+      "country": "Pakistan",
+      "centroid_lat": 31.7251,
+      "centroid_lon": 74.2695,
+      "dms_coordinates": "31\u00b043'30.4\"N 74\u00b016'10.2\"E",
+      "boundaries": {
+        "north": [
+          31.7275,
+          74.2665
+        ],
+        "south": [
+          31.7212,
+          74.271
+        ],
+        "east": [
+          31.7245,
+          74.2752
+        ],
+        "west": [
+          31.7258,
+          74.2635
+        ]
+      },
+      "crop_type": "Super Basmati, PK-386, Chenab Basmati & Experimental Breeding Lines",
+      "acreage": 400.0,
+      "grid_rows": 12,
+      "grid_cols": 12,
+      "sectors_count": 144,
+      "telemetry_csv": "data/pakistan/telemetry_log_pk_rri_ksk.csv",
+      "carbon_8year_csv": "data/pakistan/carbon_8year_historical_rri_ksk_2019_2026.csv",
+      "satellite_photo": "data/pakistan/images/rri_kala_shah_kaku_authentic_satellite_photo.png",
       "status": "Active (24/7 Cloud Sync)",
       "start_date": "2026-06-01"
     }

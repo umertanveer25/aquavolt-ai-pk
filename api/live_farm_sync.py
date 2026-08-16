@@ -1,12 +1,10 @@
 """
-AquaVolt-AI: Self-Healing 24/7 Multi-Hour Telemetry Sync & Gap Repair Engine
-============================================================================
-Guarantees 100% continuous data integrity:
-  1. Detects any hour gap between the last recorded row and the current UTC hour.
-  2. If 1 or more hours were missed (due to network blips or GitHub queue delay),
-     it automatically pulls and backfills all missing hours sequentially.
-  3. Appends all sectors across Pakistan and the 4 USA sub-fields.
-  4. Automatically stages, commits, and pushes clean data to GitHub.
+AquaVolt-AI: 24/7 Multi-Farm Cloud Telemetry Sync & Self-Healing Gap Repair Engine
+==================================================================================
+Supports:
+  1. Pakistan Rice Hub (Pindi Bowra - 4.0 Acres)
+  2. Pakistan Rice Research Institute (RRI Kala Shah Kaku - 400+ Acres)
+  3. USA Russell Ranch Research Hub (UC Davis - 300 Acres, 4 Crops Combined)
 """
 
 import os
@@ -14,11 +12,57 @@ import json
 import urllib.request
 import pandas as pd
 import numpy as np
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, "data")
-REGISTRY_PATH = os.path.join(DATA_DIR, "farm_registry.json")
+PK_DIR = os.path.join(DATA_DIR, "pakistan")
+US_DIR = os.path.join(DATA_DIR, "usa")
+
+FARMS_CONFIG = [
+    {
+        "id": "pk_pindi_bowra",
+        "name": "Pakistan Rice Hub (Pindi Bowra)",
+        "csv_path": os.path.join(PK_DIR, "telemetry_log_pk_pindi_bowra.csv"),
+        "dual_csv_path": os.path.join(DATA_DIR, "telemetry_log_pk_pindi_bowra.csv"),
+        "lat": 32.0886,
+        "lon": 73.5914,
+        "is_rice": True,
+        "rows": 12,
+        "cols": 12,
+        "field_name": "Pakistan Rice Hub (Pindi Bowra)"
+    },
+    {
+        "id": "pk_rri_ksk",
+        "name": "Rice Research Institute (RRI) Kala Shah Kaku",
+        "csv_path": os.path.join(PK_DIR, "telemetry_log_pk_rri_ksk.csv"),
+        "lat": 31.7251,
+        "lon": 74.2695,
+        "is_rice": True,
+        "rows": 12,
+        "cols": 12,
+        "field_name": "RRI Kala Shah Kaku (400+ Acres)"
+    },
+    {
+        "id": "usa_russell_ranch",
+        "name": "USA Russell Ranch Research Hub (4 Sub-Fields)",
+        "csv_path": os.path.join(US_DIR, "telemetry_log_usa_russell_ranch.csv"),
+        "dual_csv_path": os.path.join(DATA_DIR, "telemetry_log_usa_russell_ranch.csv"),
+        "lat": 38.5480,
+        "lon": -121.8790,
+        "is_rice": False,
+        "rows": 16,
+        "cols": 16,
+        "field_name": "USA Russell Ranch (California)"
+    }
+]
+
+STANDARD_SCHEMA = [
+    "timestamp", "latitude", "longitude", "sector_row", "sector_col",
+    "ndvi", "ndwi", "lst", "Kc", "Ks", "Dr", "TAW", "RAW", "ETc",
+    "water_need", "air_temp", "humidity", "solar_rad", "precip",
+    "soil_temp", "soil_moisture", "methane_flux_kg_hr", "field_name"
+]
 
 def safe_float(val, default=0.0):
     if val is None:
@@ -30,145 +74,128 @@ def safe_float(val, default=0.0):
     except (ValueError, TypeError):
         return float(default)
 
-def generate_sectors_for_hour(farm_dict, target_hour_dt, weather_data):
-    lat = safe_float(farm_dict.get("centroid_lat"), 32.0886)
-    lon = safe_float(farm_dict.get("centroid_lon"), 73.5914)
-    farm_name = str(farm_dict.get("name", "Active Farm"))
-    crop_type = str(farm_dict.get("crop_type", "Super Basmati Rice (AWD)"))
-    rows_n = int(safe_float(farm_dict.get("grid_rows"), 8))
-    cols_n = int(safe_float(farm_dict.get("grid_cols"), 8))
-    acreage = safe_float(farm_dict.get("acreage"), 5.0)
-    
-    t_str = target_hour_dt.strftime("%Y-%m-%d %H:00:00")
-    
-    air_temp = safe_float(weather_data.get("temperature_2m"), 28.0)
-    humidity = safe_float(weather_data.get("relative_humidity_2m"), 60.0)
-    solar_rad = safe_float(weather_data.get("direct_normal_irradiance"), 0.0)
-    precip = safe_float(weather_data.get("precipitation"), 0.0)
-    soil_temp = safe_float(weather_data.get("soil_temperature_0_to_7cm"), max(15.0, air_temp - 2.0))
-    sm_base = safe_float(weather_data.get("soil_moisture_0_to_7cm"), 0.28)
-    et0 = safe_float(weather_data.get("et0_fao_evapotranspiration"), 0.20)
-
-    is_rice = "rice" in crop_type.lower() or "basmati" in crop_type.lower()
-    base_kc = 1.15 if is_rice else (0.20 if "fallow" in crop_type.lower() else 0.95)
-
-    day_of_year = target_hour_dt.timetuple().tm_yday
-    ndvi_trend = 0.30 + 0.48 * (1.0 / (1.0 + np.exp(-(day_of_year - 195) / 12.0)))
-
-    span_deg = max(0.001, np.sqrt(acreage) * 0.0006)
-    lat_min, lat_max = lat - span_deg / 2.0, lat + span_deg / 2.0
-    lon_min, lon_max = lon - span_deg / 2.0, lon + span_deg / 2.0
-
-    rows = []
-    for r in range(rows_n):
-        for c in range(cols_n):
-            sector_lat = lat_min + (r / max(1, rows_n - 1)) * (lat_max - lat_min)
-            sector_lon = lon_min + (c / max(1, cols_n - 1)) * (lon_max - lon_min)
-            noise = (np.sin(r * 2.3 + c * 3.1) * 0.015)
-
-            etc = round(max(0.0, et0 * base_kc + noise * 0.1), 3)
-            ndvi_val = round(max(0.10, min(0.88, ndvi_trend + noise)), 3)
-            sm_val = round(max(0.04, min(0.44, sm_base + noise * 0.05)), 3)
-            
-            anaerobic = np.clip((sm_val - 0.22) / 0.12, 0.0, 1.0)
-            ch4_flux = round(0.0597 * anaerobic * (ndvi_val / 0.75), 5) if is_rice else 0.0
-
-            rows.append({
-                "timestamp": t_str,
-                "latitude": round(sector_lat, 5),
-                "longitude": round(sector_lon, 5),
-                "sector_row": r,
-                "sector_col": c,
-                "ndvi": ndvi_val,
-                "ndwi": round(ndvi_val * 0.45 - 0.20, 2),
-                "lst": round(soil_temp + (solar_rad / 250.0), 1),
-                "Kc": base_kc,
-                "Ks": 1.0,
-                "Dr": round(max(0.0, (0.34 - sm_val) * 100.0), 1),
-                "TAW": 55.0,
-                "RAW": 27.5,
-                "ETc": etc,
-                "water_need": 0.0 if sm_val > 0.24 else round(etc * 1.8, 1),
-                "air_temp": round(air_temp + noise * 1.5, 1),
-                "humidity": int(round(humidity)),
-                "solar_rad": int(round(solar_rad)),
-                "precip": round(precip, 1),
-                "soil_temp": round(soil_temp, 1),
-                "soil_moisture": sm_val,
-                "methane_flux_kg_hr": ch4_flux,
-                "field_name": farm_name
-            })
-    return rows
-
-def sync_farm_with_gap_repair(farm_dict):
-    csv_rel = farm_dict.get("telemetry_csv", "")
-    csv_path = os.path.join(ROOT_DIR, csv_rel)
-    farm_name = farm_dict.get("name", "Farm")
-    lat = safe_float(farm_dict.get("centroid_lat"), 32.0886)
-    lon = safe_float(farm_dict.get("centroid_lon"), 73.5914)
-    
-    if not os.path.exists(csv_path):
-        print(f"[-] CSV not found: {csv_path}")
-        return
-        
-    df_existing = pd.read_csv(csv_path, on_bad_lines='skip')
-    if df_existing.empty:
-        return
-        
-    latest_ts_str = str(df_existing.iloc[-1].get("timestamp", ""))
-    latest_dt = datetime.strptime(latest_ts_str[:13], "%Y-%m-%d %H")
-    latest_dt = latest_dt.replace(tzinfo=timezone.utc)
-    
-    now_utc = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
-    
-    # Calculate missing hours
-    missing_hours = []
-    curr = latest_dt + timedelta(hours=1)
-    while curr <= now_utc:
-        missing_hours.append(curr)
-        curr += timedelta(hours=1)
-        
-    if not missing_hours:
-        print(f"  [OK] {farm_name}: 100% Up to date (Latest: {latest_ts_str}).")
-        return
-        
-    print(f"  [+] {farm_name}: Detected {len(missing_hours)} missing hour(s) up to {now_utc.strftime('%Y-%m-%d %H:00')} UTC. Auto-repairing...")
-    
+def fetch_live_weather(lat, lon, start_date, end_date):
     url = (
-        f"https://api.open-meteo.com/v1/forecast?"
-        f"latitude={lat}&longitude={lon}&"
-        f"current=temperature_2m,relative_humidity_2m,direct_normal_irradiance,precipitation,"
+        f"https://archive-api.open-meteo.com/v1/archive?"
+        f"latitude={lat:.4f}&longitude={lon:.4f}&start_date={start_date}&end_date={end_date}&"
+        f"hourly=temperature_2m,relative_humidity_2m,direct_normal_irradiance,precipitation,"
         f"soil_temperature_0_to_7cm,soil_moisture_0_to_7cm,et0_fao_evapotranspiration&timezone=UTC"
     )
-    req = urllib.request.Request(url, headers={"User-Agent": "AquaVolt-SelfHealing/2.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            res = json.loads(resp.read().decode("utf-8"))
-        weather_data = res.get("current", {})
-    except Exception as e:
-        print(f"      [!] Weather API warning: {e}. Using continuous physics fallback.")
-        weather_data = {}
-        
-    all_new_rows = []
-    for target_hr in missing_hours:
-        hr_rows = generate_sectors_for_hour(farm_dict, target_hr, weather_data)
-        all_new_rows.extend(hr_rows)
-        
-    df_new = pd.DataFrame(all_new_rows)
-    df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-    df_combined.to_csv(csv_path, index=False)
-    print(f"      [OK] Appended {len(all_new_rows):,} sectors across {len(missing_hours)} hour(s). Total: {len(df_combined):,} rows.")
+    req = urllib.request.Request(url, headers={"User-Agent": "AquaVolt-LiveSync/2.0"})
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    return data.get("hourly", {})
 
-def run_self_healing_sync():
+def sync_farm(farm):
+    csv_p = farm["csv_path"]
+    if not os.path.exists(csv_p):
+        print(f"  [-] CSV not found for {farm['name']}: {csv_p}")
+        return
+        
+    df = pd.read_csv(csv_p, on_bad_lines='skip')
+    df = df.dropna(subset=["timestamp"])
+    df["dt"] = pd.to_datetime(df["timestamp"])
+    latest_dt = df["dt"].max()
+    
+    now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    
+    missing_hours = pd.date_range(start=latest_dt + pd.Timedelta(hours=1), end=now_utc, freq="h")
+    
+    if len(missing_hours) == 0:
+        print(f"  [OK] {farm['name']}: 100% Up to date (Latest: {latest_dt.strftime('%Y-%m-%d %H:%M:%S')}).")
+        return
+
+    print(f"  [+] {farm['name']}: Detected {len(missing_hours)} missing hours. Self-healing...")
+    start_d = missing_hours[0].strftime("%Y-%m-%d")
+    end_d = missing_hours[-1].strftime("%Y-%m-%d")
+    
+    try:
+        hourly = fetch_live_weather(farm["lat"], farm["lon"], start_d, end_d)
+    except Exception as e:
+        print(f"  [-] Weather fetch error for {farm['name']}: {e}")
+        return
+
+    weather_lookup = {}
+    times = hourly.get("time", [])
+    temps = hourly.get("temperature_2m", [])
+    rhs = hourly.get("relative_humidity_2m", [])
+    rads = hourly.get("direct_normal_irradiance", [])
+    precips = hourly.get("precipitation", [])
+    st_list = hourly.get("soil_temperature_0_to_7cm", [])
+    sm_list = hourly.get("soil_moisture_0_to_7cm", [])
+    et0_list = hourly.get("et0_fao_evapotranspiration", [])
+    
+    for i, t in enumerate(times):
+        t_dt = pd.to_datetime(t)
+        weather_lookup[t_dt] = {
+            "air_temp": safe_float(temps[i], 30.0),
+            "humidity": safe_float(rhs[i], 60.0),
+            "solar_rad": safe_float(rads[i], 0.0),
+            "precip": safe_float(precips[i], 0.0),
+            "soil_temp": safe_float(st_list[i], 28.0),
+            "soil_moisture": safe_float(sm_list[i], 0.30 if farm["is_rice"] else 0.08),
+            "et0": safe_float(et0_list[i], 0.30)
+        }
+
+    new_rows = []
+    for m_dt in missing_hours:
+        t_str = m_dt.strftime("%Y-%m-%d %H:%M:%S")
+        w = weather_lookup.get(m_dt, {
+            "air_temp": 30.0, "humidity": 60.0, "solar_rad": 0.0, "precip": 0.0,
+            "soil_temp": 28.0, "soil_moisture": 0.30 if farm["is_rice"] else 0.08, "et0": 0.30
+        })
+        day_of_year = m_dt.timetuple().tm_yday
+        ndvi_base = 0.65 if farm["is_rice"] else 0.45
+        
+        for r in range(farm["rows"]):
+            for c in range(farm["cols"]):
+                noise = (np.sin(r * 2.1 + c * 3.4) * 0.015)
+                etc = round(max(0.0, w["et0"] * (1.15 if farm["is_rice"] else 0.95) + noise * 0.1), 3)
+                ndvi_val = round(max(0.10, min(0.88, ndvi_base + noise)), 3)
+                sm_val = round(max(0.04, min(0.44, w["soil_moisture"] + noise * 0.05)), 3)
+                anaerobic = np.clip((sm_val - 0.22) / 0.12, 0.0, 1.0)
+                ch4_flux = round(0.0597 * anaerobic * (ndvi_val / 0.75), 5) if farm["is_rice"] else 0.0
+                
+                new_rows.append({
+                    "timestamp": t_str,
+                    "latitude": round(farm["lat"] - 0.0006 + r * 0.0001, 6),
+                    "longitude": round(farm["lon"] - 0.0006 + c * 0.0001, 6),
+                    "sector_row": r,
+                    "sector_col": c,
+                    "ndvi": ndvi_val,
+                    "ndwi": round(ndvi_val * 0.45 - 0.20, 2),
+                    "lst": round(w["soil_temp"] + (w["solar_rad"] / 250.0), 1),
+                    "Kc": 1.15 if farm["is_rice"] else 0.95,
+                    "Ks": 1.0,
+                    "Dr": round(max(0.0, (0.34 - sm_val) * 100.0), 1),
+                    "TAW": 55.0,
+                    "RAW": 27.5,
+                    "ETc": etc,
+                    "water_need": 0.0 if sm_val > 0.24 else round(etc * 1.8, 1),
+                    "air_temp": round(w["air_temp"] + noise * 1.5, 1),
+                    "humidity": int(round(w["humidity"])),
+                    "solar_rad": int(round(w["solar_rad"])),
+                    "precip": round(w["precip"], 1),
+                    "soil_temp": round(w["soil_temp"], 1),
+                    "soil_moisture": sm_val,
+                    "methane_flux_kg_hr": ch4_flux,
+                    "field_name": farm["field_name"]
+                })
+
+    df_clean = pd.concat([df.drop(columns=["dt"]), pd.DataFrame(new_rows)], ignore_index=True)
+    df_clean = df_clean[STANDARD_SCHEMA]
+    df_clean.to_csv(csv_p, index=False)
+    if "dual_csv_path" in farm:
+        df_clean.to_csv(farm["dual_csv_path"], index=False)
+    print(f"  [OK] {farm['name']}: Appended {len(new_rows):,} rows ({len(missing_hours)} hrs) -> Total {len(df_clean):,} rows.")
+
+def main():
     print("=" * 95)
-    print("  AQUAVOLT-AI: SELF-HEALING 24/7 MULTI-HOUR SYNC & GAP-REPAIR ENGINE")
+    print("  AQUAVOLT-AI: SELF-HEALING 24/7 MULTI-FARM LIVE SYNC ENGINE (3 FARMS)")
     print("=" * 95)
-    if os.path.exists(REGISTRY_PATH):
-        with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
-            registry = json.load(f)
-        for farm in registry.get("active_farms", []):
-            sync_farm_with_gap_repair(farm)
+    for f in FARMS_CONFIG:
+        sync_farm(f)
     print("=" * 95)
 
 if __name__ == "__main__":
-    run_self_healing_sync()
+    main()
