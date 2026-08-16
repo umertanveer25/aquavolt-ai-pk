@@ -4,7 +4,10 @@ on:
   schedule:
     # Runs daily at 10:30 AM UTC (after the morning satellite overpass)
     - cron: '30 10 * * *'
-  workflow_dispatch: # Allows manual 1-click trigger from GitHub web UI
+  workflow_dispatch: # Allows manual 1-click trigger
+
+permissions:
+  contents: write
 
 jobs:
   daily-satellite-sync:
@@ -12,6 +15,9 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -28,8 +34,7 @@ jobs:
 
       - name: Commit and Push Daily Satellite Photo to GitHub
         run: |
-          git config --global user.name "AquaVolt-DailySatelliteBot"
-          git config --global user.email "bot@aquavolt.ai"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git diff-index --quiet HEAD || git commit -m "chore(daily-satellite): automated daily spaceborne photo ingestion & correlation update for $(date -u +'%Y-%m-%d')"
-          git push origin main
+          git diff-index --quiet HEAD || (git commit -m "chore(daily-satellite): automated daily spaceborne photo ingestion & correlation update for $(date -u +'%Y-%m-%d')" && git push origin main)
