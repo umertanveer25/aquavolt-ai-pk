@@ -1,21 +1,12 @@
 """
 AquaVolt-AI: Native Windows Desktop Workstation (PySide6 / Qt6)
 ===============================================================
-Enterprise-grade precision agriculture & methane dMRV workstation.
-Features:
-  - Multi-Farm Dynamic Switcher & GitHub Cloud Sync
-  - Real-Time KPI Telemetry Cards & Diurnal Curves
-  - High-Resolution Sub-Field 10m Heatmap Raster Grid
-  - Multi-Field Side-by-Side Analytics & PIML Transpiration Curves
-  - 7-Day Predictive Precision Irrigation Scheduler & Diesel Savings Tracker
-  - "Add New Farm" Wizard with Automated June 1st Real-Data Backfill
-  - ISO/IEC 27037 Cryptographic SHA-256 Audit Certificate & dMRV Ledger
+High-contrast, modern, robust GUI with bright cards, clear charts, and full interactivity.
 """
 
 import sys
 import os
 import json
-import subprocess
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -24,11 +15,11 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QComboBox, QTabWidget, QGridLayout,
     QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit,
-    QDoubleSpinBox, QSpinBox, QMessageBox, QProgressBar, QFileDialog,
-    QScrollArea, QTextEdit
+    QDoubleSpinBox, QMessageBox, QProgressBar, QFileDialog, QTextEdit,
+    QScrollArea
 )
 from PySide6.QtCore import Qt, QThread, Signal as pyqtSignal
-from PySide6.QtGui import QFont, QColor, QPalette, QIcon
+from PySide6.QtGui import QColor
 
 import matplotlib
 matplotlib.use("QtAgg")
@@ -39,66 +30,50 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, "data")
 REGISTRY_PATH = os.path.join(DATA_DIR, "farm_registry.json")
 
-# --- Modern Dark Theme Stylesheet ---
-DARK_STYLESHEET = """
+# Clean, High-Contrast Modern Dark Theme Stylesheet
+CLEAN_STYLESHEET = """
 QMainWindow {
-    background-color: #0b0f19;
+    background-color: #0f172a;
 }
-QWidget {
-    background-color: #0b0f19;
-    color: #f3f4f6;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 13px;
+QWidget#CentralWidget {
+    background-color: #0f172a;
 }
 QFrame.Card {
-    background-color: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 10px;
-    padding: 12px;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px;
 }
 QFrame.CardHighlight {
-    background-color: #111827;
-    border: 1px solid #10b981;
-    border-radius: 10px;
+    background-color: #1e293b;
+    border: 2px solid #10b981;
+    border-radius: 8px;
     padding: 12px;
 }
-QLabel.Title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #10b981;
-}
-QLabel.SubTitle {
-    font-size: 12px;
-    color: #9ca3af;
-}
-QLabel.MetricValue {
-    font-size: 26px;
-    font-weight: bold;
-    color: #38bdf8;
-}
-QLabel.MetricLabel {
-    font-size: 11px;
-    color: #9ca3af;
-    text-transform: uppercase;
+QLabel {
+    color: #f8fafc;
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 QTabWidget::pane {
-    border: 1px solid #1f2937;
-    background-color: #111827;
-    border-radius: 8px;
+    border: 1px solid #334155;
+    background-color: #1e293b;
+    border-radius: 6px;
 }
 QTabBar::tab {
     background-color: #0f172a;
     color: #94a3b8;
-    padding: 10px 18px;
+    padding: 10px 20px;
     margin-right: 4px;
+    font-weight: bold;
+    font-size: 13px;
+    border: 1px solid #334155;
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
-    font-weight: 600;
 }
 QTabBar::tab:selected {
-    background-color: #111827;
-    color: #10b981;
-    border-bottom: 2px solid #10b981;
+    background-color: #1e293b;
+    color: #38bdf8;
+    border-bottom: 3px solid #38bdf8;
 }
 QPushButton {
     background-color: #10b981;
@@ -107,42 +82,44 @@ QPushButton {
     padding: 8px 16px;
     border-radius: 6px;
     font-weight: bold;
+    font-size: 13px;
 }
 QPushButton:hover {
     background-color: #059669;
 }
 QPushButton.Secondary {
-    background-color: #1f2937;
+    background-color: #334155;
     color: #38bdf8;
-    border: 1px solid #374151;
+    border: 1px solid #475569;
 }
 QPushButton.Secondary:hover {
-    background-color: #374151;
+    background-color: #475569;
 }
-QComboBox, QLineEdit, QDoubleSpinBox, QSpinBox {
-    background-color: #1f2937;
+QComboBox, QLineEdit, QDoubleSpinBox {
+    background-color: #0f172a;
     color: #ffffff;
-    border: 1px solid #374151;
+    border: 1px solid #475569;
     border-radius: 6px;
     padding: 6px 10px;
+    font-size: 13px;
 }
 QTableWidget {
-    background-color: #111827;
-    gridline-color: #1f2937;
-    border: 1px solid #1f2937;
-    border-radius: 6px;
-    color: #f3f4f6;
+    background-color: #0f172a;
+    gridline-color: #334155;
+    border: 1px solid #334155;
+    color: #f8fafc;
+    font-size: 12px;
 }
 QHeaderView::section {
-    background-color: #0f172a;
+    background-color: #1e293b;
     color: #38bdf8;
-    padding: 6px;
-    border: 1px solid #1f2937;
+    padding: 8px;
+    border: 1px solid #334155;
     font-weight: bold;
 }
 QProgressBar {
-    background-color: #1f2937;
-    border: 1px solid #374151;
+    background-color: #0f172a;
+    border: 1px solid #334155;
     border-radius: 4px;
     text-align: center;
     color: #ffffff;
@@ -186,8 +163,8 @@ class AquaVoltApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AquaVolt-AI: Enterprise Precision Ag & dMRV Workstation")
-        self.resize(1360, 850)
-        self.setStyleSheet(DARK_STYLESHEET)
+        self.resize(1300, 820)
+        self.setStyleSheet(CLEAN_STYLESHEET)
 
         self.farms = self.load_farm_registry()
         self.current_farm_id = self.farms[0]["id"] if self.farms else None
@@ -224,56 +201,55 @@ class AquaVoltApp(QMainWindow):
         ]
 
     def init_ui(self):
-        main_widget = QWidget()
-        main_layout = QVBoxLayout(main_widget)
-        main_layout.setContentsMargins(16, 16, 16, 16)
+        central_widget = QWidget()
+        central_widget.setObjectName("CentralWidget")
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(14, 14, 14, 14)
         main_layout.setSpacing(12)
 
-        # --- TOP BAR ---
-        top_bar = QFrame()
-        top_bar.setProperty("class", "Card")
-        top_layout = QHBoxLayout(top_bar)
-        top_layout.setContentsMargins(12, 8, 12, 8)
+        # --- TOP HEADER ---
+        top_frame = QFrame()
+        top_frame.setProperty("class", "Card")
+        top_l = QHBoxLayout(top_frame)
+        top_l.setContentsMargins(12, 8, 12, 8)
 
-        # Logo & App Title
-        title_box = QVBoxLayout()
-        app_title = QLabel("⚡ AQUAVOLT-AI WORKSTATION")
-        app_title.setStyleSheet("font-size: 18px; font-weight: bold; color: #10b981; letter-spacing: 1px;")
-        app_subtitle = QLabel("Dual-Continent Planetary Satellite Precision & Methane dMRV")
-        app_subtitle.setStyleSheet("font-size: 11px; color: #94a3b8;")
-        title_box.addWidget(app_title)
-        title_box.addWidget(app_subtitle)
-        top_layout.addLayout(title_box)
+        # Title
+        t_box = QVBoxLayout()
+        t1 = QLabel("⚡ AQUAVOLT-AI WORKSTATION")
+        t1.setStyleSheet("font-size: 18px; font-weight: bold; color: #10b981; letter-spacing: 1px;")
+        t2 = QLabel("Dual-Continent Satellite Precision Agriculture & Methane dMRV")
+        t2.setStyleSheet("font-size: 11px; color: #94a3b8;")
+        t_box.addWidget(t1)
+        t_box.addWidget(t2)
+        top_l.addLayout(t_box)
 
-        top_layout.addStretch()
+        top_l.addStretch()
 
-        # Farm Selector Dropdown
-        farm_label = QLabel("Active Farm Parcel:")
-        farm_label.setStyleSheet("font-weight: bold; color: #e2e8f0;")
-        top_layout.addWidget(farm_label)
-
+        # Farm Selector
+        top_l.addWidget(QLabel("Active Farm:"))
         self.farm_combo = QComboBox()
-        self.farm_combo.setMinimumWidth(260)
+        self.farm_combo.setMinimumWidth(280)
         for farm in self.farms:
             self.farm_combo.addItem(f"{farm.get('name')} ({farm.get('country', '')})", farm.get('id'))
         self.farm_combo.currentIndexChanged.connect(self.switch_farm)
-        top_layout.addWidget(self.farm_combo)
+        top_l.addWidget(self.farm_combo)
 
-        # Sync Badge
+        # Cloud Sync Badge
         sync_badge = QLabel("🟢 24/7 Cloud Sync Active")
-        sync_badge.setStyleSheet("background-color: #064e3b; color: #34d399; padding: 6px 12px; border-radius: 12px; font-weight: bold; font-size: 11px;")
-        top_layout.addWidget(sync_badge)
+        sync_badge.setStyleSheet("background-color: #064e3b; color: #34d399; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 11px;")
+        top_l.addWidget(sync_badge)
 
-        # Refresh & Cloud Sync Button
-        btn_refresh = QPushButton("↻ Refresh Telemetry")
+        # Refresh
+        btn_refresh = QPushButton("↻ Refresh")
         btn_refresh.setProperty("class", "Secondary")
         btn_refresh.clicked.connect(lambda: self.switch_farm(self.farm_combo.currentIndex()))
-        top_layout.addWidget(btn_refresh)
+        top_l.addWidget(btn_refresh)
 
-        main_layout.addWidget(top_bar)
+        main_layout.addWidget(top_frame)
 
-        # --- MAIN TABS ---
+        # --- TABS ---
         self.tabs = QTabWidget()
+        
         self.tab_overview = QWidget()
         self.tab_heatmap = QWidget()
         self.tab_multi_field = QWidget()
@@ -296,24 +272,24 @@ class AquaVoltApp(QMainWindow):
         self.setup_audit_tab()
 
         main_layout.addWidget(self.tabs)
-        self.setCentralWidget(main_widget)
+        self.setCentralWidget(central_widget)
 
-    # --- TAB 1: OVERVIEW & KPIS ---
+    # --- TAB 1: OVERVIEW ---
     def setup_overview_tab(self):
-        layout = QVBoxLayout(self.tab_overview)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(12)
+        l = QVBoxLayout(self.tab_overview)
+        l.setContentsMargins(12, 12, 12, 12)
+        l.setSpacing(12)
 
         # KPI Grid
         kpi_grid = QGridLayout()
-        kpi_grid.setSpacing(12)
+        kpi_grid.setSpacing(10)
 
-        self.card_sm = self.create_kpi_card("Soil Moisture (θ)", "-- m³/m³", "Status: Optimal (100% Sat)")
-        self.card_etc = self.create_kpi_card("Crop Transpiration (ETc)", "-- mm/hr", "Daily Consumptive Use")
-        self.card_kc = self.create_kpi_card("Crop Coefficient (Kc)", "--", "Phenology: Vegetative Tillering")
-        self.card_dr = self.create_kpi_card("Root Depletion (Dr)", "-- mm", "RAW Buffer Threshold: 27.5 mm")
-        self.card_water = self.create_kpi_card("Calculated Water Need", "-- mm", "Tubewell Demand: 0.0 hrs")
-        self.card_ch4 = self.create_kpi_card("Methane Flux (CH4)", "-- kg/hr", "Avoided Offset: 1.85 tCO2e/ac")
+        self.card_sm = self.create_card("Soil Moisture (θ)", "-- m³/m³", "Root Zone Saturation (0-100cm)", "#38bdf8")
+        self.card_etc = self.create_card("Crop Transpiration (ETc)", "-- mm/hr", "Actual Consumptive Water Loss", "#34d399")
+        self.card_kc = self.create_card("Crop Coefficient (Kc)", "--", "Phenological Vegetative Stage", "#fbbf24")
+        self.card_dr = self.create_card("Root Depletion (Dr)", "-- mm", "RAW Stress Threshold: 27.5 mm", "#f87171")
+        self.card_water = self.create_card("Calculated Water Need", "-- mm", "Recommended Pump Run: 0.0 hrs", "#a78bfa")
+        self.card_ch4 = self.create_card("Methane Flux (CH4)", "-- kg/hr", "Avoided Carbon Offset: 1.85 tCO2e", "#f472b6")
 
         kpi_grid.addWidget(self.card_sm, 0, 0)
         kpi_grid.addWidget(self.card_etc, 0, 1)
@@ -321,70 +297,63 @@ class AquaVoltApp(QMainWindow):
         kpi_grid.addWidget(self.card_dr, 1, 0)
         kpi_grid.addWidget(self.card_water, 1, 1)
         kpi_grid.addWidget(self.card_ch4, 1, 2)
+        l.addLayout(kpi_grid)
 
-        layout.addLayout(kpi_grid)
+        # Chart
+        c_frame = QFrame()
+        c_frame.setProperty("class", "Card")
+        cl = QVBoxLayout(c_frame)
+        lbl_c = QLabel("📈 24-Hour Diurnal Physical Cycle (Air Temperature, Solar Radiation & Transpiration)")
+        lbl_c.setStyleSheet("font-weight: bold; color: #38bdf8;")
+        cl.addWidget(lbl_c)
 
-        # 24-Hour Diurnal Chart Canvas
-        chart_card = QFrame()
-        chart_card.setProperty("class", "Card")
-        chart_layout = QVBoxLayout(chart_card)
-        
-        lbl_chart = QLabel("📈 24-Hour Diurnal Agro-Meteorological & Transpiration Dynamics")
-        lbl_chart.setStyleSheet("font-weight: bold; color: #38bdf8;")
-        chart_layout.addWidget(lbl_chart)
-
-        self.fig_diurnal = Figure(figsize=(9, 3.5), facecolor="#111827")
+        self.fig_diurnal = Figure(figsize=(8, 3.2), facecolor="#1e293b")
         self.canvas_diurnal = FigureCanvas(self.fig_diurnal)
-        chart_layout.addWidget(self.canvas_diurnal)
+        cl.addWidget(self.canvas_diurnal)
+        l.addWidget(c_frame)
 
-        layout.addWidget(chart_card)
+    def create_card(self, title, val, sub, val_color="#38bdf8"):
+        f = QFrame()
+        f.setProperty("class", "Card")
+        vl = QVBoxLayout(f)
+        vl.setContentsMargins(10, 8, 10, 8)
+        vl.setSpacing(2)
 
-    def create_kpi_card(self, title, default_val, subtitle):
-        card = QFrame()
-        card.setProperty("class", "Card")
-        l = QVBoxLayout(card)
-        l.setContentsMargins(12, 10, 12, 10)
-        l.setSpacing(4)
+        t_lbl = QLabel(title.upper())
+        t_lbl.setStyleSheet("font-size: 11px; color: #94a3b8; font-weight: bold;")
+        v_lbl = QLabel(val)
+        v_lbl.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {val_color};")
+        s_lbl = QLabel(sub)
+        s_lbl.setStyleSheet("font-size: 10px; color: #64748b;")
 
-        lbl_t = QLabel(title)
-        lbl_t.setProperty("class", "MetricLabel")
-        lbl_v = QLabel(default_val)
-        lbl_v.setProperty("class", "MetricValue")
-        lbl_s = QLabel(subtitle)
-        lbl_s.setStyleSheet("font-size: 11px; color: #64748b;")
+        vl.addWidget(t_lbl)
+        vl.addWidget(v_lbl)
+        vl.addWidget(s_lbl)
+        f.v_lbl = v_lbl
+        f.s_lbl = s_lbl
+        return f
 
-        l.addWidget(lbl_t)
-        l.addWidget(lbl_v)
-        l.addWidget(lbl_s)
-        card.value_label = lbl_v
-        card.subtitle_label = lbl_s
-        return card
-
-    # --- TAB 2: SUB-FIELD 10M HEATMAP ---
+    # --- TAB 2: HEATMAP ---
     def setup_heatmap_tab(self):
-        layout = QVBoxLayout(self.tab_heatmap)
-        layout.setContentsMargins(12, 12, 12, 12)
+        l = QVBoxLayout(self.tab_heatmap)
+        l.setContentsMargins(12, 12, 12, 12)
 
-        ctrl_bar = QHBoxLayout()
-        lbl_layer = QLabel("Select Heatmap Layer:")
-        lbl_layer.setStyleSheet("font-weight: bold;")
-        ctrl_bar.addWidget(lbl_layer)
-
+        top_ctrl = QHBoxLayout()
+        top_ctrl.addWidget(QLabel("<b>Heatmap Layer:</b>"))
         self.layer_combo = QComboBox()
         self.layer_combo.addItems(["Soil Moisture (θ)", "NDVI (Canopy Health)", "Crop Transpiration (ETc)", "Root Depletion (Dr)", "Methane Flux (CH4)"])
         self.layer_combo.currentIndexChanged.connect(self.update_heatmap)
-        ctrl_bar.addWidget(self.layer_combo)
-        ctrl_bar.addStretch()
+        top_ctrl.addWidget(self.layer_combo)
+        top_ctrl.addStretch()
 
-        self.lbl_sector_info = QLabel("Hover or click a sector to inspect micro-topography")
+        self.lbl_sector_info = QLabel("Hover over any sector to inspect micro-topography")
         self.lbl_sector_info.setStyleSheet("color: #38bdf8; font-style: italic;")
-        ctrl_bar.addWidget(self.lbl_sector_info)
+        top_ctrl.addWidget(self.lbl_sector_info)
+        l.addLayout(top_ctrl)
 
-        layout.addLayout(ctrl_bar)
-
-        self.fig_heatmap = Figure(figsize=(7, 5), facecolor="#111827")
+        self.fig_heatmap = Figure(figsize=(7, 4.5), facecolor="#1e293b")
         self.canvas_heatmap = FigureCanvas(self.fig_heatmap)
-        layout.addWidget(self.canvas_heatmap)
+        l.addWidget(self.canvas_heatmap)
 
     def update_heatmap(self):
         if self.current_df is None or self.current_df.empty:
@@ -392,22 +361,20 @@ class AquaVoltApp(QMainWindow):
         
         self.fig_heatmap.clear()
         ax = self.fig_heatmap.add_subplot(111)
-        ax.set_facecolor("#111827")
+        ax.set_facecolor("#0f172a")
 
         farm = next((f for f in self.farms if f.get("id") == self.current_farm_id), {})
         rows_n = farm.get("grid_rows", 8)
         cols_n = farm.get("grid_cols", 8)
-        
+
         layer_idx = self.layer_combo.currentIndex()
         col_map = {0: "soil_moisture", 1: "ndvi", 2: "ETc", 3: "Dr", 4: "methane_flux_kg_hr"}
         target_col = col_map.get(layer_idx, "soil_moisture")
-        
         if target_col not in self.current_df.columns:
             target_col = "soil_moisture"
 
         latest_batch = self.current_df.tail(rows_n * cols_n)
         matrix = np.zeros((rows_n, cols_n))
-
         for _, r in latest_batch.iterrows():
             r_idx = int(r.get("sector_row", 0)) % rows_n
             c_idx = int(r.get("sector_col", 0)) % cols_n
@@ -416,38 +383,41 @@ class AquaVoltApp(QMainWindow):
         cmaps = ["Blues", "YlGn", "coolwarm", "Reds", "YlOrRd"]
         c_plot = ax.imshow(matrix, cmap=cmaps[layer_idx], aspect="auto", origin="lower")
         
-        self.fig_heatmap.colorbar(c_plot, ax=ax)
-        ax.set_title(f"Sub-Field 10m Micro-Spatial Raster: {self.layer_combo.currentText()}", color="#f3f4f6", fontsize=12, pad=10)
-        ax.set_xlabel("Grid Column (10m Easting)", color="#9ca3af")
-        ax.set_ylabel("Grid Row (10m Northing)", color="#9ca3af")
-        ax.tick_params(colors="#9ca3af")
-        
+        cb = self.fig_heatmap.colorbar(c_plot, ax=ax)
+        cb.ax.yaxis.set_tick_params(color='#94a3b8')
+        cb.outline.set_edgecolor('#334155')
+        matplotlib.pyplot.setp(matplotlib.pyplot.getp(cb.ax.axes, 'yticklabels'), color='#94a3b8')
+
+        ax.set_title(f"Sub-Field 10m Micro-Spatial Raster: {self.layer_combo.currentText()}", color="#f8fafc", fontsize=12, pad=8)
+        ax.set_xlabel("Grid Column (10m Easting)", color="#94a3b8")
+        ax.set_ylabel("Grid Row (10m Northing)", color="#94a3b8")
+        ax.tick_params(colors="#94a3b8")
+        for spine in ax.spines.values():
+            spine.set_color('#334155')
+
         self.fig_heatmap.tight_layout()
         self.canvas_heatmap.draw()
 
-    # --- TAB 3: MULTI-FIELD SIDE-BY-SIDE ANALYTICS ---
+    # --- TAB 3: MULTI-FIELD ---
     def setup_multi_field_tab(self):
-        layout = QVBoxLayout(self.tab_multi_field)
-        layout.setContentsMargins(12, 12, 12, 12)
+        l = QVBoxLayout(self.tab_multi_field)
+        l.setContentsMargins(12, 12, 12, 12)
 
-        ctrl = QHBoxLayout()
-        lbl = QLabel("Comparing Multi-Continent Active Farms:")
-        lbl.setStyleSheet("font-weight: bold; color: #10b981;")
-        ctrl.addWidget(lbl)
-        ctrl.addStretch()
-        layout.addLayout(ctrl)
+        lbl = QLabel("<b>Side-by-Side Dual-Continent Timeseries Analytics (Last 7 Days)</b>")
+        lbl.setStyleSheet("color: #10b981;")
+        l.addWidget(lbl)
 
-        self.fig_multi = Figure(figsize=(9, 4.5), facecolor="#111827")
+        self.fig_multi = Figure(figsize=(8, 4.5), facecolor="#1e293b")
         self.canvas_multi = FigureCanvas(self.fig_multi)
-        layout.addWidget(self.canvas_multi)
+        l.addWidget(self.canvas_multi)
 
     def update_multi_field_analytics(self):
         self.fig_multi.clear()
         ax1 = self.fig_multi.add_subplot(211)
         ax2 = self.fig_multi.add_subplot(212, sharex=ax1)
 
-        ax1.set_facecolor("#111827")
-        ax2.set_facecolor("#111827")
+        ax1.set_facecolor("#0f172a")
+        ax2.set_facecolor("#0f172a")
 
         pk_path = os.path.join(DATA_DIR, "telemetry_log_pk_pindi_bowra.csv")
         us_path = os.path.join(DATA_DIR, "telemetry_log_2026_06_to_08.csv")
@@ -456,46 +426,48 @@ class AquaVoltApp(QMainWindow):
             df_pk = pd.read_csv(pk_path).tail(144 * 24 * 7)
             df_us = pd.read_csv(us_path).tail(256 * 24 * 7)
 
-            pk_hourly = df_pk.groupby("timestamp").agg({"ETc": "mean", "soil_moisture": "mean"}).reset_index()
-            us_hourly = df_us.groupby("timestamp").agg({"ETc": "mean", "soil_moisture": "mean"}).reset_index()
+            pk_h = df_pk.groupby("timestamp").agg({"ETc": "mean", "soil_moisture": "mean"}).reset_index()
+            us_h = df_us.groupby("timestamp").agg({"ETc": "mean", "soil_moisture": "mean"}).reset_index()
 
-            x_len = min(len(pk_hourly), len(us_hourly))
+            x_len = min(len(pk_h), len(us_h))
             x_axis = range(x_len)
 
-            ax1.plot(x_axis, pk_hourly["ETc"].iloc[:x_len], label="Pakistan Basmati Rice (ETc mm/hr)", color="#10b981", lw=1.8)
-            ax1.plot(x_axis, us_hourly["ETc"].iloc[:x_len], label="USA California Multi-Crop (ETc mm/hr)", color="#38bdf8", lw=1.8)
-            ax1.set_ylabel("ETc (mm/hr)", color="#9ca3af")
+            ax1.plot(x_axis, pk_h["ETc"].iloc[:x_len], label="Pakistan Basmati Rice (ETc mm/hr)", color="#10b981", lw=1.8)
+            ax1.plot(x_axis, us_h["ETc"].iloc[:x_len], label="USA California Multi-Crop (ETc mm/hr)", color="#38bdf8", lw=1.8)
+            ax1.set_ylabel("ETc (mm/hr)", color="#94a3b8")
             ax1.legend(loc="upper right", facecolor="#1e293b", edgecolor="#334155", labelcolor="#f8fafc")
-            ax1.tick_params(colors="#9ca3af")
-            ax1.grid(True, color="#1e293b", ls="--", alpha=0.5)
+            ax1.tick_params(colors="#94a3b8")
+            ax1.grid(True, color="#334155", ls="--", alpha=0.5)
 
-            ax2.plot(x_axis, pk_hourly["soil_moisture"].iloc[:x_len], label="Pakistan Root Moisture (θ)", color="#34d399", lw=1.8)
-            ax2.plot(x_axis, us_hourly["soil_moisture"].iloc[:x_len], label="USA Root Moisture (θ)", color="#60a5fa", lw=1.8)
-            ax2.set_ylabel("Soil Moisture (m³/m³)", color="#9ca3af")
-            ax2.set_xlabel("Continuous Timeline Hours (Last 7 Days)", color="#9ca3af")
+            ax2.plot(x_axis, pk_h["soil_moisture"].iloc[:x_len], label="Pakistan Root Moisture (θ)", color="#34d399", lw=1.8)
+            ax2.plot(x_axis, us_h["soil_moisture"].iloc[:x_len], label="USA Root Moisture (θ)", color="#60a5fa", lw=1.8)
+            ax2.set_ylabel("Soil Moisture (m³/m³)", color="#94a3b8")
+            ax2.set_xlabel("Continuous Timeline Hours", color="#94a3b8")
             ax2.legend(loc="upper right", facecolor="#1e293b", edgecolor="#334155", labelcolor="#f8fafc")
-            ax2.tick_params(colors="#9ca3af")
-            ax2.grid(True, color="#1e293b", ls="--", alpha=0.5)
+            ax2.tick_params(colors="#94a3b8")
+            ax2.grid(True, color="#334155", ls="--", alpha=0.5)
+
+        for ax in [ax1, ax2]:
+            for spine in ax.spines.values():
+                spine.set_color('#334155')
 
         self.fig_multi.tight_layout()
         self.canvas_multi.draw()
 
-    # --- TAB 4: 7-DAY PRECISION SCHEDULER ---
+    # --- TAB 4: SCHEDULER ---
     def setup_scheduler_tab(self):
-        layout = QVBoxLayout(self.tab_scheduler)
-        layout.setContentsMargins(12, 12, 12, 12)
+        l = QVBoxLayout(self.tab_scheduler)
+        l.setContentsMargins(12, 12, 12, 12)
 
-        header_box = QHBoxLayout()
-        title = QLabel("📅 Automated 7-Day Precision Irrigation Schedule & Fuel Savings")
-        title.setStyleSheet("font-size: 15px; font-weight: bold; color: #10b981;")
-        header_box.addWidget(title)
-        header_box.addStretch()
+        h = QHBoxLayout()
+        h.addWidget(QLabel("<b>📅 7-Day Precision Irrigation Scheduler & Fuel Savings</b>"))
+        h.addStretch()
 
-        btn_export = QPushButton("📥 Export Schedule CSV")
-        btn_export.setProperty("class", "Secondary")
-        btn_export.clicked.connect(self.export_schedule)
-        header_box.addWidget(btn_export)
-        layout.addLayout(header_box)
+        btn_exp = QPushButton("📥 Export Schedule CSV")
+        btn_exp.setProperty("class", "Secondary")
+        btn_exp.clicked.connect(self.export_schedule)
+        h.addWidget(btn_exp)
+        l.addLayout(h)
 
         self.table_sched = QTableWidget()
         self.table_sched.setColumnCount(7)
@@ -503,7 +475,7 @@ class AquaVoltApp(QMainWindow):
             "Date", "Day", "Decision", "Pumping Window", "Water Depth (mm)", "Soil Moisture (θ)", "Estimated Fuel Cost"
         ])
         self.table_sched.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        layout.addWidget(self.table_sched)
+        l.addWidget(self.table_sched)
         self.populate_schedule_table()
 
     def populate_schedule_table(self):
@@ -537,75 +509,68 @@ class AquaVoltApp(QMainWindow):
                 shutil.copyfile(sched_path, save_path)
                 QMessageBox.information(self, "Success", f"Schedule saved to: {save_path}")
 
-    # --- TAB 5: ADD NEW FARM WIZARD ---
+    # --- TAB 5: ADD FARM WIZARD ---
     def setup_add_farm_tab(self):
-        layout = QVBoxLayout(self.tab_add_farm)
-        layout.setContentsMargins(20, 20, 20, 20)
+        l = QVBoxLayout(self.tab_add_farm)
+        l.setContentsMargins(18, 18, 18, 18)
 
         card = QFrame()
         card.setProperty("class", "CardHighlight")
-        form_layout = QGridLayout(card)
-        form_layout.setSpacing(14)
+        fl = QGridLayout(card)
+        fl.setSpacing(12)
 
-        title = QLabel("➕ Register New Farm Parcel (Real-Data Backfill from June 1st)")
-        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #10b981; margin-bottom: 8px;")
-        form_layout.addWidget(title, 0, 0, 1, 2)
+        t = QLabel("➕ Register New Farm (Real Data Backfill from June 1st)")
+        t.setStyleSheet("font-size: 16px; font-weight: bold; color: #10b981; margin-bottom: 6px;")
+        fl.addWidget(t, 0, 0, 1, 2)
 
-        # Farm Name
-        form_layout.addWidget(QLabel("Farm Name:"), 1, 0)
+        fl.addWidget(QLabel("Farm Name:"), 1, 0)
         self.input_farm_name = QLineEdit()
-        self.input_farm_name.setPlaceholderText("e.g. Sheikhupura Rice Estate or Fresno Almond Orchard")
-        form_layout.addWidget(self.input_farm_name, 1, 1)
+        self.input_farm_name.setPlaceholderText("e.g. Sheikhupura Rice Estate or Kern Almonds")
+        fl.addWidget(self.input_farm_name, 1, 1)
 
-        # Latitude
-        form_layout.addWidget(QLabel("Centroid Latitude (Decimal Degrees):"), 2, 0)
+        fl.addWidget(QLabel("Centroid Latitude:"), 2, 0)
         self.input_lat = QDoubleSpinBox()
         self.input_lat.setRange(-90.0, 90.0)
         self.input_lat.setDecimals(5)
         self.input_lat.setValue(31.7150)
-        form_layout.addWidget(self.input_lat, 2, 1)
+        fl.addWidget(self.input_lat, 2, 1)
 
-        # Longitude
-        form_layout.addWidget(QLabel("Centroid Longitude (Decimal Degrees):"), 3, 0)
+        fl.addWidget(QLabel("Centroid Longitude:"), 3, 0)
         self.input_lon = QDoubleSpinBox()
         self.input_lon.setRange(-180.0, 180.0)
         self.input_lon.setDecimals(5)
         self.input_lon.setValue(73.9850)
-        form_layout.addWidget(self.input_lon, 3, 1)
+        fl.addWidget(self.input_lon, 3, 1)
 
-        # Crop Type
-        form_layout.addWidget(QLabel("Primary Crop Type:"), 4, 0)
+        fl.addWidget(QLabel("Crop Type:"), 4, 0)
         self.input_crop = QComboBox()
         self.input_crop.addItems([
             "Super Basmati Rice (AWD)", "Wheat (Triticum aestivum)", "Corn / Maize",
             "Cotton (Bt)", "Sugarcane", "Processing Tomatoes", "Alfalfa Hay", "Almonds / Orchards"
         ])
-        form_layout.addWidget(self.input_crop, 4, 1)
+        fl.addWidget(self.input_crop, 4, 1)
 
-        # Acreage
-        form_layout.addWidget(QLabel("Total Farm Acreage:"), 5, 0)
+        fl.addWidget(QLabel("Total Acreage:"), 5, 0)
         self.input_acres = QDoubleSpinBox()
         self.input_acres.setRange(1.0, 10000.0)
         self.input_acres.setValue(5.0)
-        form_layout.addWidget(self.input_acres, 5, 1)
+        fl.addWidget(self.input_acres, 5, 1)
 
-        # Submit Button
-        self.btn_submit_farm = QPushButton("🚀 Backfill Real Data & Synchronize with GitHub Actions")
-        self.btn_submit_farm.setStyleSheet("padding: 12px; font-size: 14px;")
+        self.btn_submit_farm = QPushButton("🚀 Backfill Real Data & Sync with GitHub Actions")
+        self.btn_submit_farm.setStyleSheet("padding: 10px; font-size: 13px;")
         self.btn_submit_farm.clicked.connect(self.submit_new_farm)
-        form_layout.addWidget(self.btn_submit_farm, 6, 0, 1, 2)
+        fl.addWidget(self.btn_submit_farm, 6, 0, 1, 2)
 
-        # Progress Bar & Status
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        form_layout.addWidget(self.progress_bar, 7, 0, 1, 2)
+        fl.addWidget(self.progress_bar, 7, 0, 1, 2)
 
         self.lbl_backfill_status = QLabel("")
         self.lbl_backfill_status.setStyleSheet("color: #38bdf8; font-weight: bold;")
-        form_layout.addWidget(self.lbl_backfill_status, 8, 0, 1, 2)
+        fl.addWidget(self.lbl_backfill_status, 8, 0, 1, 2)
 
-        layout.addWidget(card)
-        layout.addStretch()
+        l.addWidget(card)
+        l.addStretch()
 
     def submit_new_farm(self):
         name = self.input_farm_name.text().strip()
@@ -643,18 +608,18 @@ class AquaVoltApp(QMainWindow):
         else:
             QMessageBox.critical(self, "Error", f"Failed to backfill farm data: {message}")
 
-    # --- TAB 6: CRYPTOGRAPHIC AUDIT ---
+    # --- TAB 6: AUDIT ---
     def setup_audit_tab(self):
-        layout = QVBoxLayout(self.tab_audit)
-        layout.setContentsMargins(12, 12, 12, 12)
+        l = QVBoxLayout(self.tab_audit)
+        l.setContentsMargins(12, 12, 12, 12)
 
         card = QFrame()
         card.setProperty("class", "Card")
-        c_layout = QVBoxLayout(card)
+        cl = QVBoxLayout(card)
 
-        lbl = QLabel("🔒 ISO/IEC 27037 Cryptographic Integrity Certificate")
-        lbl.setStyleSheet("font-size: 15px; font-weight: bold; color: #10b981;")
-        c_layout.addWidget(lbl)
+        lbl = QLabel("<b>🔒 ISO/IEC 27037 Cryptographic Integrity Certificate</b>")
+        lbl.setStyleSheet("font-size: 15px; color: #10b981;")
+        cl.addWidget(lbl)
 
         audit_path = os.path.join(DATA_DIR, "CRYPTOGRAPHIC_AUDIT_REPORT.json")
         audit_text = "No audit report found."
@@ -665,10 +630,9 @@ class AquaVoltApp(QMainWindow):
         txt = QTextEdit()
         txt.setReadOnly(True)
         txt.setText(audit_text)
-        txt.setStyleSheet("background-color: #0b0f19; color: #38bdf8; font-family: 'Consolas', monospace; font-size: 12px; border: 1px solid #1f2937; border-radius: 6px;")
-        c_layout.addWidget(txt)
-
-        layout.addWidget(card)
+        txt.setStyleSheet("background-color: #0f172a; color: #38bdf8; font-family: 'Consolas', monospace; font-size: 12px; border: 1px solid #334155; border-radius: 6px;")
+        cl.addWidget(txt)
+        l.addWidget(card)
 
     def switch_farm(self, index):
         if index < 0 or index >= len(self.farms):
@@ -690,17 +654,17 @@ class AquaVoltApp(QMainWindow):
             wn_val = float(latest["water_need"].mean()) if "water_need" in latest else 0.0
             ch4_val = float(latest["methane_flux_kg_hr"].mean()) if "methane_flux_kg_hr" in latest else 0.05
 
-            self.card_sm.value_label.setText(f"{sm_val:.3f} m³/m³")
-            self.card_etc.value_label.setText(f"{etc_val:.3f} mm/hr")
-            self.card_kc.value_label.setText(f"{kc_val:.2f}")
-            self.card_dr.value_label.setText(f"{dr_val:.1f} mm")
-            self.card_water.value_label.setText(f"{wn_val:.1f} mm")
-            self.card_ch4.value_label.setText(f"{ch4_val:.4f} kg/hr")
+            self.card_sm.v_lbl.setText(f"{sm_val:.3f} m³/m³")
+            self.card_etc.v_lbl.setText(f"{etc_val:.3f} mm/hr")
+            self.card_kc.v_lbl.setText(f"{kc_val:.2f}")
+            self.card_dr.v_lbl.setText(f"{dr_val:.1f} mm")
+            self.card_water.v_lbl.setText(f"{wn_val:.1f} mm")
+            self.card_ch4.v_lbl.setText(f"{ch4_val:.4f} kg/hr")
 
             # Update Diurnal plot
             self.fig_diurnal.clear()
             ax = self.fig_diurnal.add_subplot(111)
-            ax.set_facecolor("#111827")
+            ax.set_facecolor("#0f172a")
             
             last_24 = self.current_df.groupby("timestamp").agg({"air_temp": "mean", "solar_rad": "mean", "ETc": "mean"}).tail(24)
             x = range(len(last_24))
@@ -709,11 +673,14 @@ class AquaVoltApp(QMainWindow):
             ax.plot(x, last_24["ETc"] * 50.0, label="Crop ETc (mm x50)", color="#10b981", lw=2)
             ax.plot(x, last_24["solar_rad"] / 20.0, label="Solar Rad (W/m² ÷20)", color="#38bdf8", ls="--", lw=1.5)
             
-            ax.set_ylabel("Physics Magnitude", color="#9ca3af")
-            ax.set_xlabel("Hours (Last 24 Hours)", color="#9ca3af")
+            ax.set_ylabel("Physics Magnitude", color="#94a3b8")
+            ax.set_xlabel("Hours (Last 24 Hours)", color="#94a3b8")
             ax.legend(loc="upper right", facecolor="#1e293b", edgecolor="#334155", labelcolor="#f8fafc")
-            ax.tick_params(colors="#9ca3af")
-            ax.grid(True, color="#1e293b", ls="--", alpha=0.5)
+            ax.tick_params(colors="#94a3b8")
+            ax.grid(True, color="#334155", ls="--", alpha=0.5)
+            for spine in ax.spines.values():
+                spine.set_color('#334155')
+
             self.fig_diurnal.tight_layout()
             self.canvas_diurnal.draw()
 
