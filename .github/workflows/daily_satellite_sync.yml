@@ -1,0 +1,35 @@
+name: Automated Daily Satellite Ingestion & Sync
+
+on:
+  schedule:
+    # Runs daily at 10:30 AM UTC (after the morning satellite overpass)
+    - cron: '30 10 * * *'
+  workflow_dispatch: # Allows manual 1-click trigger from GitHub web UI
+
+jobs:
+  daily-satellite-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install pandas numpy pillow matplotlib scikit-learn
+
+      - name: Ingest Daily Satellite Photo & Compute Correlation
+        run: |
+          python api/daily_satellite_ingestor.py
+
+      - name: Commit and Push Daily Satellite Photo to GitHub
+        run: |
+          git config --global user.name "AquaVolt-DailySatelliteBot"
+          git config --global user.email "bot@aquavolt.ai"
+          git add data/
+          git diff-index --quiet HEAD || git commit -m "chore(daily-satellite): automated daily spaceborne photo ingestion & correlation update for $(date -u +'%Y-%m-%d')"
+          git push origin main
