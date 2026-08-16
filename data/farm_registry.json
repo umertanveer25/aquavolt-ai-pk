@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2026-08-16T08:49:33.033811+00:00",
+  "active_farms": [
+    {
+      "id": "pk_pindi_bowra",
+      "name": "Pakistan Rice Hub (Pindi Bowra)",
+      "region": "Indus Basin, Punjab, Pakistan",
+      "country": "Pakistan",
+      "centroid_lat": 32.0886,
+      "centroid_lon": 73.5914,
+      "bounding_box": [
+        73.590725,
+        32.088026,
+        73.592075,
+        32.089174
+      ],
+      "crop_type": "Super Basmati Rice (AWD)",
+      "acreage": 4.0,
+      "grid_rows": 12,
+      "grid_cols": 12,
+      "sectors_count": 144,
+      "telemetry_csv": "data/telemetry_log_pk_pindi_bowra.csv",
+      "v2_telemetry_csv": "data/v2_advanced_telemetry_pk.csv",
+      "status": "Active (24/7 Cloud Sync)",
+      "start_date": "2026-06-01"
+    },
+    {
+      "id": "usa_russell_ranch",
+      "name": "USA Multi-Crop Research (Russell Ranch)",
+      "region": "Sacramento Valley, California, USA",
+      "country": "USA",
+      "centroid_lat": 38.548,
+      "centroid_lon": -121.879,
+      "bounding_box": [
+        -121.886,
+        38.542,
+        -121.872,
+        38.554
+      ],
+      "crop_type": "Corn, Alfalfa, Fallow, Tomatoes",
+      "acreage": 300.0,
+      "grid_rows": 8,
+      "grid_cols": 8,
+      "sectors_count": 256,
+      "telemetry_csv": "data/telemetry_log_2026_06_to_08.csv",
+      "v2_telemetry_csv": "data/v2_advanced_telemetry.csv",
+      "status": "Active (24/7 Cloud Sync)",
+      "start_date": "2026-06-01"
+    },
+    {
+      "id": "sheikhupura_rice_estate",
+      "name": "Sheikhupura Rice Estate",
+      "region": "Custom Agricultural Parcel (31.7150, 73.9850)",
+      "country": "Pakistan",
+      "centroid_lat": 31.715,
+      "centroid_lon": 73.985,
+      "bounding_box": [
+        73.984151,
+        31.714151,
+        73.985849,
+        31.715849
+      ],
+      "crop_type": "Super Basmati Rice (AWD)",
+      "acreage": 8.0,
+      "grid_rows": 8,
+      "grid_cols": 8,
+      "sectors_count": 64,
+      "telemetry_csv": "data/telemetry_log_sheikhupura_rice_estate.csv",
+      "status": "Active (24/7 Cloud Sync)",
+      "start_date": "2026-06-01"
+    }
+  ]
+}
