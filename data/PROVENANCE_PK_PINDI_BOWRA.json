@@ -13,12 +13,10 @@
     73.592075,
     32.089174
   ],
-  "start_date": "2026-06-01T00:00",
-  "end_date": "2026-08-15T23:00",
-  "total_unique_hours": 1824,
-  "total_telemetry_records": 262656,
+  "total_records": 266112,
+  "sectors_per_hour": 144,
   "data_provenance": "100% REAL PHYSICAL ERA5-LAND & OPEN-METEO OBSERVATIONS",
-  "sha256": "79b7eaebf9bf7bf47150ead0164ab3880735dc7b40075350397d2342cb388e40",
-  "last_updated": "2026-08-15T14:57:38.345420+00:00",
+  "sha256": "1fc442b9e49015f06f2a18fc4d8cf22198ef054b94a79f0a83377a37c4ecfcf1",
+  "last_updated": "2026-08-16T00:05:36.304253+00:00",
   "integrity_status": "AUTHENTIC_PHYSICAL_GROUND_REPLICATED"
 }
