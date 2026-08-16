@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import json
 import glob
 import subprocess
 from datetime import datetime, timezone
@@ -29,7 +30,7 @@ if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
 print("======================================================================")
-print("  AquaVolt-AI Resilient Sync [Unified Telemetry, Drone & V2 Streams]")
+print("  AquaVolt-AI Resilient Sync [Unified Dynamic Multi-Farm Engine]")
 print("======================================================================")
 
 # 1. Automated Drone Flight Ingestion & Provenance Audit
@@ -41,7 +42,7 @@ try:
 except Exception as de:
     print(f"[DRONE WARNING] Drone audit step: {de}")
 
-# 2. Query Microsoft Planetary Computer STAC for latest satellite scenes (USA & Pakistan)
+# 2. Query Microsoft Planetary Computer STAC for latest satellite scenes
 print("\n[MICROSOFT STAC] Querying Microsoft Planetary Computer STAC Catalog...")
 try:
     import microsoft_planetary_stac
@@ -52,18 +53,18 @@ try:
 except Exception as stace:
     print(f"[STAC WARNING] Microsoft STAC discovery step: {stace}")
 
-# 3. Download, process, AND log hourly telemetry
-print("\n[START] Computing and pushing primary telemetry data...")
+# 3. Download, process, AND log hourly telemetry for USA
+print("\n[USA] Computing and pushing primary USA telemetry data...")
 try:
     worksheet, rows_to_append = aquavolt_gsheet_logger.main(push_to_sheets=True)
 except SystemExit:
     print("[EXIT] Telemetry engine signaled early exit (data already current).")
 except Exception as e:
-    print(f"[WARNING] GSheet push encountered an issue (local CSV was updated): {e}")
+    print(f"[WARNING] GSheet push encountered an issue: {e}")
     worksheet, rows_to_append = None, []
 
-# 3. Log 7 Advanced Streams in Isolation (V2 Engine)
-print("\n[V2 STREAMS] Recording 7 advanced agro-environmental streams in isolation...")
+# 4. Log 7 Advanced Streams in Isolation (V2 Engine)
+print("\n[V2 STREAMS] Recording 7 advanced agro-environmental streams...")
 try:
     import v2_advanced_streams
     csv_file = os.path.join(repo_dir, "data", "telemetry_log_2026_06_to_08.csv")
@@ -85,70 +86,47 @@ try:
 except Exception as ve:
     print(f"[V2 WARNING] Advanced streams step: {ve}")
 
-# 4. Ingest and Log Pakistan Pindi Bowra Basmati Rice Stream
+# 5. Ingest and Log Pakistan Pindi Bowra Basmati Rice Stream
 print("\n[PAKISTAN] Ingesting real-time observations for Pindi Bowra Rice Hub...")
 try:
     import aquavolt_pk_pindi_bowra
     import v2_advanced_streams_pk
     n_new = aquavolt_pk_pindi_bowra.sync_pakistan_hourly()
     if n_new and n_new > 0:
-        # Append to isolated Pakistan V2 dataset
         v2_advanced_streams_pk.process_and_backfill_pakistan_v2(max_rows=n_new)
 except Exception as pke:
     print(f"[PAKISTAN WARNING] Pindi Bowra sync step: {pke}")
 
-# 5. Live Dual-Continent Correlation & Online PIML Self-Calibration
-print("\n[LIVE PIML & CORRELATION] Executing online physics-informed self-updating loop...")
+# 6. Dynamic Sync for Any Custom Registered Farms in farm_registry.json
+print("\n[CUSTOM FARMS] Checking and updating dynamically registered farms...")
 try:
-    import dual_continent_validation_engine
-    dual_continent_validation_engine.run_dual_continent_validation()
-    print("[LIVE PIML] AI model weights and empirical matrices successfully recalibrated.")
-except Exception as dce:
-    print(f"[CORRELATION WARNING] Online calibration step: {dce}")
+    registry_path = os.path.join(repo_dir, "data", "farm_registry.json")
+    if os.path.exists(registry_path):
+        with open(registry_path, "r") as f:
+            reg = json.load(f)
+        for farm in reg.get("active_farms", []):
+            f_id = farm.get("id")
+            if f_id not in ["pk_pindi_bowra", "usa_russell_ranch"]:
+                print(f"[DYNAMIC SYNC] Syncing custom farm: {farm.get('name')} ({f_id})...")
+                # Dynamic backfiller handles updating latest hours
+                import dynamic_farm_backfiller
+                dynamic_farm_backfiller.integrate_new_farm(
+                    farm.get("name"), farm.get("centroid_lat"), farm.get("centroid_lon"),
+                    crop_type=farm.get("crop_type", "Super Basmati Rice"),
+                    acreage=farm.get("acreage", 5.0),
+                    grid_size=(farm.get("grid_rows", 8), farm.get("grid_cols", 8)),
+                    start_date=farm.get("start_date", "2026-06-01")
+                )
+except Exception as dyn_e:
+    print(f"[CUSTOM FARMS WARNING] Dynamic sync step: {dyn_e}")
 
-# 6. Save local backup and push to GitHub
-print("\n[BACKUP] Syncing telemetry, live correlation matrix, and provenance to GitHub...")
+# 7. Live Dual-Continent Correlation & Online PIML Self-Calibration
+print("\n[DUAL-CONTINENT ENGINE] Recalibrating Dual-Continent Validation Matrix...")
 try:
-    current_utc = datetime.now(timezone.utc)
-    now_str = current_utc.strftime('%Y-%m-%d %H:00 UTC')
-    
-    # Save cache backup
-    csv_file = os.path.join(repo_dir, "data", "telemetry_log_2026_06_to_08.csv")
-    if os.path.exists(csv_file):
-        df = pd.read_csv(csv_file)
-        backup_file = os.path.join(CACHE_DIR, f"aquavolt_backup_{current_utc.strftime('%Y%m%d_%H%M%S')}.csv")
-        df.tail(256).to_csv(backup_file, index=False)
-        print(f"[BACKUP] Cached latest telemetry to: {backup_file}")
+    val_script = os.path.join(repo_dir, "api", "dual_continent_validation_engine.py")
+    if os.path.exists(val_script):
+        subprocess.run([sys.executable, val_script], cwd=repo_dir, check=False)
+except Exception as vale:
+    print(f"[VALIDATION WARNING] Dual-Continent engine step: {vale}")
 
-    # Cleanup old cache files (> 10)
-    files = sorted(glob.glob(os.path.join(CACHE_DIR, "aquavolt_backup_*.csv")), key=os.path.getmtime)
-    for f in files[:-10]:
-        try:
-            os.remove(f)
-        except Exception:
-            pass
-
-    # Stage and push to GitHub
-    print("[GIT] Committing and pushing all streams to GitHub...")
-    subprocess.run([
-        "git", "add", 
-        "data/*.csv", 
-        "data/incoming_validation/*.csv", 
-        "data/drone_audit_ledger.csv", 
-        "data/PROVENANCE.json", 
-        "data/PROVENANCE_PK_PINDI_BOWRA.json",
-        "aquavolt_pk_pindi_bowra.py",
-        "api/*.py",
-        "README.md"
-    ], cwd=repo_dir, check=False)
-    subprocess.run(["git", "commit", "-m", f"chore: automated hourly multi-site sync (USA & Pakistan) {now_str} [skip ci]"], cwd=repo_dir, check=False)
-    res = subprocess.run(["git", "push", "origin", "main"], cwd=repo_dir, capture_output=True, text=True)
-    if res.returncode == 0:
-        print("[GIT] ✅ Pushed all streams (USA & Pakistan) to GitHub successfully.")
-    else:
-        print(f"[GIT] Push status: {res.stderr.strip() or 'Up to date'}")
-
-except Exception as e:
-    print(f"[ERROR] Git sync step: {e}")
-
-print("[DONE] Hourly sync cycle complete.")
+print("\n[COMPLETED] Resilient multi-site sync finished successfully at:", datetime.now(timezone.utc).isoformat())
