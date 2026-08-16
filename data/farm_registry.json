@@ -1,6 +1,6 @@
 {
-  "version": "2.1.0",
-  "last_updated": "2026-08-16T15:20:00Z",
+  "version": "2.2.0",
+  "last_updated": "2026-08-16T16:10:00Z",
   "active_farms": [
     {
       "id": "pk_pindi_bowra",
@@ -9,12 +9,7 @@
       "country": "Pakistan",
       "centroid_lat": 32.0886,
       "centroid_lon": 73.5914,
-      "bounding_box": [
-        73.590725,
-        32.088026,
-        73.592075,
-        32.089174
-      ],
+      "bounding_box": [73.590725, 32.088026, 73.592075, 32.089174],
       "crop_type": "Super Basmati Rice (AWD)",
       "acreage": 4.0,
       "grid_rows": 12,
@@ -22,6 +17,12 @@
       "sectors_count": 144,
       "telemetry_csv": "data/pakistan/telemetry_log_pk_pindi_bowra.csv",
       "v2_telemetry_csv": "data/pakistan/v2_advanced_telemetry_pk.csv",
+      "satellite_imagery": {
+        "satellite_photo": "data/pakistan/images/sentinel2_planetscope_true_color_pindi_bowra.png",
+        "nisar_radar_map": "data/pakistan/images/nisar_lband_deep_root_map.png",
+        "tropomi_methane_map": "data/pakistan/images/tropomi_xch4_methane_plume.png",
+        "planetscope_ndvi_map": "data/pakistan/images/planetscope_3m_ndvi_spatial_map.png"
+      },
       "status": "Active (24/7 Cloud Sync)",
       "start_date": "2026-06-01"
     },
@@ -32,12 +33,7 @@
       "country": "USA",
       "centroid_lat": 38.548,
       "centroid_lon": -121.879,
-      "bounding_box": [
-        -121.886,
-        38.542,
-        -121.872,
-        38.554
-      ],
+      "bounding_box": [-121.8845, 38.5495, -121.8785, 38.554],
       "crop_type": "Corn / Maize",
       "acreage": 75.0,
       "grid_rows": 8,
@@ -45,6 +41,12 @@
       "sectors_count": 64,
       "telemetry_csv": "data/usa/field_1_corn/telemetry_field_1_corn.csv",
       "v2_telemetry_csv": "data/usa/field_1_corn/v2_advanced_field_1_corn.csv",
+      "satellite_imagery": {
+        "satellite_photo": "data/usa/field_1_corn/images/field_1_corn_authentic_satellite_photo.png",
+        "daily_imagery_dir": "data/usa/field_1_corn/daily_imagery_july_aug",
+        "crop_mosaic": "data/usa/images/russell_ranch_4crop_satellite_mosaic.png",
+        "timeseries_filmstrip": "data/usa/images/usa_corn_daily_growth_timeseries_july_aug.png"
+      },
       "status": "Active (24/7 Cloud Sync)",
       "start_date": "2026-06-01"
     },
@@ -55,12 +57,7 @@
       "country": "USA",
       "centroid_lat": 38.549,
       "centroid_lon": -121.878,
-      "bounding_box": [
-        -121.886,
-        38.542,
-        -121.872,
-        38.554
-      ],
+      "bounding_box": [-121.878, 38.5495, -121.872, 38.554],
       "crop_type": "Alfalfa Hay",
       "acreage": 75.0,
       "grid_rows": 8,
@@ -68,6 +65,11 @@
       "sectors_count": 64,
       "telemetry_csv": "data/usa/field_2_alfalfa/telemetry_field_2_alfalfa.csv",
       "v2_telemetry_csv": "data/usa/field_2_alfalfa/v2_advanced_field_2_alfalfa.csv",
+      "satellite_imagery": {
+        "satellite_photo": "data/usa/field_2_alfalfa/images/field_2_alfalfa_authentic_satellite_photo.png",
+        "daily_imagery_dir": "data/usa/field_2_alfalfa/daily_imagery_july_aug",
+        "crop_mosaic": "data/usa/images/russell_ranch_4crop_satellite_mosaic.png"
+      },
       "status": "Active (24/7 Cloud Sync)",
       "start_date": "2026-06-01"
     },
@@ -78,12 +80,7 @@
       "country": "USA",
       "centroid_lat": 38.547,
       "centroid_lon": -121.88,
-      "bounding_box": [
-        -121.886,
-        38.542,
-        -121.872,
-        38.554
-      ],
+      "bounding_box": [-121.8845, 38.542, -121.8785, 38.5465],
       "crop_type": "Fallow / Soil Rest",
       "acreage": 75.0,
       "grid_rows": 8,
@@ -91,6 +88,11 @@
       "sectors_count": 64,
       "telemetry_csv": "data/usa/field_3_fallow/telemetry_field_3_fallow.csv",
       "v2_telemetry_csv": "data/usa/field_3_fallow/v2_advanced_field_3_fallow.csv",
+      "satellite_imagery": {
+        "satellite_photo": "data/usa/field_3_fallow/images/field_3_fallow_authentic_satellite_photo.png",
+        "daily_imagery_dir": "data/usa/field_3_fallow/daily_imagery_july_aug",
+        "crop_mosaic": "data/usa/images/russell_ranch_4crop_satellite_mosaic.png"
+      },
       "status": "Active (24/7 Cloud Sync)",
       "start_date": "2026-06-01"
     },
@@ -101,12 +103,7 @@
       "country": "USA",
       "centroid_lat": 38.55,
       "centroid_lon": -121.877,
-      "bounding_box": [
-        -121.886,
-        38.542,
-        -121.872,
-        38.554
-      ],
+      "bounding_box": [-121.878, 38.542, -121.872, 38.5465],
       "crop_type": "Processing Tomatoes",
       "acreage": 75.0,
       "grid_rows": 8,
@@ -114,6 +111,11 @@
       "sectors_count": 64,
       "telemetry_csv": "data/usa/field_4_tomato/telemetry_field_4_tomato.csv",
       "v2_telemetry_csv": "data/usa/field_4_tomato/v2_advanced_field_4_tomato.csv",
+      "satellite_imagery": {
+        "satellite_photo": "data/usa/field_4_tomato/images/field_4_tomato_authentic_satellite_photo.png",
+        "daily_imagery_dir": "data/usa/field_4_tomato/daily_imagery_july_aug",
+        "crop_mosaic": "data/usa/images/russell_ranch_4crop_satellite_mosaic.png"
+      },
       "status": "Active (24/7 Cloud Sync)",
       "start_date": "2026-06-01"
     }
