@@ -1,9 +1,12 @@
 """
-AquaVolt-AI: Live Real-Time Farm Sync Engine
-============================================
-Fetches real-time, live satellite & agromet telemetry from Open-Meteo & NASA/ESA
-downscaling physics for any active farm, updates CSV logs, and returns live values.
-Bulletproof null-safe parsing for USA, Pakistan, and global coordinates.
+AquaVolt-AI: Automated Multi-Farm Live Real-Time Telemetry Sync
+===============================================================
+Syncs all active farms in data/farm_registry.json:
+  - Pakistan Rice Hub (Pindi Bowra)
+  - USA Field 1 (Corn)
+  - USA Field 2 (Alfalfa)
+  - USA Field 3 (Fallow)
+  - USA Field 4 (Tomato)
 """
 
 import os
@@ -15,6 +18,7 @@ from datetime import datetime, timezone
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, "data")
+REGISTRY_PATH = os.path.join(DATA_DIR, "farm_registry.json")
 
 def safe_float(val, default=0.0):
     if val is None:
@@ -27,10 +31,6 @@ def safe_float(val, default=0.0):
         return float(default)
 
 def sync_active_farm_live(farm_dict):
-    """
-    Fetches real live current-hour physics from Open-Meteo for the farm's lat/lon,
-    downscales to the sub-field 10m grid, and appends to the farm's telemetry CSV.
-    """
     lat = safe_float(farm_dict.get("centroid_lat"), 32.0886)
     lon = safe_float(farm_dict.get("centroid_lon"), 73.5914)
     farm_name = str(farm_dict.get("name", "Active Farm"))
@@ -42,7 +42,6 @@ def sync_active_farm_live(farm_dict):
     csv_rel = farm_dict.get("telemetry_csv", "")
     csv_path = os.path.join(ROOT_DIR, csv_rel)
 
-    # 1. Fetch Real Live Data from Open-Meteo Live API
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={lat}&longitude={lon}&"
@@ -55,7 +54,7 @@ def sync_active_farm_live(farm_dict):
         with urllib.request.urlopen(req, timeout=10) as resp:
             res = json.loads(resp.read().decode("utf-8"))
     except Exception as api_err:
-        print(f"[LIVE SYNC API WARNING] {api_err}. Using last recorded telemetry state.")
+        print(f"[LIVE SYNC WARNING] {api_err}")
         res = {}
 
     current = res.get("current", {})
@@ -71,14 +70,12 @@ def sync_active_farm_live(farm_dict):
     sm_base = safe_float(current.get("soil_moisture_0_to_7cm"), 0.28)
     et0 = safe_float(current.get("et0_fao_evapotranspiration"), 0.20)
 
-    # 2. Physics & Phenological Parameters
     is_rice = "rice" in crop_type.lower() or "basmati" in crop_type.lower()
-    base_kc = 1.15 if is_rice else 0.95
+    base_kc = 1.15 if is_rice else (0.20 if "fallow" in crop_type.lower() else 0.95)
 
     day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
     ndvi_trend = 0.30 + 0.48 * (1.0 / (1.0 + np.exp(-(day_of_year - 195) / 12.0)))
 
-    # Compute bounding box span
     span_deg = max(0.001, np.sqrt(acreage) * 0.0006)
     lat_min, lat_max = lat - span_deg / 2.0, lat + span_deg / 2.0
     lon_min, lon_max = lon - span_deg / 2.0, lon + span_deg / 2.0
@@ -121,23 +118,28 @@ def sync_active_farm_live(farm_dict):
                 "field_name": farm_name
             })
 
-    # 3. Append to CSV if file exists
     if os.path.exists(csv_path):
         df_existing = pd.read_csv(csv_path, on_bad_lines='skip')
         if not df_existing.empty and str(df_existing.iloc[-1].get("timestamp", "")) == t_str:
-            print(f"[LIVE SYNC] Telemetry for {t_str} is already up to date.")
+            print(f"  [✓] {farm_name}: Already up to date for {t_str}.")
         else:
             df_new = pd.DataFrame(new_rows)
             df_combined = pd.concat([df_existing, df_new], ignore_index=True)
             df_combined.to_csv(csv_path, index=False)
-            print(f"[LIVE SYNC] Appended {len(new_rows)} live sectors for {t_str} to {csv_rel}.")
+            print(f"  [+] {farm_name}: Appended {len(new_rows)} live sectors for {t_str}.")
 
-    return {
-        "timestamp": t_str,
-        "air_temp": air_temp,
-        "humidity": humidity,
-        "solar_rad": solar_rad,
-        "soil_moisture": sm_base,
-        "et0": et0,
-        "status": "Live Real-Time Data Synced"
-    }
+    return {"status": "success", "timestamp": t_str}
+
+def sync_all_farms():
+    print("=" * 80)
+    print("  AQUAVOLT-AI 24/7 HOURLY TELEMETRY SYNC FOR ALL ACTIVE SITES")
+    print("=" * 80)
+    if os.path.exists(REGISTRY_PATH):
+        with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
+            registry = json.load(f)
+        for farm in registry.get("active_farms", []):
+            sync_active_farm_live(farm)
+    print("=" * 80)
+
+if __name__ == "__main__":
+    sync_all_farms()

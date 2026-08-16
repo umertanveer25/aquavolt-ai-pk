@@ -1,0 +1,35 @@
+name: Automated 24/7 Hourly Telemetry Sync
+
+on:
+  schedule:
+    # Runs at minute 5 of every single hour (24 times a day)
+    - cron: '5 * * * *'
+  workflow_dispatch: # Allows manual 1-click trigger
+
+jobs:
+  hourly-telemetry-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install pandas numpy urllib3
+
+      - name: Sync Current Hour Telemetry for Pakistan & USA
+        run: |
+          python api/live_farm_sync.py
+
+      - name: Commit and Push Hourly Telemetry to GitHub
+        run: |
+          git config --global user.name "AquaVolt-24x7-TelemetryBot"
+          git config --global user.email "bot@aquavolt.ai"
+          git add data/
+          git diff-index --quiet HEAD || git commit -m "chore(telemetry): automated 24/7 hourly sync for $(date -u +'%Y-%m-%d %H:00:00 UTC')"
+          git push origin main
