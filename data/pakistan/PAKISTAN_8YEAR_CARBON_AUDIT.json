@@ -1,0 +1,74 @@
+{
+  "2019": {
+    "total_hours": 8760,
+    "kharif_rice_hours": 3672,
+    "rabi_wheat_hours": 5088,
+    "baseline_ch4_kg": 424.3,
+    "awd_mitigated_ch4_kg": 196.9,
+    "avoided_tco2e": 6.37,
+    "annual_rainfall_mm": 675.1
+  },
+  "2020": {
+    "total_hours": 8784,
+    "kharif_rice_hours": 3672,
+    "rabi_wheat_hours": 5112,
+    "baseline_ch4_kg": 410.2,
+    "awd_mitigated_ch4_kg": 190.3,
+    "avoided_tco2e": 6.16,
+    "annual_rainfall_mm": 1267.2
+  },
+  "2021": {
+    "total_hours": 8760,
+    "kharif_rice_hours": 3672,
+    "rabi_wheat_hours": 5088,
+    "baseline_ch4_kg": 422.5,
+    "awd_mitigated_ch4_kg": 196.0,
+    "avoided_tco2e": 6.34,
+    "annual_rainfall_mm": 888.3
+  },
+  "2022": {
+    "total_hours": 8760,
+    "kharif_rice_hours": 3672,
+    "rabi_wheat_hours": 5088,
+    "baseline_ch4_kg": 409.8,
+    "awd_mitigated_ch4_kg": 190.1,
+    "avoided_tco2e": 6.15,
+    "annual_rainfall_mm": 938.7
+  },
+  "2023": {
+    "total_hours": 8760,
+    "kharif_rice_hours": 3672,
+    "rabi_wheat_hours": 5088,
+    "baseline_ch4_kg": 407.4,
+    "awd_mitigated_ch4_kg": 189.0,
+    "avoided_tco2e": 6.11,
+    "annual_rainfall_mm": 1115.4
+  },
+  "2024": {
+    "total_hours": 8784,
+    "kharif_rice_hours": 3672,
+    "rabi_wheat_hours": 5112,
+    "baseline_ch4_kg": 429.9,
+    "awd_mitigated_ch4_kg": 199.5,
+    "avoided_tco2e": 6.45,
+    "annual_rainfall_mm": 949.6
+  },
+  "2025": {
+    "total_hours": 8760,
+    "kharif_rice_hours": 3672,
+    "rabi_wheat_hours": 5088,
+    "baseline_ch4_kg": 413.3,
+    "awd_mitigated_ch4_kg": 191.8,
+    "avoided_tco2e": 6.2,
+    "annual_rainfall_mm": 1151.7
+  },
+  "2026": {
+    "total_hours": 5472,
+    "kharif_rice_hours": 1848,
+    "rabi_wheat_hours": 3624,
+    "baseline_ch4_kg": 236.9,
+    "awd_mitigated_ch4_kg": 109.9,
+    "avoided_tco2e": 3.56,
+    "annual_rainfall_mm": 399.4
+  }
+}
