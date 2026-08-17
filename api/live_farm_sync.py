@@ -3,8 +3,7 @@ AquaVolt-AI: 24/7 Multi-Farm Cloud Telemetry Sync & Self-Healing Gap Repair Engi
 ==================================================================================
 Supports:
   1. Pakistan Rice Hub (Pindi Bowra - 4.0 Acres)
-  2. Pakistan Rice Research Institute (RRI Kala Shah Kaku - 400+ Acres)
-  3. USA Russell Ranch Research Hub (UC Davis - 300 Acres, 4 Crops Combined)
+  2. USA Russell Ranch Research Hub (UC Davis - 300 Acres, 4 Crops Combined)
 """
 
 import os
@@ -31,17 +30,6 @@ FARMS_CONFIG = [
         "rows": 12,
         "cols": 12,
         "field_name": "Pakistan Rice Hub (Pindi Bowra)"
-    },
-    {
-        "id": "pk_rri_ksk",
-        "name": "Rice Research Institute (RRI) Kala Shah Kaku",
-        "csv_path": os.path.join(PK_DIR, "telemetry_log_pk_rri_ksk.csv"),
-        "lat": 31.7251,
-        "lon": 74.2695,
-        "is_rice": True,
-        "rows": 12,
-        "cols": 12,
-        "field_name": "RRI Kala Shah Kaku (400+ Acres)"
     },
     {
         "id": "usa_russell_ranch",
@@ -98,7 +86,6 @@ def sync_farm(farm):
     latest_dt = df["dt"].max()
     
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
-    
     missing_hours = pd.date_range(start=latest_dt + pd.Timedelta(hours=1), end=now_utc, freq="h")
     
     if len(missing_hours) == 0:
@@ -190,12 +177,12 @@ def sync_farm(farm):
     print(f"  [OK] {farm['name']}: Appended {len(new_rows):,} rows ({len(missing_hours)} hrs) -> Total {len(df_clean):,} rows.")
 
 def main():
-    print("=" * 95)
-    print("  AQUAVOLT-AI: SELF-HEALING 24/7 MULTI-FARM LIVE SYNC ENGINE (3 FARMS)")
-    print("=" * 95)
+    print("=" * 80)
+    print("  AQUAVOLT-AI: SELF-HEALING 24/7 MULTI-FARM LIVE SYNC ENGINE")
+    print("=" * 80)
     for f in FARMS_CONFIG:
         sync_farm(f)
-    print("=" * 95)
+    print("=" * 80)
 
 if __name__ == "__main__":
     main()
