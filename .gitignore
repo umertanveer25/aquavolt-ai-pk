@@ -42,3 +42,8 @@ aquavolt_paper.pdf
 
 
 .agency-starter/
+
+papers/
+*.tex
+*.bib
+*.pdf
