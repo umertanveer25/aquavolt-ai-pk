@@ -1,4 +1,9 @@
-\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
+# Python script to build the publication-grade 7,500+ word Springer Nature manuscript sn-article.tex
+
+import re
+import os
+
+latex_content = r'''\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}
 
 \usepackage{graphicx}
 \usepackage{multirow}
@@ -76,25 +81,6 @@ To resolve this spatial resolution bottleneck without physical ground hardware, 
 However, coupling multi-modal remote sensing streams with standard purely data-driven machine learning algorithms (such as Random Forest, Gradient Boosted Trees, or unconstrained Deep Neural Networks) introduces severe physical failure modes \cite{reichstein2019deep, raissi2019physics, karniadakis2021physics}. Purely statistical models possess no intrinsic knowledge of microbial thermodynamics or vadose zone hydrology \cite{willard2022integrating, campsvalls2021unified}. When trained on noisy satellite telemetry, unconstrained neural networks frequently hallucinate positive methane emissions during dry aeration phases or violate regional atmospheric mass conservation, predicting physically impossible fluxes that invalidate carbon credit integrity \cite{chavoshi2024pinn, gupta2025physics, zhang2025deep}.
 
 To overcome these fundamental limitations, the emerging paradigm of Physics-Informed Machine Learning (PIML) and Physics-Informed Neural Networks (PINNs) integrates governing differential equations, thermodynamic conservation laws, and biophysical boundary conditions directly into deep neural loss functions \cite{raissi2019physics, karniadakis2021physics, reichstein2019deep}. By penalizing departures from known biophysical principles during backpropagation, PIML models guarantee physical consistency, eliminate spurious artifacts, and generalize reliably across unobserved climate extremes \cite{willard2022integrating, chavoshi2024pinn, gupta2025physics}.
-
-\begin{table*}[htbp]
-\centering
-\caption{State-of-the-Art Benchmark Comparison across Spaceborne Methane Downscaling, In-Situ Eddy Covariance, and Agricultural Water Monitoring Paradigms (2024--2026 Literature).}\label{tab1}
-\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lccccc@{\extracolsep\fill}}
-\toprule
-Methodology / Framework & Primary Sensor / Infrastructure & Spatial Resolution & Temporal Cadence & In-Situ CAPEX & Out-of-Sample $R^2$ \\
-\midrule
-IPCC Tier 1 Default \cite{ipcc2019refinement} & Regional Empirical Lookups & Regional/National & Seasonal Static & \$0 & $-0.0045$ \\
-Eddy Covariance Flux Tower \cite{minamikawa2021guidelines, varon2022quantifying} & Sonic Anemometer + IRGA & Point ($<100\text{ m}$) & 30-min Continuous & \$50,000+ & $1.0000$ (Benchmark) \\
-Edge IoT Dielectric Arrays \cite{worldbank2023carbon, grosz2023verra} & In-situ Probes + LoRa Gateway & Plot ($20\text{ m}$ radius) & 15-min Telemetry & \$15,000+ & $0.7850$ \\
-EO4AWD Framework \cite{kitratporn2024automated, shah2025machine} & Sentinel-1 C-Band SAR & $20\text{ m} \times 20\text{ m}$ & 6--12 Days & \$0 & $0.7200$ (Binary State) \\
-Regional TROPOMI Inversion \cite{nesser2024quantifying, liu2023continuous} & Sentinel-5P TROPOMI & $5.5\text{ km} \times 3.5\text{ km}$ & Daily (Overpass) & \$0 & $0.6850$ (Regional Plume) \\
-\textbf{AquaVolt-AI PIML (This Work)} & \textbf{S5P + S1 SAR + S2/PlanetScope} & \textbf{10 m $\times$ 10 m} & \textbf{Hourly Continuous} & \textbf{\$0 (Zero Hardware)} & \textbf{0.9454} \\
-\bottomrule
-\end{tabular*}
-\end{table*}
-
-As systematically summarized in Table \ref{tab1}, existing quantification paradigms exhibit severe operational trade-offs between physical accuracy, capital expenditure, and spatiotemporal coverage. High-precision eddy covariance flux towers provide unmatched local fidelity ($R^2 = 1.0000$) but incur prohibitive capital costs exceeding \$50,000 per unit, preventing deployment across millions of smallholder plots. Conversely, regional spaceborne spectroscopic inversions from Sentinel-5P TROPOMI offer zero in-situ hardware costs but suffer from coarse spatial footprints ($5.5\text{ km} \times 3.5\text{ km}$, $R^2 = 0.6850$) that cannot isolate field-level emissions. AquaVolt-AI bridges this gap by coupling multi-satellite constellation streams with physics-informed regularization, delivering a high out-of-sample predictive accuracy ($R^2 = 0.9454$) at $10\text{ m} \times 10\text{ m}$ resolution without requiring physical ground hardware.
 
 \subsection{Core Contributions of This Work}\label{sec1_6}
 In this paper, we develop, mathematically formalize, and empirically validate \textbf{AquaVolt-AI}, an end-to-end, zero-hardware Physics-Informed Earth Observation framework for downscaling spaceborne Sentinel-5P TROPOMI methane columns to field-scale resolution ($10\text{ m} \times 10\text{ m}$) and automating smallholder digital MRV in the Indus River Basin. The explicit scientific and computational contributions of this work are as follows:
@@ -357,6 +343,23 @@ To evaluate the downscaling accuracy and physical consistency of AquaVolt-AI, we
 
 \begin{table*}[htbp]
 \centering
+\caption{State-of-the-Art Benchmark Comparison across Spaceborne Methane Downscaling, In-Situ Eddy Covariance, and Agricultural Water Monitoring Paradigms (2024--2026 Literature).}\label{tab1}
+\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lccccc@{\extracolsep\fill}}
+\toprule
+Methodology / Framework & Primary Sensor / Infrastructure & Spatial Resolution & Temporal Cadence & In-Situ CAPEX & Out-of-Sample $R^2$ \\
+\midrule
+IPCC Tier 1 Default \cite{ipcc2019refinement} & Regional Empirical Lookups & Regional/National & Seasonal Static & \$0 & $-0.0045$ \\
+Eddy Covariance Flux Tower \cite{minamikawa2021guidelines, varon2022quantifying} & Sonic Anemometer + IRGA & Point ($<100\text{ m}$) & 30-min Continuous & \$50,000+ & $1.0000$ (Benchmark) \\
+Edge IoT Dielectric Arrays \cite{worldbank2023carbon, grosz2023verra} & In-situ Probes + LoRa Gateway & Plot ($20\text{ m}$ radius) & 15-min Telemetry & \$15,000+ & $0.7850$ \\
+EO4AWD Framework \cite{kitratporn2024automated, shah2025machine} & Sentinel-1 C-Band SAR & $20\text{ m} \times 20\text{ m}$ & 6--12 Days & \$0 & $0.7200$ (Binary State) \\
+Regional TROPOMI Inversion \cite{nesser2024quantifying, liu2023continuous} & Sentinel-5P TROPOMI & $5.5\text{ km} \times 3.5\text{ km}$ & Daily (Overpass) & \$0 & $0.6850$ (Regional Plume) \\
+\textbf{AquaVolt-AI PIML (This Work)} & \textbf{S5P + S1 SAR + S2/PlanetScope} & \textbf{10 m $\times$ 10 m} & \textbf{Hourly Continuous} & \textbf{\$0 (Zero Hardware)} & \textbf{0.9454} \\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
+\begin{table*}[htbp]
+\centering
 \caption{Out-of-Sample Machine Learning Downscaling Performance Evaluation on the 2024--2026 Kharif Rice Test Dataset ($9,192\text{ hours}$, 5,760 dry-aerated test hours).}\label{tab3}
 \begin{tabular*}{\textwidth}{@{\extracolsep\fill}lccccc@{\extracolsep\fill}}
 \toprule
@@ -390,7 +393,7 @@ In Panel (b), Sentinel-1 C-band SAR backscatter ($\sigma^0_{\mathrm{VV}}$, $10\t
 Panel (c) displays the resulting AquaVolt-AI downscaled methane flux map across the $12 \times 12$ micro-grid ($144\text{ sectors}$). Saturated, anaerobic sectors exhibit strong methanogenic fluxes ($0.125\text{--}0.138\text{ kg CH}_4/\text{hr}$), whereas aerated AWD sectors drop to zero ($0.000\text{ kg/hr}$), demonstrating that the framework resolves sub-field micro-spatial heterogeneity at a $550\times$ spatial enhancement without in-situ flux instrumentation.
 
 \subsection{8-Year Decadal Carbon Footprint Trajectory (2019--2026)}\label{sec3_3}
-To evaluate longitudinal permanence and multi-year decarbonization efficacy under operational field conditions, we executed a decadal carbon accounting analysis spanning the 2019 through 2026 Kharif rice cultivation seasons. Across this 8-year longitudinal study window ($N = 27,552\text{ active Kharif rice hours}$), the continuous baseline flooding regime generated a cumulative gross emission of $3,346.4\text{ kg CH}_4$ (equivalent to $93.36\text{ tCO}_2\text{e}$ across the 4.0-acre farm block). In contrast, the implementation of Alternate Wetting and Drying (AWD) water management restricted cumulative emissions to $1,552.7\text{ kg CH}_4$ ($43.32\text{ tCO}_2\text{e}$), achieving an audited net emission mitigation of $1,793.7\text{ kg CH}_4$ ($50.04\text{ tCO}_2\text{e}$ net avoided), as summarized in the annual carbon ledger in Table \ref{tab4}.
+Over the 8-year longitudinal study window (2019 through 2026; $N = 27,552\text{ active Kharif rice hours}$), the continuous baseline flooding regime generated a cumulative gross emission of $3,346.4\text{ kg CH}_4$ ($93.36\text{ tCO}_2\text{e}$ across the 4.0-acre farm), whereas AWD water management restricted cumulative emissions to $1,552.7\text{ kg CH}_4$ ($43.32\text{ tCO}_2\text{e}$), achieving an audited net emission mitigation of $1,793.7\text{ kg CH}_4$ ($50.04\text{ tCO}_2\text{e}$ net avoided, Table \ref{tab4}). This represents an audited multi-year mitigation efficiency of \textbf{-53.60\%} across the decadal observation period.
 
 \begin{table*}[htbp]
 \centering
@@ -413,17 +416,13 @@ Year & Rice Hours & Baseline $\mathrm{CH}_4$ (kg) & AWD $\mathrm{CH}_4$ (kg) & A
 \end{tabular*}
 \end{table*}
 
-The audited annual ledger confirms remarkable consistency in mitigation performance, maintaining an annual reduction efficiency between $51.99\%$ and $52.01\%$ across all eight Kharif seasons. Applying the IPCC AR6 global warming potential ($GWP_{100} = 27.9$) alongside the mandatory $5\%$ permanence buffer deduction mandated by Verra VM0042 yielded a cumulative issuance of $50.04\text{ tCO}_2\text{e}$ in certified carbon credits (averaging $1.78\text{ tCO}_2\text{e}/\text{acre}/\text{season}$). Across the 8-year project timeline, the stacked economic dividend combining carbon market proceeds and avoided tubewell diesel pumping expenses delivered a cumulative net cash return of $\text{PKR }854,000$ to the smallholder farming household.
-
-To elucidate the climatic drivers governing inter-annual emission variations, Figure \ref{fig3} delineates the multi-year trajectory alongside regional agrometeorological forcing events.
-
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig3_8year_methane_trajectory_academic.png}
 \caption{8-Year Decadal Carbon Footprint \& Mitigation Trajectory (2019--2026) in Punjab Rice. Annual bar plots compare baseline continuous flooding against AWD mitigation protocols, with annotated regional climate anomalies (2021/2024 heatwaves, 2022 monsoon super floods) and secondary axis tracking annual verified carbon credit volumes ($\text{tCO}_2\text{e}$).}\label{fig3}
 \end{figure}
 
-As illustrated in Figure \ref{fig3}, inter-annual climate variations exerted a pronounced modulating effect on gross biogenic methanogenesis. During the extreme heatwave seasons of 2021 and 2024, baseline emissions escalated to $465.4\text{ kg}$ and $472.0\text{ kg}$ respectively, driven by sustained elevated root zone soil temperatures ($T_{\mathrm{soil}} > 34^\circ\text{C}$) that accelerated microbial reaction rates via Arrhenius kinetics ($\Psi_{\mathrm{temp}} > 1.45$). Conversely, during the 2022 catastrophic monsoon flood period, extensive cloud cover and persistent precipitation depressed peak solar irradiance and surface temperatures, dampening baseline continuous flooding emissions to $416.7\text{ kg}$. Under all thermal and precipitation regimes, AWD consistently arrested methanogenesis during aerobic drainages, demonstrating robust climate resilience without mitigation degradation.onal climate resilience.
+As shown in Figure \ref{fig3}, inter-annual climate variations exerted a strong modulating effect on gross methane production. During the extreme heatwave seasons of 2021 and 2024, baseline emissions surged to $465.4\text{ kg}$ and $472.0\text{ kg}$ due to high soil temperatures ($T_{\mathrm{soil}} > 34^\circ\text{C}$) accelerating Arrhenius methanogenic kinetics ($\Psi_{\mathrm{temp}} > 1.45$). In contrast, during the catastrophic 2022 monsoon flood season, excessive cloud cover and frequent rainfall dampened peak temperatures, moderating baseline emissions to $416.7\text{ kg}$. Under all climatic conditions, AWD maintained a consistent mitigation efficacy of $51.99\%\text{ to }52.01\%$, demonstrating exceptional climate resilience.
 
 \subsection{Parametric and Non-Parametric Statistical Hypothesis Testing}\label{sec3_4}
 To rigorously confirm that the observed methane reductions were driven by AWD agronomic intervention rather than random sampling stochasticity, we executed an exhaustive suite of parametric and non-parametric statistical hypothesis tests over the full $N = 27,552\text{ continuous hourly dataset}$ (Table \ref{tab5}).
@@ -548,3 +547,9 @@ The authors declare that generative AI tools were used solely for code refactori
 \bibliography{sn-bibliography}
 
 \end{document}
+'''
+
+with open('sn-article.tex', 'w', encoding='utf-8') as f:
+    f.write(latex_content.strip() + '\n')
+
+print("sn-article.tex updated successfully.")
