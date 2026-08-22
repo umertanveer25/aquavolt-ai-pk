@@ -37,4 +37,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git diff-index --quiet HEAD || (git commit -m "chore(telemetry): automated 24/7 hourly sync for $(date -u +'%Y-%m-%d %H:00:00 UTC')" && git push origin main)
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore(telemetry): automated 24/7 hourly sync for $(date -u +'%Y-%m-%d %H:00:00 UTC')"
+            git pull --rebase origin main || true
+            git push origin main || (git pull --rebase origin main && git push origin main)
+          fi
