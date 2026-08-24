@@ -54,14 +54,45 @@ _RAW_KEY = os.environ.get("AQUAVOLT_PREMIUM_API_KEY", "")
 PREMIUM_API_KEYS: set[str] = {k.strip() for k in _RAW_KEY.split(",") if k.strip()}
 
 
+try:
+    from api.security_wazuh_logger import wazuh_audit
+except ImportError:
+    try:
+        from security_wazuh_logger import wazuh_audit
+    except ImportError:
+        wazuh_audit = None
+
+
 def verify_api_key(x_api_key: str = Header(None)):
     if not PREMIUM_API_KEYS:
+        if wazuh_audit:
+            wazuh_audit.log_event(
+                event_type="API_CONFIG_ERROR",
+                severity="WARNING",
+                status="UNAVAILABLE",
+                details={"reason": "Premium API not configured"}
+            )
         raise HTTPException(
             status_code=503,
             detail="Premium API not configured. Set AQUAVOLT_PREMIUM_API_KEY env var.",
         )
     if not x_api_key or x_api_key not in PREMIUM_API_KEYS:
+        if wazuh_audit:
+            wazuh_audit.log_event(
+                event_type="API_AUTH_FAILURE",
+                severity="WARNING",
+                status="DENIED",
+                details={"provided_key_prefix": (x_api_key[:6] + "...") if x_api_key else "NONE"}
+            )
         raise HTTPException(status_code=401, detail="Unauthorized. Invalid or missing Premium API Key.")
+    
+    if wazuh_audit:
+        wazuh_audit.log_event(
+            event_type="API_AUTH_SUCCESS",
+            severity="INFO",
+            status="SUCCESS",
+            details={"key_prefix": x_api_key[:6] + "..."}
+        )
     return x_api_key
 
 

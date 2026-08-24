@@ -1,0 +1,60 @@
+<!--
+  AquaVolt-AI: Custom Wazuh Detection Rules for dMRV Security & Data Integrity
+-->
+<group name="aquavolt,dmrv_security,">
+
+  <!-- Base Decoded Rule -->
+  <rule id="100100" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="app_name">aquavolt-ai-pk</field>
+    <description>AquaVolt-AI application security event detected.</description>
+  </rule>
+
+  <!-- Critical: Unauthorized Modification of Telemetry Ledgers -->
+  <rule id="100101" level="12">
+    <if_group>syscheck</if_group>
+    <match>data/telemetry_log_pk_pindi_bowra.csv|data/pakistan/telemetry_log_pk_pindi_bowra.csv</match>
+    <description>CRITICAL: Unauthorized modification or deletion of Pakistan Field Telemetry CSV!</description>
+    <mitre>
+      <id>T1565.001</id> <!-- Data Manipulation -->
+    </mitre>
+  </rule>
+
+  <!-- High: Physical Methane Emission Anomaly / Sensor Spoofing -->
+  <rule id="100102" level="10">
+    <if_sid>100100</if_sid>
+    <field name="event_type">METHANE_ANOMALY_DETECTED</field>
+    <description>HIGH: Physical methane emission anomaly or sensor spoofing attempt detected.</description>
+    <mitre>
+      <id>T1499</id> <!-- Endpoint Denial of Service / Impair Defenses -->
+    </mitre>
+  </rule>
+
+  <!-- Warning: API Authentication Failure -->
+  <rule id="100103" level="6">
+    <if_sid>100100</if_sid>
+    <field name="event_type">API_AUTH_FAILURE</field>
+    <description>WARNING: AquaVolt-AI API invalid or unauthorized access attempt.</description>
+    <mitre>
+      <id>T1110</id> <!-- Brute Force -->
+    </mitre>
+  </rule>
+
+  <!-- Critical: Multiple API Auth Failures (Brute Force Detection) -->
+  <rule id="100104" level="10" frequency="5" timeframe="60">
+    <if_matched_sid>100103</if_matched_sid>
+    <same_field>client_ip</same_field>
+    <description>CRITICAL: Potential API brute-force attack detected from $(client_ip).</description>
+    <mitre>
+      <id>T1110.001</id>
+    </mitre>
+  </rule>
+
+  <!-- Info: Carbon Credit Issuance Audited -->
+  <rule id="100105" level="3">
+    <if_sid>100100</if_sid>
+    <field name="event_type">CARBON_CREDIT_ISSUANCE</field>
+    <description>AUDIT: Verra VM0042 Carbon Credit issuance ledger event recorded.</description>
+  </rule>
+
+</group>
